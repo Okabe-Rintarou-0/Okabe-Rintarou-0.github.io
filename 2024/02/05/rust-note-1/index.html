@@ -169,18 +169,64 @@
 <p>JoinHandle类型可以通过await来等待异步任务的完成，也可以通过abort()来中断异步任务，异步任务被中断后返回JoinError类型。</p>
 </blockquote>
 <p>举个例子：</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">fn</span> <span class="title function_">async_func</span>() <span class="punctuation">-&gt;</span> <span class="type">Result</span>&lt;(), <span class="type">Box</span>&lt;<span class="keyword">dyn</span> std::error::Error&gt;&gt; &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="title function_ invoke__">Ok</span>(())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">sync_func</span>() &#123;</span><br><span class="line">    <span class="comment">// handle 的类型为 JoinHandle&lt;Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt;&gt;</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">handle</span> = <span class="title function_ invoke__">spawn</span>(<span class="title function_ invoke__">async_func</span>());</span><br><span class="line">    <span class="comment">// 中断</span></span><br><span class="line">    handle.<span class="title function_ invoke__">abort</span>();</span><br><span class="line">    <span class="comment">// 等待完成（需要在异步函数中）</span></span><br><span class="line">    <span class="comment">// handle.await</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="rust">async fn async_func() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; &#123;
+    ...
+    Ok(())
+&#125;
 
+fn sync_func() &#123;
+    // handle 的类型为 JoinHandle&lt;Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt;&gt;
+    let handle = spawn(async_func());
+    // 中断
+    handle.abort();
+    // 等待完成（需要在异步函数中）
+    // handle.await
+&#125;
+</code></pre>
 <p>可以使用 <code>tokio::join!</code> 宏来等待多个 <code>JoinHandle</code> 执行完成。</p>
 <p>这里的 <code>spawn</code> 如果不等待的话，就会自己独立执行，所以会要求引用数据的生命周期是 <code>&#39;static</code>，也就是活到程序结束（因为异步任务也可能执行到程序结束）。这就会带来一些编码上的困难，例如下面的例子：</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Manager</span>;</span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">Manager</span> &#123;</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">fn</span> <span class="title function_">do_something_async</span>(&amp;<span class="keyword">self</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">start</span>(&amp;<span class="keyword">self</span>) &#123;</span><br><span class="line">        <span class="title function_ invoke__">spawn</span>(<span class="keyword">self</span>.<span class="title function_ invoke__">do_something_async</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<pre><code class="rust">struct Manager;
+impl Manager &#123;
+    async fn do_something_async(&amp;self) &#123;&#125;
 
+    fn start(&amp;self) &#123;
+        spawn(self.do_something_async());
+    &#125;
+&#125;
+</code></pre>
 <p>上述的代码会报错：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">error[E0521]: borrowed data escapes outside of method</span><br><span class="line">  --&gt; src/test.rs:22:15</span><br><span class="line">   |</span><br><span class="line">21 |     fn start(&amp;self) &#123;</span><br><span class="line">   |              -----</span><br><span class="line">   |              |</span><br><span class="line">   |              `self` is a reference that is only valid in the method body</span><br><span class="line">   |              let&#x27;s call the lifetime of this reference `&#x27;1`</span><br><span class="line">22 |         spawn(self.do_something_async());</span><br><span class="line">   |               ^^^^^^^^^^^^^^^^^^^^^^^^^</span><br><span class="line">   |               |</span><br><span class="line">   |               `self` escapes the method body here</span><br><span class="line">   |               argument requires that `&#x27;1` must outlive `&#x27;static`</span><br></pre></td></tr></table></figure>
-
+<pre><code>error[E0521]: borrowed data escapes outside of method
+  --&gt; src/test.rs:22:15
+   |
+21 |     fn start(&amp;self) &#123;
+   |              -----
+   |              |
+   |              `self` is a reference that is only valid in the method body
+   |              let&#39;s call the lifetime of this reference `&#39;1`
+22 |         spawn(self.do_something_async());
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |               |
+   |               `self` escapes the method body here
+   |               argument requires that `&#39;1` must outlive `&#39;static`
+</code></pre>
 <p><code>spawn</code> 要求 <code>&amp;self</code> 的生命周期必须是 <code>&#39;static</code>，我查阅了一些资料，从 Rust 论坛中看到了相关问题。解决方案是使用 <code>Arc</code> 或 <code>Arc/Mutex</code>（如果有可变引用）。</p>
-<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Manager</span> &#123;</span><br><span class="line">    inner: Arc&lt;ManagerInner&gt;,</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ManagerInner</span>;</span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">ManagerInner</span> &#123;</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">fn</span> <span class="title function_">do_something_async</span>(&amp;<span class="keyword">self</span>) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">Manager</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">start</span>(&amp;<span class="keyword">self</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">inner_cloned</span> = <span class="keyword">self</span>.inner.<span class="title function_ invoke__">clone</span>();</span><br><span class="line">        <span class="title function_ invoke__">spawn</span>(<span class="keyword">async</span> <span class="keyword">move</span> &#123;</span><br><span class="line">            inner_cloned.<span class="title function_ invoke__">do_something_async</span>().<span class="keyword">await</span>;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="rust">struct Manager &#123;
+    inner: Arc&lt;ManagerInner&gt;,
+&#125;
+struct ManagerInner;
+impl ManagerInner &#123;
+    async fn do_something_async(&amp;self) &#123;&#125;
+&#125;
 
+impl Manager &#123;
+    fn start(&amp;self) &#123;
+        let inner_cloned = self.inner.clone();
+        spawn(async move &#123;
+            inner_cloned.do_something_async().await;
+        &#125;);
+    &#125;
+&#125;
+</code></pre>
 <p>通过这一层包裹，就不报错了。<code>Arc</code> 保证了引用可以活到程序结束（只要还有引用，就不会被回收），即使 <code>Manager</code> 被回收，只要异步任务还在进行，<code>ManagerInner</code> 还是存在一份。这边必须使用 <code>move</code> 告诉编译器移动 <code>inner_cloned</code> 而不是捕获它的引用（捕获引用是默认行为）。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
 <li>理解tokio核心(2): task：<a target="_blank" rel="noopener" href="https://rust-book.junmajinlong.com/ch100/02_understand_tokio_task.html">https://rust-book.junmajinlong.com/ch100/02_understand_tokio_task.html</a></li>
