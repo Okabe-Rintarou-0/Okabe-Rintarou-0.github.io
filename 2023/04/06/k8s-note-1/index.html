@@ -169,7 +169,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
+                <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
             </span>
             
         </span>
@@ -177,7 +177,7 @@
     </div>
     
     <div class="content" v-pre>
-        <h1 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h1><p><img src="/infomer_components.webp"></p>
+        <h1 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h1><p><img src="/2023/04/06/k8s-note-1/informer.png"></p>
 <h2 id="组成部分"><a href="#组成部分" class="headerlink" title="组成部分"></a>组成部分</h2><ul>
 <li><p>Controller：Informer 的实施载体，可以创建 reflector 及控制 processLoop。processLoop 将DeltaFIFO 队列中的数据 pop 出，首先调用Indexer进行缓存并建立索引，然后分发给 processor 进行处理。</p>
 </li>
