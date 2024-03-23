@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Rust 笔记（1）—— 关于 tokio spawn | Okabe&#39;s LAB</title>
+    <title>Kubeflow 笔记（1）—— 安装与 Hello World | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -150,22 +150,22 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Rust 笔记（1）—— 关于 tokio spawn</h1>
+        <h1>Kubeflow 笔记（1）—— 安装与 Hello World</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2024/2/5
+            2024/3/23
         </span>
         
         <span class="category">
-            <a href="/categories/Language/">
+            <a href="/categories/Cloud-Native/">
                 <span class="icon">
                     <i class="fa-solid fa-bookmark fa-fw"></i>
                 </span>
-                Language
+                Cloud Native
             </a>
         </span>
         
@@ -178,12 +178,17 @@
             
             <span class="tag">
                 
-                <a href="/tags/Rust/" style="color: #00a596">Rust</a>
+                <a href="/tags/kubeflow/" style="color: #ff7d73">kubeflow</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/Tokio/" style="color: #00bcd4">Tokio</a>
+                <a href="/tags/kubenetes/" style="color: #00a596">kubenetes</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/ML/" style="color: #ff7d73">ML</a>
             </span>
             
         </span>
@@ -191,75 +196,7 @@
     </div>
     
     <div class="content" v-pre>
-        <h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>假如说有这样一个异步函数 <code>async_func</code>，如果在同步函数中不用 <code>await</code> 调用它，它是不会被执行的，除非使用 <code>tokio::task::spawn</code> 函数开启一个异步任务。该函数接受一个 Future 参数，会返回一个 <code>tokio::task::JoinHandle&lt;T&gt;</code>，其中范型 <code>T</code> 是异步任务的返回值。</p>
-<blockquote>
-<p>JoinHandle类型可以通过await来等待异步任务的完成，也可以通过abort()来中断异步任务，异步任务被中断后返回JoinError类型。</p>
-</blockquote>
-<p>举个例子：</p>
-<pre><code class="rust">async fn async_func() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; &#123;
-    ...
-    Ok(())
-&#125;
-
-fn sync_func() &#123;
-    // handle 的类型为 JoinHandle&lt;Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt;&gt;
-    let handle = spawn(async_func());
-    // 中断
-    handle.abort();
-    // 等待完成（需要在异步函数中）
-    // handle.await
-&#125;
-</code></pre>
-<p>可以使用 <code>tokio::join!</code> 宏来等待多个 <code>JoinHandle</code> 执行完成。</p>
-<p>这里的 <code>spawn</code> 如果不等待的话，就会自己独立执行，所以会要求引用数据的生命周期是 <code>&#39;static</code>，也就是活到程序结束（因为异步任务也可能执行到程序结束）。这就会带来一些编码上的困难，例如下面的例子：</p>
-<pre><code class="rust">struct Manager;
-impl Manager &#123;
-    async fn do_something_async(&amp;self) &#123;&#125;
-
-    fn start(&amp;self) &#123;
-        spawn(self.do_something_async());
-    &#125;
-&#125;
-</code></pre>
-<p>上述的代码会报错：</p>
-<pre><code>error[E0521]: borrowed data escapes outside of method
-  --&gt; src/test.rs:22:15
-   |
-21 |     fn start(&amp;self) &#123;
-   |              -----
-   |              |
-   |              `self` is a reference that is only valid in the method body
-   |              let&#39;s call the lifetime of this reference `&#39;1`
-22 |         spawn(self.do_something_async());
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |               |
-   |               `self` escapes the method body here
-   |               argument requires that `&#39;1` must outlive `&#39;static`
-</code></pre>
-<p><code>spawn</code> 要求 <code>&amp;self</code> 的生命周期必须是 <code>&#39;static</code>，我查阅了一些资料，从 Rust 论坛中看到了相关问题。解决方案是使用 <code>Arc</code> 或 <code>Arc/Mutex</code>（如果有可变引用）。</p>
-<pre><code class="rust">struct Manager &#123;
-    inner: Arc&lt;ManagerInner&gt;,
-&#125;
-struct ManagerInner;
-impl ManagerInner &#123;
-    async fn do_something_async(&amp;self) &#123;&#125;
-&#125;
-
-impl Manager &#123;
-    fn start(&amp;self) &#123;
-        let inner_cloned = self.inner.clone();
-        spawn(async move &#123;
-            inner_cloned.do_something_async().await;
-        &#125;);
-    &#125;
-&#125;
-</code></pre>
-<p>通过这一层包裹，就不报错了。<code>Arc</code> 保证了引用可以活到程序结束（只要还有引用，就不会被回收），即使 <code>Manager</code> 被回收，只要异步任务还在进行，<code>ManagerInner</code> 还是存在一份。这边必须使用 <code>move</code> 告诉编译器移动 <code>inner_cloned</code> 而不是捕获它的引用（捕获引用是默认行为）。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
-<li>理解tokio核心(2): task：<a target="_blank" rel="noopener" href="https://rust-book.junmajinlong.com/ch100/02_understand_tokio_task.html">https://rust-book.junmajinlong.com/ch100/02_understand_tokio_task.html</a></li>
-<li>Rust 论坛 How to use self while spawning a thread from method：<a target="_blank" rel="noopener" href="https://users.rust-lang.org/t/how-to-use-self-while-spawning-a-thread-from-method/8282">https://users.rust-lang.org/t/how-to-use-self-while-spawning-a-thread-from-method/8282</a></li>
-</ul>
-
+        <h1 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h1>
     </div>
     
     
