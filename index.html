@@ -167,6 +167,206 @@
         
 
 <div class="post">
+    <a href="/2024/03/24/bustub-1/">
+        <h2 class="post-title">CMU-DB 15-445 学习笔记（1）</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/3/24
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h1 id="对应课程"><a href="#对应课程" class="headerlink" title="对应课程"></a>对应课程</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/schedule.html">Schedule</a></li>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/02-modernsql.pdf">Lecture 2: Advanced SQL</a></li>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/03-storage1.pdf">Lecture 3: Database Storage 1</a></li>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/04-storage2.pdf">Lecture 4: Database Storage 2</a></li>
+</ul>
+<p><img src="/2024/03/24/bustub-1/tables.png"></p>
+<h2 id="聚合操作"><a href="#聚合操作" class="headerlink" title="聚合操作"></a>聚合操作</h2><ul>
+<li>AVG(col)</li>
+<li>MIN(col)</li>
+<li>MAX(col)</li>
+<li>SUM(col)</li>
+<li>…</li>
+</ul>
+<p>以上都是 SQL 中的聚合函数。</p>
+<ul>
+<li><p>支持 DICTINCT</p>
+<pre><code class="sql">SELECT COUNT(DISTINCT login) 
+FROM student WHERE login LIKE &#39;%@cs&#39;
+</code></pre>
+</li>
+<li><p>将聚合结果与非聚合的列混合在标准 SQL 下是未定义行为</p>
+<p>  应该使用 <code>GROUP BY</code></p>
+<pre><code class="sql">SELECT AVG(s.gpa), e.cid, s.name
+FROM enrolled AS e, student AS s
+WHERE e.sid = s.sid
+GROUP BY e.cid
+</code></pre>
+</li>
+<li><p>使用 <code>HAVING</code> 语句来筛选聚合结果</p>
+<pre><code class="sql">SELECT AVG(s.gpa) AS avg_gpa, e.cid
+FROM enrolled AS e, student AS s
+WHERE e.sid = s.sid
+AND avg_gpa &gt; 3.9
+GROUP BY e.cid
+</code></pre>
+<p>  以上方式是错误的（<code>AND avg_gpa &gt; 3.9</code>），因为平均值只有在聚合之后才知道。</p>
+<pre><code class="sql">SELECT AVG(s.gpa) AS avg_gpa, e.cid
+FROM enrolled AS e, student AS s
+WHERE e.sid = s.sid
+GROUP BY e.cid
+HAVING AVG(s.gpa) &gt; 3.9;
+</code></pre>
+<p>  SQL 是声明式的，AVG 函数不会执行两遍。</p>
+</li>
+</ul>
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><p><img src="/2024/03/24/bustub-1/string_operations.png"></p>
+<p>MySQL 默认情况下不区分字符串大小写，使用 CAST 将其转成二进制字符串：</p>
+<pre><code class="sql">SELECT * FROM student WHERE CAST(name AS BINARY) = &#39;TupaC&#39;;
+</code></pre>
+<ul>
+<li><p>模糊查询</p>
+<ul>
+<li><code>%</code> 类似正则表达式的 <code>*</code></li>
+<li><code>_</code> 类似正则表达式的 <code>.</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h2><p><img src="/2024/03/24/bustub-1/window_function.png"></p>
+<blockquote>
+<p>窗口函数是一种类似聚合函数的函数，但它们不会将数据集分组为单个值，而是在给定窗口范围内对每一行进行计算。</p>
+</blockquote>
+<p><code>ROW_NUMBER</code> 是窗口函数，<code>OVER</code> 括号里面声明了如何切片，如果为空则代表不切分表。</p>
+<p>例如，如果我希望计算每门课第二高成绩的学生：</p>
+<pre><code class="sql">SELECT * FROM (
+ SELECT *, RANK() OVER (PARTITION BY cid
+ ORDER BY grade ASC) AS rank
+ FROM enrolled) AS ranking
+WHERE ranking.rank = 2
+</code></pre>
+<h2 id="嵌套查询"><a href="#嵌套查询" class="headerlink" title="嵌套查询"></a>嵌套查询</h2><p><img src="/2024/03/24/bustub-1/nested_query.png"></p>
+<pre><code class="sql">SELECT * FROM student AS s 
+WHERE s.sid IN (
+    SELECT sid FROM enrolled where cid = &#39;15-445&#39;
+)
+</code></pre>
+<h2 id="LATERAL-JOIN"><a href="#LATERAL-JOIN" class="headerlink" title="LATERAL JOIN"></a>LATERAL JOIN</h2><p>LATERAL JOIN 允许嵌套查询中的表能够引用另一张表的属性</p>
+<p>以下的查询会报错，因为 <code>t2</code> 和 <code>t1</code> 是并行执行的，<code>t2</code> 无法知道 <code>t1</code> 的存在。</p>
+<pre><code class="sql">SELECT * from (SELECT 1 AS x) AS t1, (SELECT t1.x + 1 AS y) as t2; 
+</code></pre>
+<p>使用 <code>LATERAL</code> 关键字可以实现这一点：</p>
+<pre><code class="sql">SELECT * from (SELECT 1 AS x) AS t1, LATERAL (SELECT t1.x + 1 AS y) as t2; 
+</code></pre>
+<p><img src="/2024/03/24/bustub-1/mysql_lateral_join.png"></p>
+<h2 id="CTE-Common-Table-Expression"><a href="#CTE-Common-Table-Expression" class="headerlink" title="CTE(Common Table Expression)"></a>CTE(Common Table Expression)</h2><p>类似于临时表，或者说是 MYSQL Derived Table（嵌套查询的子查询生成的表叫做<code>派生表</code>） 的增强版。</p>
+<p>例子（找到 <code>sid</code> 最大的学生）：</p>
+<pre><code class="sql">WITH cteSource (maxId) AS (
+ SELECT MAX(sid) FROM enrolled
+)
+SELECT name FROM student, cteSource
+WHERE student.sid = cteSource.maxId
+</code></pre>
+<h2 id="面向磁盘的-DBMS"><a href="#面向磁盘的-DBMS" class="headerlink" title="面向磁盘的 DBMS"></a>面向磁盘的 DBMS</h2><p><img src="/2024/03/24/bustub-1/disk_oriented_dbms.png"></p>
+<ul>
+<li>Buffer Pool 作为中转，缓存数据库页面，页面目录标识数据页在磁盘的位置。</li>
+<li>获取页面 2 的时候，先加载目录到内存，然后通过操作系统调用加载数据页到内存，返回给执行引擎一个内存地址。</li>
+<li>Buffer Pool 还需要负责写回脏页，保持一致性。</li>
+</ul>
+<h2 id="MMAP-的问题"><a href="#MMAP-的问题" class="headerlink" title="MMAP 的问题"></a>MMAP 的问题</h2><p>虽然我们可以使用 <code>mmap</code> 调用将文件映射到内存（操作系统会帮我们进行页面换入和换出），但是操作系统执行页面驱逐的逻辑可能和数据库的驱逐逻辑冲突（换出数据库不想被换出的页面）。</p>
+<ul>
+<li>无法满足事务安全，操作系统可能随时 flash 脏页。假如事务要求将多个页按照一定顺序写入，无法保证 page A 在 page B 写入之后再被写入。</li>
+<li>DBMS 无法知道某个页面在不在内存中，操作系统会触发 page fault 阻塞线程。</li>
+<li>难以处理错误，任何访问都可能触发一个 <code>SIGBUS</code> 中断，DBMS 必须处理它，即使正在执行一些 critical section。</li>
+<li>与操作系统产生数据竞争。</li>
+</ul>
+<h2 id="Storage-Manager"><a href="#Storage-Manager" class="headerlink" title="Storage Manager"></a>Storage Manager</h2><ul>
+<li>负责维护数据库文件</li>
+<li>调度读写以获取更好的时空 locality。</li>
+<li>以页的形式组织数据库文件</li>
+<li>记录元数据（可用页面）</li>
+</ul>
+<h2 id="Page"><a href="#Page" class="headerlink" title="Page"></a>Page</h2><ul>
+<li><p>固定大小的数据块</p>
+</li>
+<li><p>数据 + 元数据、日志</p>
+</li>
+<li><p>Oracle 中 Page 是 Self-contained（包含了用于理解这个页的元数据，比如所属 Table 的信息，这种冗余可以避免数据库文件损坏导致无法读取数据）。</p>
+</li>
+<li><p>每个页都有一个唯一标识符（由此映射到物理内存位置）。</p>
+</li>
+<li><p>Hardware Page（4KB）是能够保证原子性写入的数据块最大大小。数据库页默认大小通常大于 4KB（非原子性）。</p>
+<p>  <img src="/2024/03/24/bustub-1/db_pagesize.png"></p>
+</li>
+</ul>
+<h2 id="Heap-File"><a href="#Heap-File" class="headerlink" title="Heap File"></a>Heap File</h2><p>页的无序集合，每个数据元祖随机存储（关系型数据库并不要求按照顺序排列）。对于单个文件而言，找到对应的页很容易，但是对于多个文件而言则比较棘手，需要存储额外的元数据记录哪一个页存在哪一个文件里面，也就是 Page Directory。Page Directory 需要和数据页保持同步，同时需要维护和记录空闲页的数量和位置。</p>
+<p><img src="/2024/03/24/bustub-1/heap_file.png"></p>
+<ul>
+<li>对 Page Directory 的更新需要立即写入磁盘。</li>
+<li>像 BLOB 这种字段可能是分另一个文件存储。</li>
+</ul>
+<h2 id="Page-Header"><a href="#Page-Header" class="headerlink" title="Page Header"></a>Page Header</h2><p>存储诸如页大小，校验和之类的元数据。</p>
+<h2 id="Tuple-Oriented-Storage"><a href="#Tuple-Oriented-Storage" class="headerlink" title="Tuple-Oriented Storage"></a>Tuple-Oriented Storage</h2><p>File -&gt; Page -&gt; Tuple</p>
+<p><img src="/2024/03/24/bustub-1/slotted_pages.png"></p>
+<ul>
+<li>使用 Slotted Pages，Slot Array 从头部往尾部增长，Tuple 从尾部往头部增长。</li>
+<li>使用 Record ID 唯一标识一个 Page（Postgresql 中的 <code>ctid</code>）。</li>
+</ul>
+<p>存在的问题：</p>
+<ul>
+<li>一个 page 中可能有大量未被使用的空间（内存碎片）；</li>
+<li>更新一个 tuple 需要读写整个 page；</li>
+<li>随机磁盘读写，极端情况是修改 N 个 tuple，每个都属于不同的 page；</li>
+<li>由于需要写回更新，在一些云存储系统可能不支持这么做，例如 <code>HDFS</code>。</li>
+</ul>
+<h2 id="Log-Structured-Storage"><a href="#Log-Structured-Storage" class="headerlink" title="Log-Structured Storage"></a>Log-Structured Storage</h2><p><img src="/2024/03/24/bustub-1/log_structured_storage.png"></p>
+<ul>
+<li>追加对 tuple 的 PUT&#x2F;DELETE 操作</li>
+<li>定期合并 page（compaction）</li>
+</ul>
+<p><img src="/2024/03/24/bustub-1/compaction.png"></p>
+<p>存在的问题：</p>
+<ul>
+<li>写放大：Compaction 非常昂贵，从磁盘读回内存再写回磁盘。</li>
+<li>读放大</li>
+</ul>
+<h2 id="NULL"><a href="#NULL" class="headerlink" title="NULL"></a>NULL</h2><ul>
+<li>通过一个 bitmap 标识属性是否为空，这通常不仅仅占一个 bit，因为还要解决内存问题（填充多个 0）。</li>
+<li>标记为非 NULL 就不需要存 bitmap。</li>
+</ul>
+<h2 id="Large-Values-External-Value-Storage"><a href="#Large-Values-External-Value-Storage" class="headerlink" title="Large Values &amp; External Value Storage"></a>Large Values &amp; External Value Storage</h2><p><img src="/2024/03/24/bustub-1/large_values.png"></p>
+<p><img src="/2024/03/24/bustub-1/external_values.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Database/" style="color: #00bcd4">Database</a>
+        </span>
+        
+    </div>
+    <a href="/2024/03/24/bustub-1/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/03/23/kubeflow-note-1/">
         <h2 class="post-title">Kubeflow 笔记（1）—— 安装与 Hello World</h2>
     </a>
@@ -213,17 +413,17 @@
         
         <span class="tag">
             
-            <a href="/tags/kubeflow/" style="color: #03a9f4">kubeflow</a>
+            <a href="/tags/kubeflow/" style="color: #ffa2c4">kubeflow</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/kubenetes/" style="color: #00a596">kubenetes</a>
+            <a href="/tags/kubenetes/" style="color: #ff7d73">kubenetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/ML/" style="color: #00bcd4">ML</a>
+            <a href="/tags/ML/" style="color: #ffa2c4">ML</a>
         </span>
         
     </div>
@@ -353,12 +553,12 @@ dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, 
         
         <span class="tag">
             
-            <a href="/tags/Spark/" style="color: #ffa2c4">Spark</a>
+            <a href="/tags/Spark/" style="color: #ff7d73">Spark</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Java/" style="color: #00bcd4">Java</a>
+            <a href="/tags/Java/" style="color: #00a596">Java</a>
         </span>
         
     </div>
@@ -514,12 +714,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #ffa2c4">Rust</a>
+            <a href="/tags/Rust/" style="color: #03a9f4">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #ff7d73">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #ffa2c4">Tokio</a>
         </span>
         
     </div>
@@ -876,7 +1076,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
@@ -923,7 +1123,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
         </span>
         
     </div>
