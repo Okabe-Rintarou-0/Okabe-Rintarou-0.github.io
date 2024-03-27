@@ -178,7 +178,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #03a9f4">C++</a>
+                <a href="/tags/C/" style="color: #ffa2c4">C++</a>
             </span>
             
         </span>
@@ -197,10 +197,10 @@ move(_Tp&amp;&amp; __t) _NOEXCEPT &#123;
 <p>它本质上是将一个引用强制转换成了<code>右值引用</code>。</p>
 <h2 id="万能引用-Universal-Reference"><a href="#万能引用-Universal-Reference" class="headerlink" title="万能引用(Universal Reference)"></a>万能引用(Universal Reference)</h2><p>当我们使用 <code>T &amp;&amp; x</code> 或者 <code>auto &amp;&amp; x</code> 这种需要类型推断的右值形式的时候，就会被编译器作为万能引用。所谓万能引用，就是既能绑定左值引用，又能绑定右值引用。（所以说，在 C++ 中，并不是说两个 <code>&amp;</code> 就代表是右值引用）。</p>
 <h2 id="引用折叠-Reference-Collapse"><a href="#引用折叠-Reference-Collapse" class="headerlink" title="引用折叠(Reference Collapse)"></a>引用折叠(Reference Collapse)</h2><ul>
-<li>左值-左值 T&amp; &amp; # 函数定义的形参类型是左值引用，传入的实参是左值引用</li>
-<li>左值-右值 T&amp; &amp;&amp; # 函数定义的形参类型是左值引用，传入的实参是右值引用</li>
-<li>右值-左值 T&amp;&amp; &amp; # 函数定义的形参类型是右值引用，传入的实参是左值引用</li>
-<li>右值-右值 T&amp;&amp; &amp;&amp; # 函数定义的形参类型是右值引用，传入的实参是右值引用<br>但是C++中不允许对引用再进行引用，对于上述情况的处理有如下的规则：</li>
+<li>左值-左值 T&amp; &amp;：函数定义的形参类型是左值引用，传入的实参是左值引用</li>
+<li>左值-右值 T&amp; &amp;&amp;：函数定义的形参类型是左值引用，传入的实参是右值引用</li>
+<li>右值-左值 T&amp;&amp; &amp;：函数定义的形参类型是右值引用，传入的实参是左值引用</li>
+<li>右值-右值 T&amp;&amp; &amp;&amp;：函数定义的形参类型是右值引用，传入的实参是右值引用<br>但是C++中不允许对引用再进行引用，对于上述情况的处理有如下的规则：</li>
 </ul>
 <p>所有的折叠引用最终都代表一个引用，要么是左值引用，要么是右值引用。规则是：如果任一引用为左值引用，则结果为左值引用。否则（即两个都是右值引用），结果为右值引用。</p>
 <pre><code class="cpp">#include &lt;iostream&gt;
