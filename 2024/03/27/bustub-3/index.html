@@ -224,7 +224,7 @@
 <li>需要淘汰数据时，淘汰缓存队列中排在末尾的数据，即：淘汰“倒数第K次访问离现在最久”的数据。</li>
 </ul>
 <p><code>K-distance</code> 的概念（LRU-k 是按照 K-distance 排序的）：</p>
-<p><img src="/k_distance.png"></p>
+<p><img src="/2024/03/27/bustub-3/k_distance.png"></p>
 <p><img src="/2024/03/27/bustub-3/mysql_lru_k.png"></p>
 <p>MYSQL 使用了一种类似的算法，第一次访问的时候进入 Old List 链表头，再次访问则从 Old List 转移到 Young List 头部。说它是一种近似是因为它没有真正记录时间戳，只是将其直接放到头部（注意 LRU-k 是会计算 <code>k-distance</code> 的）。</p>
 <h2 id="Dirty-Pages"><a href="#Dirty-Pages" class="headerlink" title="Dirty Pages"></a>Dirty Pages</h2><p>Use background writing.</p>
