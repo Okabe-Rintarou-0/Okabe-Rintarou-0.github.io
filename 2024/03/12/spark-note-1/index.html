@@ -178,12 +178,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/Spark/" style="color: #03a9f4">Spark</a>
+                <a href="/tags/Spark/" style="color: #00a596">Spark</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/Java/" style="color: #ff7d73">Java</a>
+                <a href="/tags/Java/" style="color: #03a9f4">Java</a>
             </span>
             
         </span>
@@ -227,6 +227,102 @@
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/75787001/java-lang-noclassdeffounderror-javax-servlet-http-httpservletrequest-with-apach">java.lang.ClassNotFoundException: java.servlet.Servlet</a></li>
 <li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/76767129/java-spark-connection-fails-unavailableexception-servlet-class-org-glassfish-je">Java Spark connection fails UnavailableException: Servlet class org.glassfish.jersey.servlet.ServletContainer is not a javax.servlet.Servlet</a></li>
 </ul>
+<p>这一套 pom.xml 是可以用的：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;3.2.3&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+    &lt;groupId&gt;com.reins&lt;/groupId&gt;
+    &lt;artifactId&gt;spark&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;name&gt;spark&lt;/name&gt;
+    &lt;description&gt;spark&lt;/description&gt;
+    &lt;properties&gt;
+        &lt;java.version&gt;17&lt;/java.version&gt;
+        &lt;jakarta-servlet.version&gt;4.0.3&lt;/jakarta-servlet.version&gt;
+        &lt;jersey.version&gt;2.36&lt;/jersey.version&gt;
+    &lt;/properties&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.alibaba.fastjson2&lt;/groupId&gt;
+            &lt;artifactId&gt;fastjson2&lt;/artifactId&gt;
+            &lt;version&gt;2.0.43&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.shyiko&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-binlog-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;0.21.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+            &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+            &lt;version&gt;1.6.6&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;
+            &lt;artifactId&gt;spark-core_2.13&lt;/artifactId&gt;
+            &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;
+            &lt;artifactId&gt;spark-sql_2.13&lt;/artifactId&gt;
+            &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.codehaus.janino&lt;/groupId&gt;
+            &lt;artifactId&gt;janino&lt;/artifactId&gt;
+            &lt;version&gt;3.0.9&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.33&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;version&gt;1.18.30&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+            &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+            &lt;version&gt;4.0.1&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;
+</code></pre>
 <p>注意：在我的环境中，worker 占用了 8081 端口，而我的 Spring 服务启动在 8081 端口，所以产生问题。按照上面的链接能够解决剩余的版本冲突问题。</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44455388/article/details/107464918">Spark异常：org&#x2F;codehaus&#x2F;janino&#x2F;InternalCompilerException</a><br>不能用太高版本的，3.1.2 也不行。</li>
