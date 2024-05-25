@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>C++ 笔记（2）—— Effective Modern C++ | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>C++ 笔记（2）—— Effective Modern C++</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/5/25
+        </span>
+        
+        <span class="category">
+            <a href="/categories/Language/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Language
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <h2 id="Item-1-——-模板参数"><a href="#Item-1-——-模板参数" class="headerlink" title="Item 1 —— 模板参数"></a>Item 1 —— 模板参数</h2><p>推导按值传递的模板形式参数类型 <code>T</code> 时，若传入的实参带有 <code>const</code> 或 <code>volatile</code> 时，将会去掉。<br>因为按值传递就相当于是对数据进行了拷贝，不应该有上述限制修饰。</p>
+<p>若形式参数为 <code>T</code>，传入的数据为函数或者数组，将会退化成对应的指针。除非使用 <code>T &amp;</code>。</p>
+<h2 id="Item-2-——-auto"><a href="#Item-2-——-auto" class="headerlink" title="Item 2 —— auto"></a>Item 2 —— auto</h2><p>一般而言，使用 <code>auto</code> 和模板 <code>T</code> 是一样的。除了以下的情况：</p>
+<pre><code class="c++">// x 的类别为 std::initializer_list&lt;int&gt;
+auto x = &#123;1, 2, 3&#125;;
+
+template &lt;typename T&gt;
+void func(T x);
+// 错误，无法推断 T 的类型
+func(&#123;1, 2, 3&#125;)
+
+// 错误，无法推断类型
+// auto 用在函数类型推导时会被当作模板类型推导
+auto func() &#123;
+    return &#123;1, 2, 3&#125;
+&#125;
+</code></pre>
+<p><code>auto</code> 可以用来推断一些只有编译器清楚的类型，比如 lambda 表达式。</p>
+<pre><code class="c++">auto x = []() &#123; return &quot;test&quot;; &#125;;
+auto y = std::function&#123;[]() &#123; return &quot;test&quot;; &#125;&#125;;
+</code></pre>
+<p>比起 <code>y</code> 用 <code>std::function</code> 包裹，使用 <code>auto</code> 的效率更高，内存占用更少。</p>
+<h2 id="Item-3-——-decltype"><a href="#Item-3-——-decltype" class="headerlink" title="Item 3 —— decltype"></a>Item 3 —— decltype</h2><p>下面的代码将报错：</p>
+<pre><code class="c++">template &lt;typename Container, typename Index&gt;
+auto func(Container&amp; c, Index i) &#123;
+    return c[i];
+&#125;
+std::vector&lt;int&gt; vec&#123;1, 2&#125;;
+func(vec, 1) = 10;
+</code></pre>
+<p>此处 <code>auto</code> 相当于 <code>T</code>，按值传递。这将会把 <code>vector::operator[]</code> 返回的 <code>T&amp;</code> 的引用给去掉。我们无法给一个右值赋值。</p>
+<p>而如下的代码将通过编译：</p>
+<pre><code class="c++">template &lt;typename Container, typename Index&gt;
+decltype(auto) func(Container&amp; c, Index i) &#123;
+    return c[i];
+&#125;
+std::vector&lt;int&gt; vec&#123;1, 2&#125;;
+func(vec, 1) = 10;
+</code></pre>
+<p>一般而言，不同于 <code>auto</code> 和模板类型推导，<code>decltype</code> 只会鹦鹉学舌。<br>对于类型为 <code>T</code> 的表达式，除非该表达式仅有一个名字，否则 <code>decltype</code> 总是得出类型 <code>T &amp;</code>。</p>
+<pre><code class="c++">// 此处类型为 int &amp;
+decltype(auto) f() &#123;
+    int x = 0;
+    return (x);
+&#125;
+</code></pre>
+<h2 id="Item-5-——-优先选用-auto-而非显式类别声明"><a href="#Item-5-——-优先选用-auto-而非显式类别声明" class="headerlink" title="Item 5 —— 优先选用 auto 而非显式类别声明"></a>Item 5 —— 优先选用 auto 而非显式类别声明</h2><ul>
+<li><p>例子 1：vector&lt;int&gt;::size()</p>
+<p>  vector&lt;int&gt;::size() 返回的类型是 vector&lt;int&gt;::size_type，用很多常见的显示类别去声明会产生隐式的类型转换，在不同平台可能会有一定问题。</p>
+</li>
+<li><p>例子 2：遍历 map</p>
+<pre><code class="c++">std::map&lt;std::string, int&gt; m;
+for (const std::pair&lt;std::string, int&gt;&amp; p : m) &#123;
+&#125;
+</code></pre>
+<p>  这么写看似没有问题，但是实际上真正遍历的时候 <code>p</code> 的类型应该是 <code>std::pair&lt;const std::string, int&gt; &amp;</code>。上述的遍历方式会新建临时变量。这是 map 中的源码：</p>
+<pre><code class="c++">typedef pair&lt;const key_type, mapped_type&gt;        value_type;
+...
+typedef value_type&amp;                              reference;
+</code></pre>
+<p>  转换成 <code>auto</code> 之后：</p>
+<pre><code class="c++">std::map&lt;std::string, int&gt; m;
+for (const auto&amp; p : m) &#123;
+&#125;
+</code></pre>
+<p>  此时 <code>p</code> 的类型为 <code>const std::map::value_type &amp;</code>，符合预期。</p>
+</li>
+<li><p>例子 3：std::vector&lt;bool&gt;</p>
+<p>  std::vector&lt;bool&gt;::operator[] 的返回值不是 <code>bool &amp;</code>，而是 <code>std::vector&lt;bool&gt;::reference</code>。这是因为 <code>bool</code> 在 c++ 里面是用一个 bit 表示的，<code>vector&lt;bool&gt;</code> 不允许直接返回一个 bit 的引用。</p>
+<p>  这里如果用 <code>auto</code> 就可能会产生问题，而用 <code>bool</code> 则可以实现隐式类型转换。</p>
+</li>
+</ul>
+<h2 id="Item-7-——-与"><a href="#Item-7-——-与" class="headerlink" title="Item 7 —— () 与 {}"></a>Item 7 —— () 与 {}</h2><pre><code class="c++">std::vector&lt;int&gt;&#123;1, 2&#125;;
+std::vector&lt;int&gt;(1, 2);
+</code></pre>
+<p>两者完全不一样。</p>
+<p>只要有机会，总是倾向于使用具有 <code>std::initializer_list</code> 类型的构造函数。</p>
+<h2 id="Item-9-——-using-与-typedef"><a href="#Item-9-——-using-与-typedef" class="headerlink" title="Item 9 —— using 与 typedef"></a>Item 9 —— using 与 typedef</h2><p><code>using</code> 支持模板，而 <code>typedef</code> 只能新建一个模板类：</p>
+<pre><code class="c++">template &lt;typename T&gt;
+class Container &#123;
+    T x;
+&#125;;
+
+// 支持
+template &lt;typename T&gt;
+using ContainerList = std::vector&lt;Container&lt;T&gt;&gt;;
+ContainerList&lt;int&gt; list;
+// 不支持
+template &lt;typename T&gt;
+typedef std::vector&lt;Container&lt;T&gt;&gt; ContainerList;
+
+// 支持
+template &lt;typename T&gt;
+class ContainerList &#123;
+   public:
+    typedef std::vector&lt;Container&lt;T&gt;&gt; type;
+&#125;;
+typename ContainerList&lt;int&gt;::type list;
+</code></pre>
+<p>这里必须要有 <code>typename</code>，因为有些<strong>特例化</strong>实现可能会定义一个叫做 <code>type</code> 的成员对象，需要明确告诉编译器这里用的是 <code>type</code> 这个类型。</p>
+<h3 id="Item-10-——-优先使用-enum-class"><a href="#Item-10-——-优先使用-enum-class" class="headerlink" title="Item 10 —— 优先使用 enum class"></a>Item 10 —— 优先使用 enum class</h3><p><code>enum class</code> 会限制作用域。普通的 <code>enum</code> 中的枚举值可能会与其他的同名变量产生歧义。而使用 <code>enum class</code> 声明的枚举值只能通过 <code>enum_class_name::value</code> 的方式来访问。</p>
+<p>同时，没有 <code>class</code> 限制的枚举值可以发生隐式类型转换，而加了限制的不行：</p>
+<pre><code class="c++">enum Color1 &#123; red, white &#125;;
+enum class Color2 &#123; red, white &#125;;
+// 可以
+if (Color1::red &gt; 1.5) &#123;
+&#125;
+// 不可以
+if (Color2::red &gt; 1.5) &#123;
+&#125;
+</code></pre>
+<p><code>enum class</code> 底层使用 <code>int</code>，也可以使用其他类型：</p>
+<pre><code class="c++">enum class Status: std::uint32_t;
+</code></pre>
+<h3 id="Item-11-——-使用-delete-而非未定义的私有函数"><a href="#Item-11-——-使用-delete-而非未定义的私有函数" class="headerlink" title="Item 11 —— 使用 delete 而非未定义的私有函数"></a>Item 11 —— 使用 delete 而非未定义的私有函数</h3><p>应该将声明为 <code>delete</code> 的函数声明为 <code>public</code>，这样便于生成更好的报错信息。<br>假如设置为 <code>private</code>，用户使用了这个函数，一些编译器会先检查函数的可访问性，说该函数是 <code>private</code>，但是更重要的信息显然是该函数被标记为了 <code>delete</code>。</p>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2024 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>
