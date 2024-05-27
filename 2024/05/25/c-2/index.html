@@ -186,7 +186,8 @@
     </div>
     
     <div class="content" v-pre>
-        <h2 id="Item-1-——-模板参数"><a href="#Item-1-——-模板参数" class="headerlink" title="Item 1 —— 模板参数"></a>Item 1 —— 模板参数</h2><p>推导按值传递的模板形式参数类型 <code>T</code> 时，若传入的实参带有 <code>const</code> 或 <code>volatile</code> 时，将会去掉。<br>因为按值传递就相当于是对数据进行了拷贝，不应该有上述限制修饰。</p>
+        <p>以下笔记囊括了前三章我学习到的新知识。</p>
+<h2 id="Item-1-——-模板参数"><a href="#Item-1-——-模板参数" class="headerlink" title="Item 1 —— 模板参数"></a>Item 1 —— 模板参数</h2><p>推导按值传递的模板形式参数类型 <code>T</code> 时，若传入的实参带有 <code>const</code> 或 <code>volatile</code> 时，将会去掉。<br>因为按值传递就相当于是对数据进行了拷贝，不应该有上述限制修饰。</p>
 <p>若形式参数为 <code>T</code>，传入的数据为函数或者数组，将会退化成对应的指针。除非使用 <code>T &amp;</code>。</p>
 <h2 id="Item-2-——-auto"><a href="#Item-2-——-auto" class="headerlink" title="Item 2 —— auto"></a>Item 2 —— auto</h2><p>一般而言，使用 <code>auto</code> 和模板 <code>T</code> 是一样的。除了以下的情况：</p>
 <pre><code class="c++">// x 的类别为 std::initializer_list&lt;int&gt;
@@ -301,6 +302,57 @@ if (Color2::red &gt; 1.5) &#123;
 <pre><code class="c++">enum class Status: std::uint32_t;
 </code></pre>
 <h3 id="Item-11-——-使用-delete-而非未定义的私有函数"><a href="#Item-11-——-使用-delete-而非未定义的私有函数" class="headerlink" title="Item 11 —— 使用 delete 而非未定义的私有函数"></a>Item 11 —— 使用 delete 而非未定义的私有函数</h3><p>应该将声明为 <code>delete</code> 的函数声明为 <code>public</code>，这样便于生成更好的报错信息。<br>假如设置为 <code>private</code>，用户使用了这个函数，一些编译器会先检查函数的可访问性，说该函数是 <code>private</code>，但是更重要的信息显然是该函数被标记为了 <code>delete</code>。</p>
+<h3 id="Item-12-——-使用-override-关键字"><a href="#Item-12-——-使用-override-关键字" class="headerlink" title="Item 12 —— 使用 override 关键字"></a>Item 12 —— 使用 override 关键字</h3><p>使用 override 可以让编译器更好地识别函数是否实现了重写。例如 C++ 11 中有一个鲜为人知的特性：</p>
+<pre><code class="c++">class A &#123;
+    void doSomething() &amp;;
+    void doSomething() &amp;&amp;;
+&#125;
+</code></pre>
+<p>是两个函数，<code>&amp;&amp;</code> 对应右值调用该函数的情况，例如下面的例子：</p>
+<pre><code class="c++">class A &#123;
+   public:
+    void doSomething() &amp; &#123; std::cout &lt;&lt; &quot;Called first.&quot; &lt;&lt; std::endl; &#125;
+    void doSomething() &amp;&amp; &#123; std::cout &lt;&lt; &quot;Called second.&quot; &lt;&lt; std::endl; &#125;
+&#125;;
+
+A getRVal() &#123;
+    return A&#123;&#125;;
+&#125;
+
+int main() &#123;
+    A a&#123;&#125;;
+    a.doSomething();
+    getRVal().doSomething();
+&#125;
+</code></pre>
+<p>将输出：</p>
+<pre><code>Called first.
+Called second.
+</code></pre>
+<h3 id="Item-14-——-noexcept"><a href="#Item-14-——-noexcept" class="headerlink" title="Item 14 —— noexcept"></a>Item 14 —— noexcept</h3><p>在保证一定不会产生异常的前提下，能用 <code>noexcept</code> 就用，因为编译器可以对具有该标识的函数进行更好的优化。同时，编译器不会强求 <code>noexcept</code> 一定要调用具有 <code>noexcept</code> 标识的函数。</p>
+<h3 id="Item-15-——-constexpr"><a href="#Item-15-——-constexpr" class="headerlink" title="Item 15 —— constexpr"></a>Item 15 —— constexpr</h3><ul>
+<li><code>constexpr</code> 对象（包括函数）都具有 <code>const</code> 属性，且由编译期已知的值完成初始化。</li>
+<li><code>constexpr</code> 函数在调用的时候，如果传入的实参值是编译器已知的，则会产出编译期结果。否则退化成普通的函数，在运行时计算结果。</li>
+</ul>
+<p>好处是可以在编译期就确定一些变量的值，坏处是可能增加编译时间。</p>
+<h3 id="Item-16-——-保证-const-函数的线程安全性"><a href="#Item-16-——-保证-const-函数的线程安全性" class="headerlink" title="Item 16 —— 保证 const 函数的线程安全性"></a>Item 16 —— 保证 const 函数的线程安全性</h3><p>对于被 <code>const</code> 修饰的函数，我们应该保证其线程安全性。例如：</p>
+<pre><code class="c++">class A &#123;
+   private:
+    bool is_valid&#123;&#125;;
+    int val&#123;&#125;;
+    mutable std::mutex mtx;
+
+   public:
+    int getVal() const &#123;
+        std::lock_guard&lt;std::mutex&gt; lock_guard(mtx);
+        if (is_valid) &#123;
+            return val;
+        &#125;
+        return -1;
+    &#125;
+&#125;;
+</code></pre>
+<p>为了这一点，我们通常会配合 <code>std::mutex</code> 或者 <code>std::atomic</code> 等同步原语。由于 <code>mutex</code> 在上锁的时候会修改其内部状态（该函数未被标记为 <code>const</code>），所以我们需要通过 <code>mutable</code> 告诉 <code>const</code> 函数该变量是会变化的，不应该在函数内限制其不可变。</p>
 
     </div>
     
