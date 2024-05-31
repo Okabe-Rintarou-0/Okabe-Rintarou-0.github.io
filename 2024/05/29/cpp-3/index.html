@@ -178,7 +178,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #00a596">C++</a>
+                <a href="/tags/C/" style="color: #ffa2c4">C++</a>
             </span>
             
         </span>
@@ -194,7 +194,7 @@ std::unique_ptr&lt;int, decltype(delFunc)&gt; ptr(new int&#123;123&#125;, delFun
 </code></pre>
 <p>这里 <code>decltype</code> 将再次发挥作用。注意，与 <code>std::shared_ptr</code> 不同，这个自定义析构函数的类型是会绑定到 <code>std::unique_ptr</code> 上的（参见模板第二个参数）。</p>
 <h2 id="Item-19-——-std-shared-ptr"><a href="#Item-19-——-std-shared-ptr" class="headerlink" title="Item 19 —— std::shared_ptr"></a>Item 19 —— std::shared_ptr</h2><p><code>std::shared_ptr</code> 会额外维护一个控制块：</p>
-<p><img src="/image.png"></p>
+<p><img src="/2024/05/29/cpp-3/image.png"></p>
 <p>这个控制块位于堆上。在执行 <code>move</code> 操作的时候，控制块会沿用。当一个 <code>std::shared_ptr</code> 移动构造一个新的 <code>std::shared_ptr</code> 的时候，ref_cnt 不会增加（会将原来的设置为 nullptr）。</p>
 <p>不能用一个裸指针初始化多个 <code>std::shared_ptr</code>，这会导致多个控制块，执行多次析构，造成未定义结果</p>
 <p><code>std::shared_ptr</code> 还支持对于每个实例都使用不同的自定义析构函数函数。如果使用了自定义析构函数，就无法用 <code>std::make_shared</code> 生成对应 <code>std::shared_ptr</code> 对象。与 <code>std::unique_ptr</code> 不同，自定义函数不会体现到类型上。<br>例如：</p>
