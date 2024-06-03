@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Tags: Rust | Okabe&#39;s LAB</title>
+    <title>记一次使用 Docker 遇到的奇怪问题 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -31,6 +31,10 @@
 
 
 <script src="/js/lib/preview.js"></script>
+
+
+
+
 
 
 
@@ -144,187 +148,59 @@
 </transition>
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
-            <div id="archives">
-    
-    <div class="categories-tags">
-        
-        
-        
-        <span>
-            <a href="/tags/Database/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Database
-            </a>
+            <div class="article">
+    <div>
+        <h1>记一次使用 Docker 遇到的奇怪问题</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/6/3
         </span>
         
         
-        
-        <span>
-            <a href="/tags/CMU-DB/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                CMU-DB
-            </a>
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/Docker/" style="color: #ffa2c4">Docker</a>
+            </span>
+            
         </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubernetes/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubernetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/C/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                C++
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubeflow/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubeflow
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubenetes/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubenetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/ML/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                ML
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Rust/" style="background: linear-gradient(120deg, #9abbf7 0%, #ffbbf4 100%)">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Rust
-            </a>
-        </span>
-        
-        
-        
-        
-        
-        <span>
-            <a href="/tags/Tokio/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Tokio
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Spark/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Spark
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Java/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Java
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Docker/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Docker
-            </a>
-        </span>
-        
         
     </div>
     
-    <div class="timeline">
-        <div class="timeline-tail"></div>
-        <div class="timeline-content">
-            <div class="item-time">2024/2/5</div>
-            <a href="/2024/02/05/rust-note-1/">
-                <h3>Rust 笔记（1）—— 关于 tokio spawn</h3>
-            </a>
-            <div class="info">
-                
-                <span class="category">
-                    <a href="/categories/Language/">
-                        <span class="icon">
-                            <i class="fa-solid fa-bookmark fa-fw"></i>
-                        </span>
-                        Language
-                    </a>
-                </span>
-                
-                
-                <span class="tags">
-                    <span class="icon">
-                        <i class="fa-solid fa-tags fa-fw"></i>
-                    </span>
-                    
-                    
-                    <span class="tag">
-                        
-                        <a href="/tags/Rust/" style="color: #03a9f4">Rust</a>
-                    </span>
-                    
-                    <span class="tag">
-                        
-                        <a href="/tags/Tokio/" style="color: #ff7d73">Tokio</a>
-                    </span>
-                    
-                </span>
-                
-            </div>
-        </div>
+    <div class="content" v-pre>
+        <p>最近在 jcloud 的服务器上起了一些 docker 容器，发现在容器内部怎么都无法访问公网。最后发现问题是网卡的 MTU 和 <code>docker0</code> 的 MTU 对不上（Docker 默认是 1500，而网卡是 1450）。</p>
+<p>类似的问题：<a target="_blank" rel="noopener" href="https://www.zeng.dev/post/2022-the-docker-mtu-problem/">https://www.zeng.dev/post/2022-the-docker-mtu-problem/</a></p>
+<p>可以通过 <code>ifconfig -s</code> 查看 MTU 信息。</p>
+<p>解决方案：</p>
+<p>修改 &#x2F;etc&#x2F;docker&#x2F;damon.json:</p>
+<pre><code class="json">&#123;
+    &quot;mtu&quot;: 1450
+&#125;
+</code></pre>
+<p>重启 docker</p>
+<pre><code class="shell">systemctl restart docker
+</code></pre>
+
     </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
     
 </div>
 
@@ -356,6 +232,29 @@
         
     </div>
     <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
     
 </body>
 </html>
