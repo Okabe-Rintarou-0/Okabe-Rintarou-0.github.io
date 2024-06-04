@@ -167,6 +167,237 @@
         
 
 <div class="post">
+    <a href="/2024/03/12/spark-note-1/">
+        <h2 class="post-title">Spark 笔记（1）——安装与基础使用</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Big-Data/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Big Data
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/3/12
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h1><p>该笔记将记录在 <code>Ubuntu-20.04</code> 上安装并使用 <code>Spark</code> 的历程。</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>Ubuntu 20.04</li>
+<li>Spring Boot 3.2.3</li>
+<li>Spark 3.2.0</li>
+<li>JDK 17</li>
+</ul>
+<p>安装参考：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/528768848">在 Ubuntu 20.04 上安装 Apache Spark 教程</a>。</p>
+<h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><ul>
+<li><p>启动 <code>master</code>：</p>
+<pre><code class="shell">start-master.sh
+</code></pre>
+<p>  这个指令会在当前主机启动一个 master 节点，可以在 <code>localhost:8080</code> 访问到控制面板。</p>
+<p>  <img src="/2024/03/12/spark-note-1/start-master.png"></p>
+</li>
+<li><p>启动 <code>worker</code>：</p>
+<p>  复制命令行中生成的 <code>master</code> 节点的 URL，启动 <code>worker</code>：</p>
+<p>  <img src="/2024/03/12/spark-note-1/start-master2.png"></p>
+<pre><code class="shell">start-worker.sh spark://xxx
+</code></pre>
+<p>  启动成功后长这样：<br>  <img src="/2024/03/12/spark-note-1/dashboard.png"></p>
+</li>
+</ul>
+<h2 id="配置-Java-Spark-环境"><a href="#配置-Java-Spark-环境" class="headerlink" title="配置 Java Spark 环境"></a>配置 Java Spark 环境</h2><ul>
+<li><p>Spring Boot + Spark：</p>
+<p>  参考：<a target="_blank" rel="noopener" href="https://blog.51cto.com/u_16175487/6637904">如何实现Spark springboot的具体操作步骤</a></p>
+</li>
+</ul>
+<p>遇到的问题：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/72724816/running-unit-tests-with-spark-3-3-0-on-java-17-fails-with-illegalaccesserror-cl">Running unit tests with Spark 3.3.0 on Java 17 fails with IllegalAccessError: class StorageUtils cannot access class sun.nio.ch.DirectBuffer</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_24330181/article/details/134851945">cannot access class sun.nio.ch.DirectBuffer (in module java.base) because module java.base does not</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/3737992/noclassdeffounderror-org-slf4j-impl-staticloggerbinder">java.lang.ClassNotFoundException: org.slf4j.impl.StaticLoggerBinder</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/75787001/java-lang-noclassdeffounderror-javax-servlet-http-httpservletrequest-with-apach">java.lang.ClassNotFoundException: java.servlet.Servlet</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/76767129/java-spark-connection-fails-unavailableexception-servlet-class-org-glassfish-je">Java Spark connection fails UnavailableException: Servlet class org.glassfish.jersey.servlet.ServletContainer is not a javax.servlet.Servlet</a></li>
+</ul>
+<p>这一套 pom.xml 是可以用的：</p>
+<pre><code class="xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;3.2.3&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+    &lt;groupId&gt;com.reins&lt;/groupId&gt;
+    &lt;artifactId&gt;spark&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;name&gt;spark&lt;/name&gt;
+    &lt;description&gt;spark&lt;/description&gt;
+    &lt;properties&gt;
+        &lt;java.version&gt;17&lt;/java.version&gt;
+        &lt;jakarta-servlet.version&gt;4.0.3&lt;/jakarta-servlet.version&gt;
+        &lt;jersey.version&gt;2.36&lt;/jersey.version&gt;
+    &lt;/properties&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.alibaba.fastjson2&lt;/groupId&gt;
+            &lt;artifactId&gt;fastjson2&lt;/artifactId&gt;
+            &lt;version&gt;2.0.43&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.shyiko&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-binlog-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;0.21.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+            &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+            &lt;version&gt;1.6.6&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;
+            &lt;artifactId&gt;spark-core_2.13&lt;/artifactId&gt;
+            &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;
+            &lt;artifactId&gt;spark-sql_2.13&lt;/artifactId&gt;
+            &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.codehaus.janino&lt;/groupId&gt;
+            &lt;artifactId&gt;janino&lt;/artifactId&gt;
+            &lt;version&gt;3.0.9&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.33&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;version&gt;1.18.30&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+            &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+            &lt;version&gt;4.0.1&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;
+</code></pre>
+<p>注意：在我的环境中，worker 占用了 8081 端口，而我的 Spring 服务启动在 8081 端口，所以产生问题。按照上面的链接能够解决剩余的版本冲突问题。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44455388/article/details/107464918">Spark异常：org&#x2F;codehaus&#x2F;janino&#x2F;InternalCompilerException</a><br>不能用太高版本的，3.1.2 也不行。</li>
+</ul>
+<h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><ul>
+<li><p>经典 word count：</p>
+<pre><code class="java">JavaRDD&lt;String&gt; file = session.read().textFile(filePath).cache().toJavaRDD();
+JavaRDD&lt;String&gt; words = file.flatMap((FlatMapFunction&lt;String, String&gt;) s -&gt; Arrays.asList(s.split(&quot; &quot;)).iterator());
+JavaPairRDD&lt;String, Integer&gt; wordToCountMap = words.mapToPair((PairFunction&lt;String, String, Integer&gt;) s -&gt; new Tuple2&lt;&gt;(s, 1));
+JavaPairRDD&lt;String, Integer&gt; wordCounts = wordToCountMap.reduceByKey((Function2&lt;Integer, Integer, Integer&gt;) Integer::sum);
+wordCounts.saveAsTextFile(&quot;./word_count&quot;);
+</code></pre>
+</li>
+</ul>
+<p>参考： </p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/CYJ2014go/article/details/83014075">spark中map()和flatmap()的区别</a></p>
+</li>
+<li><p>生成 parquet：</p>
+<pre><code class="java">SparkSession session = sparkService.getSparkSession();
+Properties properties = new Properties();
+properties.setProperty(&quot;user&quot;, &quot;root&quot;);
+properties.setProperty(&quot;password&quot;, &quot;123456&quot;);
+Dataset&lt;Row&gt; dataset = session.read().jdbc(&quot;jdbc:mysql://localhost:3306/spark&quot;, &quot;person&quot;, properties);
+// 输出表格
+dataset.show();
+dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, true).parquet(&quot;./test.parquet&quot;);
+</code></pre>
+</li>
+</ul>
+<p>Pandas 也支持生成 parquet：<a target="_blank" rel="noopener" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_parquet.html">pandas.DataFrame.to_parquet</a>。</p>
+<h2 id="Spark-中的三种数据结构"><a href="#Spark-中的三种数据结构" class="headerlink" title="Spark 中的三种数据结构"></a>Spark 中的三种数据结构</h2><ul>
+<li><p>Spark RDD</p>
+<p>  <code>RDD</code> 是一种弹性分布式数据集，是一种只读分区数据。它是 <code>Spark</code> 的基础数据结构，具有内存计算能力、数据容错性以及数据不可修改特性。</p>
+</li>
+<li><p>Spark Dataframe</p>
+<p>  <code>Dataframe</code> 也是一种不可修改的分布式数据集合，它可以按列查询数据，类似于关系数据库里面的表结构。可以对数据指定数据模式（schema）。</p>
+</li>
+<li><p>Spark Dataset</p>
+<p>  <code>Dataset</code> 是 <code>DataFrame</code> 的扩展，它提供了类型安全，面向对象的编程接口。也就是说 <code>DataFrame</code> 是 <code>Dataset</code> 的一种特殊形式。</p>
+</li>
+</ul>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.hadoopdoc.com/spark/spark-rdd-dataframe-dataset-diff">RDD、DataFrame和DataSet的区别</a></li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Spark/" style="color: #00bcd4">Spark</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Java/" style="color: #03a9f4">Java</a>
+        </span>
+        
+    </div>
+    <a href="/2024/03/12/spark-note-1/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/02/08/memorize/">
         <h2 class="post-title">纪念一次成功的开源贡献</h2>
     </a>
@@ -315,12 +546,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #03a9f4">Rust</a>
+            <a href="/tags/Rust/" style="color: #ff7d73">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #00a596">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #00bcd4">Tokio</a>
         </span>
         
     </div>
@@ -589,7 +820,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
@@ -677,7 +908,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
         </span>
         
     </div>
@@ -724,7 +955,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
     </div>
