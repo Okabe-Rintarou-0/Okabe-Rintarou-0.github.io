@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>C++ 笔记（3）—— Effective Modern C++ (3-6 章) | Okabe&#39;s LAB</title>
+    <title>cpp-template | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -150,14 +150,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>C++ 笔记（3）—— Effective Modern C++ (3-6 章)</h1>
+        <h1>cpp-template</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2024/5/29
+            2025/3/2
         </span>
         
         <span class="category">
@@ -178,7 +178,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #00bcd4">C++</a>
+                <a href="/tags/C/" style="color: #ffa2c4">C++</a>
             </span>
             
         </span>
@@ -186,50 +186,159 @@
     </div>
     
     <div class="content" v-pre>
-        <h2 id="Item-18-——-std-unique-ptr"><a href="#Item-18-——-std-unique-ptr" class="headerlink" title="Item 18 —— std::unique_ptr"></a>Item 18 —— std::unique_ptr</h2><p><code>std::unique_ptr</code> 支持使用自定义的析构函数，可以传入一个 lambda 函数：</p>
-<pre><code class="c++">auto delFunc = [](auto* v) &#123;
-    std::cout &lt;&lt; &quot;Deconstruct for value: &quot; &lt;&lt; *v;
-&#125;;
-std::unique_ptr&lt;int, decltype(delFunc)&gt; ptr(new int&#123;123&#125;, delFunc);
+        <p>最近在学习 <a target="_blank" rel="noopener" href="https://github.com/Walton1128/CPP-Templates-2nd--/blob/master/C%2B%2B%E6%A8%A1%E6%9D%BF_%E7%AC%AC%E4%BA%8C%E7%89%88.pdf">C++ Template</a> 这本书，补齐了一些模板元编程相关的信息，后续会持续更新。</p>
+<h2 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h2><h3 id="推断函数模板的返回值"><a href="#推断函数模板的返回值" class="headerlink" title="推断函数模板的返回值"></a>推断函数模板的返回值</h3><p>假设我们希望计算两个<strong>两个类型不相同</strong>的变量中的<strong>最大值</strong>（如 1u 和 2.0f），我们要如何定义函数模板？</p>
+<pre><code class="c++">// since c++ 14
+template &lt;typename T1, typename T2&gt; auto max(T1 x, T2 y) &#123;
+  return x &gt; y ? x : y;
+&#125;
+
+// here x&#39;s type is float
+auto x = ::max(1u, 2.0f);
 </code></pre>
-<p>这里 <code>decltype</code> 将再次发挥作用。注意，与 <code>std::shared_ptr</code> 不同，这个自定义析构函数的类型是会绑定到 <code>std::unique_ptr</code> 上的（参见模板第二个参数）。</p>
-<h2 id="Item-19-——-std-shared-ptr"><a href="#Item-19-——-std-shared-ptr" class="headerlink" title="Item 19 —— std::shared_ptr"></a>Item 19 —— std::shared_ptr</h2><p><code>std::shared_ptr</code> 会额外维护一个控制块：</p>
-<p><img src="/2024/05/29/cpp-3/image.png"></p>
-<p>这个控制块位于堆上。在执行 <code>move</code> 操作的时候，控制块会沿用。当一个 <code>std::shared_ptr</code> 移动构造一个新的 <code>std::shared_ptr</code> 的时候，ref_cnt 不会增加（会将原来的设置为 nullptr）。</p>
-<p>不能用一个裸指针初始化多个 <code>std::shared_ptr</code>，这会导致多个控制块，执行多次析构，造成未定义结果</p>
-<p><code>std::shared_ptr</code> 还支持对于每个实例都使用不同的自定义析构函数函数。如果使用了自定义析构函数，就无法用 <code>std::make_shared</code> 生成对应 <code>std::shared_ptr</code> 对象。与 <code>std::unique_ptr</code> 不同，自定义函数不会体现到类型上。<br>例如：</p>
-<pre><code class="c++">std::shared_ptr&lt;int&gt; ptr(new int&#123;123&#125;, delFunc);
-</code></pre>
-<p>有时候我们希望，对于一个对象 <code>std::shared_ptr&lt;Object&gt;</code>，我们希望在 <code>Object</code> 的成员函数中创建一个新的，指向自己（this）的 <code>std::shared_ptr&lt;Object&gt;</code>：</p>
-<pre><code class="c++">class Object : public std::enable_shared_from_this&lt;Object&gt; &#123;
-   public:
-    static std::shared_ptr&lt;Object&gt; Create(int val) &#123;
-        return std::shared_ptr&lt;Object&gt;(new Object(val));
-    &#125;
-    std::shared_ptr&lt;Object&gt; CloneInner() &#123; return shared_from_this(); &#125;
-    inline int Val() const &#123; return val; &#125;
+<p>从 c++ 14 开始，我们可以使用 <code>auto</code> 让编译器帮我们自动计算返回值的类型，然而在此之前，我们必须使用 <code>decltype</code> 或 <code>common_type</code> 这样的工具来告诉编译器，我们需要返回什么类型：</p>
+<pre><code class="cpp">// c++ 11
+template &lt;typename T1, typename T2&gt;
+auto max(T1 x, T2 y) -&gt; decltype(x &gt; y ? x : y) &#123;
+  return x &gt; y ? x : y;
+&#125;
 
-    ~Object() &#123; std::cout &lt;&lt; &quot;Deconstruct called.&quot; &lt;&lt; std::endl; &#125;
-
-   private:
-    int val;
-
-    // shared_from_this 必须基于已有的 std::shared_ptr 对象。
-    // 设置为 private 以防止用户构造一个裸露对象并调用 shared_from_this。
-    explicit Object(int val) : val(val) &#123;&#125;
-&#125;;
-
-int main() &#123;
-    auto p = Object::Create(233);
-    std::cout &lt;&lt; &quot;Value 1: &quot; &lt;&lt; p-&gt;Val() &lt;&lt; std::endl;
-    std::cout &lt;&lt; &quot;Reference Count: &quot; &lt;&lt; p.use_count() &lt;&lt; std::endl;
-
-    auto p2 = p-&gt;CloneInner();
-    std::cout &lt;&lt; &quot;Value 2: &quot; &lt;&lt; p2-&gt;Val() &lt;&lt; std::endl;
-
-    std::cout &lt;&lt; &quot;Reference Count: &quot; &lt;&lt; p2.use_count() &lt;&lt; std::endl;
+// equal to
+template &lt;typename T1, typename T2&gt;
+auto max(T1 x, T2 y) -&gt; decltype(true ? x : y) &#123;
+  return x &gt; y ? x : y;
 &#125;
 </code></pre>
+<p>然而，上述的代码可能面临一些严重的问题。在一些特殊场景下，返回值可能为引用，这时候需要使用类型萃取（type trait）std::decay<T>来将引用“退化”。</p>
+<pre><code class="cpp">// c++ 11
+#include &lt;type_traits&gt;
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; typename std::decay&lt;decltype(true ? a : b)&gt;::type &#123;
+  return b &lt; a ? a : b;
+&#125;
+
+// since c++ 14, simplified
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; std::decay_t&lt;decltype(true ? a : b)&gt; &#123;
+  return b &lt; a ? a : b;
+&#125;
+</code></pre>
+<p>注意到 c++ 14 对 <code>typename std::decay&lt;decltype(true ? a : b)&gt;::type</code> 这样的写法进行了简化。</p>
+<p>这边顺便回顾一下 <code>auto</code> 和 <code>decltype</code> 的区别：</p>
+<p><code>auto</code> 在大部分场景下和模板类型 <code>T</code> 的行为是一致的，会对推导的类型进行退化（decay）。此处的退化是指：</p>
+<ul>
+<li>去除 <code>const</code>，<code>volatile</code> 等关键字；</li>
+<li>去除引用</li>
+<li>将数组退化成指针</li>
+</ul>
+<p><code>delctype</code> 则是老老实实地获取类型，不会进行退化操作。有一个比较有意思的特殊场景：</p>
+<pre><code class="c++">// will return int &amp;
+auto f(int a) -&gt; decltype((a)) &#123; return a; &#125;
+</code></pre>
+<p>虽然上述的用法是不正确的（返回了垂悬引用，dangling reference），但是能表明 <code>decltype</code> 会把 <code>()</code> 括起来的变量视作引用。</p>
+<p>言归正传，之前的写法用 <code>decltype</code> 虽然能解决问题，但是未免太麻烦了点，我们可以用 <code>std::common_type_t&lt;T1, T2, ...&gt;</code> 来解决这个问题：</p>
+<pre><code class="c++">// since c++ 14
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; std::common_type_t&lt;T1, T2&gt; &#123;
+  return b &lt; a ? a : b;
+&#125;
+</code></pre>
+<p>还有一种写法，实际上 c++ 在实例化模板时，只要能保证能推断出所有的类型即可，我们可以定义一个返回类型 <code>RT</code>:</p>
+<pre><code class="c++">template &lt;typename RT, typename T1, typename T2&gt; 
+RT max(T1 a, T2 b) &#123;
+  return b &lt; a ? a : b;
+&#125;
+auto x = ::max&lt;float&gt;(1u, 2.0f);
+</code></pre>
+<p>这样只需要指定 <code>RT</code> 即可，因为 <code>T1</code> 和 <code>T2</code> 的类型对于编译器而言是已知的。但是下面的写法就会出错：</p>
+<pre><code class="c++">template &lt;typename T1, typename T2, typename RT&gt;
+RT max(T1 a, T2 b) &#123;
+  return b &lt; a ? a : b;
+&#125;
+auto x = ::max&lt;unsigned int, float&gt;(1u, 2.0f);
+</code></pre>
+<p>报错信息为：</p>
+<blockquote>
+<p>Candidate template ignored: couldn’t infer template argument ‘RT’</p>
+</blockquote>
+<p>编译器无法自动推断 <code>RT</code> 的类型，除非使用上述的 <code>auto</code>。</p>
+<p>c++ 还支持模板类型的默认值，比如常用的 <code>std::priority_queue</code> 实际上有 3 个模板类型。</p>
+<h2 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h2><p>c++ 支持使用基础的数值类型（double 除外）作为模板参数：</p>
+<pre><code class="c++">template &lt;typename T, size_t MaxSize&gt; class Stack &#123;
+  array&lt;T, MaxSize&gt; elements;
+  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
+&#125;;
+</code></pre>
+<p>虽然不支持直接使用字符串常量，但是可以通过定义一个变量来解决</p>
+<pre><code class="c++">template &lt;char const *name&gt; class MyClass &#123;
+  ...
+&#125;;
+MyClass&lt;&quot;hello&quot;&gt; x; // ERROR: string literal &quot;hello&quot; not allowed
+extern char const s03[] = &quot;hi&quot;; // external linkage 
+char const s11[] = &quot;hi&quot;; // internal linkage
+int main() &#123;
+  MyClass&lt;s03&gt; m03;               // OK (all versions)
+  MyClass&lt;s11&gt; m11;               // OK since C++11
+  static char const s17[] = &quot;hi&quot;; // no linkage
+  MyClass&lt;s17&gt; m17;               // OK since C++17
+&#125;
+</code></pre>
+<h2 id="推断指引（Deduction-Guides）"><a href="#推断指引（Deduction-Guides）" class="headerlink" title="推断指引（Deduction Guides）"></a>推断指引（Deduction Guides）</h2><pre><code class="c++">template &lt;typename T&gt; class Stack &#123;
+  vector&lt;T&gt; elements;
+
+public:
+  Stack() = default;
+  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
+&#125;;
+
+Stack(char const *)-&gt;Stack&lt;std::string&gt;;
+
+Stack s(&quot;123&quot;);
+</code></pre>
+<p>如果没有 <code>Stack(char const *)-&gt;Stack&lt;std::string&gt;;</code>，s 将被推导为 <code>Stack&lt;const char *&gt;</code>。</p>
+<h2 id="Concept"><a href="#Concept" class="headerlink" title="Concept"></a>Concept</h2><pre><code class="c++">template &lt;typename T&gt; struct AccumulationTraits;
+template &lt;&gt; struct AccumulationTraits&lt;int&gt; &#123;
+  using AccT = int;
+  static AccT constexpr zero = 0;
+&#125;;
+
+template &lt;&gt; struct AccumulationTraits&lt;string&gt; &#123;
+  using AccT = string;
+  // support since c++ 17
+  inline static AccT const zero = &quot;&quot;;
+&#125;;
+
+template &lt;typename T&gt; auto accum(T begin, T end) &#123;
+  using AccT = AccumulationTraits&lt;T&gt;::AccT;
+  AccT total = AccumulationTraits&lt;T&gt;::zero;
+
+  for (T i = begin; i &lt;= end; i++) &#123;
+    total += i;
+  &#125;
+  return total;
+&#125;
+
+int main(int, char **) &#123;
+  auto total = accum(1, 100);
+  cout &lt;&lt; total &lt;&lt; endl;
+&#125;
+</code></pre>
+<pre><code class="c++">template &lt;typename T&gt;
+concept Addable = requires(T a, T b) &#123;
+                    &#123; a + b &#125; -&gt; std::same_as&lt;T&gt;;
+                  &#125;;
+
+template &lt;typename T&gt;
+  requires Addable&lt;T&gt; &amp;&amp; std::is_arithmetic_v&lt;T&gt;
+T accum(T begin, T end) &#123;
+  T total&#123;&#125;;
+  for (T i = begin; i &lt;= end; i++) &#123;
+    total += i;
+  &#125;
+  return total;
+&#125;
+</code></pre>
+<p>此处也可以把 <code>typename</code> 替换成 <code>Addable</code> 之类的 <code>concept</code>。和 <code>rust</code> 的 <code>trait</code> 语法非常类似。</p>
 
     </div>
     

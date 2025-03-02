@@ -167,6 +167,207 @@
         
 
 <div class="post">
+    <a href="/2025/03/02/cpp-template/">
+        <h2 class="post-title">cpp-template</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Language/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Language
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/3/2
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p>最近在学习 <a target="_blank" rel="noopener" href="https://github.com/Walton1128/CPP-Templates-2nd--/blob/master/C%2B%2B%E6%A8%A1%E6%9D%BF_%E7%AC%AC%E4%BA%8C%E7%89%88.pdf">C++ Template</a> 这本书，补齐了一些模板元编程相关的信息，后续会持续更新。</p>
+<h2 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h2><h3 id="推断函数模板的返回值"><a href="#推断函数模板的返回值" class="headerlink" title="推断函数模板的返回值"></a>推断函数模板的返回值</h3><p>假设我们希望计算两个<strong>两个类型不相同</strong>的变量中的<strong>最大值</strong>（如 1u 和 2.0f），我们要如何定义函数模板？</p>
+<pre><code class="c++">// since c++ 14
+template &lt;typename T1, typename T2&gt; auto max(T1 x, T2 y) &#123;
+  return x &gt; y ? x : y;
+&#125;
+
+// here x&#39;s type is float
+auto x = ::max(1u, 2.0f);
+</code></pre>
+<p>从 c++ 14 开始，我们可以使用 <code>auto</code> 让编译器帮我们自动计算返回值的类型，然而在此之前，我们必须使用 <code>decltype</code> 或 <code>common_type</code> 这样的工具来告诉编译器，我们需要返回什么类型：</p>
+<pre><code class="cpp">// c++ 11
+template &lt;typename T1, typename T2&gt;
+auto max(T1 x, T2 y) -&gt; decltype(x &gt; y ? x : y) &#123;
+  return x &gt; y ? x : y;
+&#125;
+
+// equal to
+template &lt;typename T1, typename T2&gt;
+auto max(T1 x, T2 y) -&gt; decltype(true ? x : y) &#123;
+  return x &gt; y ? x : y;
+&#125;
+</code></pre>
+<p>然而，上述的代码可能面临一些严重的问题。在一些特殊场景下，返回值可能为引用，这时候需要使用类型萃取（type trait）std::decay<T>来将引用“退化”。</p>
+<pre><code class="cpp">// c++ 11
+#include &lt;type_traits&gt;
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; typename std::decay&lt;decltype(true ? a : b)&gt;::type &#123;
+  return b &lt; a ? a : b;
+&#125;
+
+// since c++ 14, simplified
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; std::decay_t&lt;decltype(true ? a : b)&gt; &#123;
+  return b &lt; a ? a : b;
+&#125;
+</code></pre>
+<p>注意到 c++ 14 对 <code>typename std::decay&lt;decltype(true ? a : b)&gt;::type</code> 这样的写法进行了简化。</p>
+<p>这边顺便回顾一下 <code>auto</code> 和 <code>decltype</code> 的区别：</p>
+<p><code>auto</code> 在大部分场景下和模板类型 <code>T</code> 的行为是一致的，会对推导的类型进行退化（decay）。此处的退化是指：</p>
+<ul>
+<li>去除 <code>const</code>，<code>volatile</code> 等关键字；</li>
+<li>去除引用</li>
+<li>将数组退化成指针</li>
+</ul>
+<p><code>delctype</code> 则是老老实实地获取类型，不会进行退化操作。有一个比较有意思的特殊场景：</p>
+<pre><code class="c++">// will return int &amp;
+auto f(int a) -&gt; decltype((a)) &#123; return a; &#125;
+</code></pre>
+<p>虽然上述的用法是不正确的（返回了垂悬引用，dangling reference），但是能表明 <code>decltype</code> 会把 <code>()</code> 括起来的变量视作引用。</p>
+<p>言归正传，之前的写法用 <code>decltype</code> 虽然能解决问题，但是未免太麻烦了点，我们可以用 <code>std::common_type_t&lt;T1, T2, ...&gt;</code> 来解决这个问题：</p>
+<pre><code class="c++">// since c++ 14
+template &lt;typename T1, typename T2&gt;
+auto max(T1 a, T2 b) -&gt; std::common_type_t&lt;T1, T2&gt; &#123;
+  return b &lt; a ? a : b;
+&#125;
+</code></pre>
+<p>还有一种写法，实际上 c++ 在实例化模板时，只要能保证能推断出所有的类型即可，我们可以定义一个返回类型 <code>RT</code>:</p>
+<pre><code class="c++">template &lt;typename RT, typename T1, typename T2&gt; 
+RT max(T1 a, T2 b) &#123;
+  return b &lt; a ? a : b;
+&#125;
+auto x = ::max&lt;float&gt;(1u, 2.0f);
+</code></pre>
+<p>这样只需要指定 <code>RT</code> 即可，因为 <code>T1</code> 和 <code>T2</code> 的类型对于编译器而言是已知的。但是下面的写法就会出错：</p>
+<pre><code class="c++">template &lt;typename T1, typename T2, typename RT&gt;
+RT max(T1 a, T2 b) &#123;
+  return b &lt; a ? a : b;
+&#125;
+auto x = ::max&lt;unsigned int, float&gt;(1u, 2.0f);
+</code></pre>
+<p>报错信息为：</p>
+<blockquote>
+<p>Candidate template ignored: couldn’t infer template argument ‘RT’</p>
+</blockquote>
+<p>编译器无法自动推断 <code>RT</code> 的类型，除非使用上述的 <code>auto</code>。</p>
+<p>c++ 还支持模板类型的默认值，比如常用的 <code>std::priority_queue</code> 实际上有 3 个模板类型。</p>
+<h2 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h2><p>c++ 支持使用基础的数值类型（double 除外）作为模板参数：</p>
+<pre><code class="c++">template &lt;typename T, size_t MaxSize&gt; class Stack &#123;
+  array&lt;T, MaxSize&gt; elements;
+  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
+&#125;;
+</code></pre>
+<p>虽然不支持直接使用字符串常量，但是可以通过定义一个变量来解决</p>
+<pre><code class="c++">template &lt;char const *name&gt; class MyClass &#123;
+  ...
+&#125;;
+MyClass&lt;&quot;hello&quot;&gt; x; // ERROR: string literal &quot;hello&quot; not allowed
+extern char const s03[] = &quot;hi&quot;; // external linkage 
+char const s11[] = &quot;hi&quot;; // internal linkage
+int main() &#123;
+  MyClass&lt;s03&gt; m03;               // OK (all versions)
+  MyClass&lt;s11&gt; m11;               // OK since C++11
+  static char const s17[] = &quot;hi&quot;; // no linkage
+  MyClass&lt;s17&gt; m17;               // OK since C++17
+&#125;
+</code></pre>
+<h2 id="推断指引（Deduction-Guides）"><a href="#推断指引（Deduction-Guides）" class="headerlink" title="推断指引（Deduction Guides）"></a>推断指引（Deduction Guides）</h2><pre><code class="c++">template &lt;typename T&gt; class Stack &#123;
+  vector&lt;T&gt; elements;
+
+public:
+  Stack() = default;
+  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
+&#125;;
+
+Stack(char const *)-&gt;Stack&lt;std::string&gt;;
+
+Stack s(&quot;123&quot;);
+</code></pre>
+<p>如果没有 <code>Stack(char const *)-&gt;Stack&lt;std::string&gt;;</code>，s 将被推导为 <code>Stack&lt;const char *&gt;</code>。</p>
+<h2 id="Concept"><a href="#Concept" class="headerlink" title="Concept"></a>Concept</h2><pre><code class="c++">template &lt;typename T&gt; struct AccumulationTraits;
+template &lt;&gt; struct AccumulationTraits&lt;int&gt; &#123;
+  using AccT = int;
+  static AccT constexpr zero = 0;
+&#125;;
+
+template &lt;&gt; struct AccumulationTraits&lt;string&gt; &#123;
+  using AccT = string;
+  // support since c++ 17
+  inline static AccT const zero = &quot;&quot;;
+&#125;;
+
+template &lt;typename T&gt; auto accum(T begin, T end) &#123;
+  using AccT = AccumulationTraits&lt;T&gt;::AccT;
+  AccT total = AccumulationTraits&lt;T&gt;::zero;
+
+  for (T i = begin; i &lt;= end; i++) &#123;
+    total += i;
+  &#125;
+  return total;
+&#125;
+
+int main(int, char **) &#123;
+  auto total = accum(1, 100);
+  cout &lt;&lt; total &lt;&lt; endl;
+&#125;
+</code></pre>
+<pre><code class="c++">template &lt;typename T&gt;
+concept Addable = requires(T a, T b) &#123;
+                    &#123; a + b &#125; -&gt; std::same_as&lt;T&gt;;
+                  &#125;;
+
+template &lt;typename T&gt;
+  requires Addable&lt;T&gt; &amp;&amp; std::is_arithmetic_v&lt;T&gt;
+T accum(T begin, T end) &#123;
+  T total&#123;&#125;;
+  for (T i = begin; i &lt;= end; i++) &#123;
+    total += i;
+  &#125;
+  return total;
+&#125;
+</code></pre>
+<p>此处也可以把 <code>typename</code> 替换成 <code>Addable</code> 之类的 <code>concept</code>。和 <code>rust</code> 的 <code>trait</code> 语法非常类似。</p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+        </span>
+        
+    </div>
+    <a href="/2025/03/02/cpp-template/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/07/09/kmesh-env/">
         <h2 class="post-title">Kmesh 环境配置</h2>
     </a>
@@ -311,17 +512,17 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #00bcd4">Istio</a>
+            <a href="/tags/Istio/" style="color: #03a9f4">Istio</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Metallb/" style="color: #00a596">Metallb</a>
+            <a href="/tags/Metallb/" style="color: #ff7d73">Metallb</a>
         </span>
         
     </div>
@@ -679,7 +880,7 @@ Called second.
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #00bcd4">C++</a>
         </span>
         
     </div>
@@ -847,7 +1048,7 @@ error: non-const lvalue reference to type &#39;std::string&#39; (aka &#39;basic_
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ff7d73">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
     </div>
@@ -932,12 +1133,12 @@ error: non-const lvalue reference to type &#39;std::string&#39; (aka &#39;basic_
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #03a9f4">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
         </span>
         
     </div>
@@ -1066,216 +1267,11 @@ WHERE name LIKE &#39;And%&#39;;
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #00a596">CMU-DB</a>
         </span>
         
     </div>
     <a href="/2024/03/25/bustub-2/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2024/03/24/bustub-1/">
-        <h2 class="post-title">CMU-DB 15-445 学习笔记（1）</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2024/3/24
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <h1 id="对应课程"><a href="#对应课程" class="headerlink" title="对应课程"></a>对应课程</h1><ul>
-<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/schedule.html">Schedule</a></li>
-<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/02-modernsql.pdf">Lecture 2: Advanced SQL</a></li>
-<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/03-storage1.pdf">Lecture 3: Database Storage 1</a></li>
-<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/04-storage2.pdf">Lecture 4: Database Storage 2</a></li>
-</ul>
-<p><img src="/2024/03/24/bustub-1/tables.png"></p>
-<h2 id="聚合操作"><a href="#聚合操作" class="headerlink" title="聚合操作"></a>聚合操作</h2><ul>
-<li>AVG(col)</li>
-<li>MIN(col)</li>
-<li>MAX(col)</li>
-<li>SUM(col)</li>
-<li>…</li>
-</ul>
-<p>以上都是 SQL 中的聚合函数。</p>
-<ul>
-<li><p>支持 DICTINCT</p>
-<pre><code class="sql">SELECT COUNT(DISTINCT login) 
-FROM student WHERE login LIKE &#39;%@cs&#39;
-</code></pre>
-</li>
-<li><p>将聚合结果与非聚合的列混合在标准 SQL 下是未定义行为</p>
-<p>  应该使用 <code>GROUP BY</code></p>
-<pre><code class="sql">SELECT AVG(s.gpa), e.cid, s.name
-FROM enrolled AS e, student AS s
-WHERE e.sid = s.sid
-GROUP BY e.cid
-</code></pre>
-</li>
-<li><p>使用 <code>HAVING</code> 语句来筛选聚合结果</p>
-<pre><code class="sql">SELECT AVG(s.gpa) AS avg_gpa, e.cid
-FROM enrolled AS e, student AS s
-WHERE e.sid = s.sid
-AND avg_gpa &gt; 3.9
-GROUP BY e.cid
-</code></pre>
-<p>  以上方式是错误的（<code>AND avg_gpa &gt; 3.9</code>），因为平均值只有在聚合之后才知道。</p>
-<pre><code class="sql">SELECT AVG(s.gpa) AS avg_gpa, e.cid
-FROM enrolled AS e, student AS s
-WHERE e.sid = s.sid
-GROUP BY e.cid
-HAVING AVG(s.gpa) &gt; 3.9;
-</code></pre>
-<p>  SQL 是声明式的，AVG 函数不会执行两遍。</p>
-</li>
-</ul>
-<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><p><img src="/2024/03/24/bustub-1/string_operations.png"></p>
-<p>MySQL 默认情况下不区分字符串大小写，使用 CAST 将其转成二进制字符串：</p>
-<pre><code class="sql">SELECT * FROM student WHERE CAST(name AS BINARY) = &#39;TupaC&#39;;
-</code></pre>
-<ul>
-<li><p>模糊查询</p>
-<ul>
-<li><code>%</code> 类似正则表达式的 <code>*</code></li>
-<li><code>_</code> 类似正则表达式的 <code>.</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h2><p><img src="/2024/03/24/bustub-1/window_function.png"></p>
-<blockquote>
-<p>窗口函数是一种类似聚合函数的函数，但它们不会将数据集分组为单个值，而是在给定窗口范围内对每一行进行计算。</p>
-</blockquote>
-<p><code>ROW_NUMBER</code> 是窗口函数，<code>OVER</code> 括号里面声明了如何切片，如果为空则代表不切分表。</p>
-<p>例如，如果我希望计算每门课第二高成绩的学生：</p>
-<pre><code class="sql">SELECT * FROM (
- SELECT *, RANK() OVER (PARTITION BY cid
- ORDER BY grade ASC) AS rank
- FROM enrolled) AS ranking
-WHERE ranking.rank = 2
-</code></pre>
-<h2 id="嵌套查询"><a href="#嵌套查询" class="headerlink" title="嵌套查询"></a>嵌套查询</h2><p><img src="/2024/03/24/bustub-1/nested_query.png"></p>
-<pre><code class="sql">SELECT * FROM student AS s 
-WHERE s.sid IN (
-    SELECT sid FROM enrolled where cid = &#39;15-445&#39;
-)
-</code></pre>
-<h2 id="LATERAL-JOIN"><a href="#LATERAL-JOIN" class="headerlink" title="LATERAL JOIN"></a>LATERAL JOIN</h2><p>LATERAL JOIN 允许嵌套查询中的表能够引用另一张表的属性</p>
-<p>以下的查询会报错，因为 <code>t2</code> 和 <code>t1</code> 是并行执行的，<code>t2</code> 无法知道 <code>t1</code> 的存在。</p>
-<pre><code class="sql">SELECT * from (SELECT 1 AS x) AS t1, (SELECT t1.x + 1 AS y) as t2; 
-</code></pre>
-<p>使用 <code>LATERAL</code> 关键字可以实现这一点：</p>
-<pre><code class="sql">SELECT * from (SELECT 1 AS x) AS t1, LATERAL (SELECT t1.x + 1 AS y) as t2; 
-</code></pre>
-<p><img src="/2024/03/24/bustub-1/mysql_lateral_join.png"></p>
-<h2 id="CTE-Common-Table-Expression"><a href="#CTE-Common-Table-Expression" class="headerlink" title="CTE(Common Table Expression)"></a>CTE(Common Table Expression)</h2><p>类似于临时表，或者说是 MYSQL Derived Table（嵌套查询的子查询生成的表叫做<code>派生表</code>） 的增强版。</p>
-<p>例子（找到 <code>sid</code> 最大的学生）：</p>
-<pre><code class="sql">WITH cteSource (maxId) AS (
- SELECT MAX(sid) FROM enrolled
-)
-SELECT name FROM student, cteSource
-WHERE student.sid = cteSource.maxId
-</code></pre>
-<h2 id="面向磁盘的-DBMS"><a href="#面向磁盘的-DBMS" class="headerlink" title="面向磁盘的 DBMS"></a>面向磁盘的 DBMS</h2><p><img src="/2024/03/24/bustub-1/disk_oriented_dbms.png"></p>
-<ul>
-<li>Buffer Pool 作为中转，缓存数据库页面，页面目录标识数据页在磁盘的位置。</li>
-<li>获取页面 2 的时候，先加载目录到内存，然后通过操作系统调用加载数据页到内存，返回给执行引擎一个内存地址。</li>
-<li>Buffer Pool 还需要负责写回脏页，保持一致性。</li>
-</ul>
-<h2 id="MMAP-的问题"><a href="#MMAP-的问题" class="headerlink" title="MMAP 的问题"></a>MMAP 的问题</h2><p>虽然我们可以使用 <code>mmap</code> 调用将文件映射到内存（操作系统会帮我们进行页面换入和换出），但是操作系统执行页面驱逐的逻辑可能和数据库的驱逐逻辑冲突（换出数据库不想被换出的页面）。</p>
-<ul>
-<li>无法满足事务安全，操作系统可能随时 flash 脏页。假如事务要求将多个页按照一定顺序写入，无法保证 page A 在 page B 写入之后再被写入。</li>
-<li>DBMS 无法知道某个页面在不在内存中，操作系统会触发 page fault 阻塞线程。</li>
-<li>难以处理错误，任何访问都可能触发一个 <code>SIGBUS</code> 中断，DBMS 必须处理它，即使正在执行一些 critical section。</li>
-<li>与操作系统产生数据竞争。</li>
-</ul>
-<h2 id="Storage-Manager"><a href="#Storage-Manager" class="headerlink" title="Storage Manager"></a>Storage Manager</h2><ul>
-<li>负责维护数据库文件</li>
-<li>调度读写以获取更好的时空 locality。</li>
-<li>以页的形式组织数据库文件</li>
-<li>记录元数据（可用页面）</li>
-</ul>
-<h2 id="Page"><a href="#Page" class="headerlink" title="Page"></a>Page</h2><ul>
-<li><p>固定大小的数据块</p>
-</li>
-<li><p>数据 + 元数据、日志</p>
-</li>
-<li><p>Oracle 中 Page 是 Self-contained（包含了用于理解这个页的元数据，比如所属 Table 的信息，这种冗余可以避免数据库文件损坏导致无法读取数据）。</p>
-</li>
-<li><p>每个页都有一个唯一标识符（由此映射到物理内存位置）。</p>
-</li>
-<li><p>Hardware Page（4KB）是能够保证原子性写入的数据块最大大小。数据库页默认大小通常大于 4KB（非原子性）。</p>
-<p>  <img src="/2024/03/24/bustub-1/db_pagesize.png"></p>
-</li>
-</ul>
-<h2 id="Heap-File"><a href="#Heap-File" class="headerlink" title="Heap File"></a>Heap File</h2><p>页的无序集合，每个数据元祖随机存储（关系型数据库并不要求按照顺序排列）。对于单个文件而言，找到对应的页很容易，但是对于多个文件而言则比较棘手，需要存储额外的元数据记录哪一个页存在哪一个文件里面，也就是 Page Directory。Page Directory 需要和数据页保持同步，同时需要维护和记录空闲页的数量和位置。</p>
-<p><img src="/2024/03/24/bustub-1/heap_file.png"></p>
-<ul>
-<li>对 Page Directory 的更新需要立即写入磁盘。</li>
-<li>像 BLOB 这种字段可能是分另一个文件存储。</li>
-</ul>
-<h2 id="Page-Header"><a href="#Page-Header" class="headerlink" title="Page Header"></a>Page Header</h2><p>存储诸如页大小，校验和之类的元数据。</p>
-<h2 id="Tuple-Oriented-Storage"><a href="#Tuple-Oriented-Storage" class="headerlink" title="Tuple-Oriented Storage"></a>Tuple-Oriented Storage</h2><p>File -&gt; Page -&gt; Tuple</p>
-<p><img src="/2024/03/24/bustub-1/slotted_pages.png"></p>
-<ul>
-<li>使用 Slotted Pages，Slot Array 从头部往尾部增长，Tuple 从尾部往头部增长。</li>
-<li>使用 Record ID 唯一标识一个 Page（Postgresql 中的 <code>ctid</code>）。</li>
-</ul>
-<p>存在的问题：</p>
-<ul>
-<li>一个 page 中可能有大量未被使用的空间（内存碎片）；</li>
-<li>更新一个 tuple 需要读写整个 page；</li>
-<li>随机磁盘读写，极端情况是修改 N 个 tuple，每个都属于不同的 page；</li>
-<li>由于需要写回更新，在一些云存储系统可能不支持这么做，例如 <code>HDFS</code>。</li>
-</ul>
-<h2 id="Log-Structured-Storage"><a href="#Log-Structured-Storage" class="headerlink" title="Log-Structured Storage"></a>Log-Structured Storage</h2><p><img src="/2024/03/24/bustub-1/log_structured_storage.png"></p>
-<ul>
-<li>追加对 tuple 的 PUT&#x2F;DELETE 操作</li>
-<li>定期合并 page（compaction）</li>
-</ul>
-<p><img src="/2024/03/24/bustub-1/compaction.png"></p>
-<p>存在的问题：</p>
-<ul>
-<li>写放大：Compaction 非常昂贵，从磁盘读回内存再写回磁盘。</li>
-<li>读放大</li>
-</ul>
-<h2 id="NULL"><a href="#NULL" class="headerlink" title="NULL"></a>NULL</h2><ul>
-<li>通过一个 bitmap 标识属性是否为空，这通常不仅仅占一个 bit，因为还要解决内存问题（填充多个 0）。</li>
-<li>标记为非 NULL 就不需要存 bitmap。</li>
-</ul>
-<h2 id="Large-Values-External-Value-Storage"><a href="#Large-Values-External-Value-Storage" class="headerlink" title="Large Values &amp; External Value Storage"></a>Large Values &amp; External Value Storage</h2><p><img src="/2024/03/24/bustub-1/large_values.png"></p>
-<p><img src="/2024/03/24/bustub-1/external_values.png"></p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/Database/" style="color: #00a596">Database</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
-        </span>
-        
-    </div>
-    <a href="/2024/03/24/bustub-1/" class="go-post">阅读全文</a>
 </div>
 
 
@@ -1320,7 +1316,7 @@ WHERE student.sid = cteSource.maxId
     <div id="footer-wrap">
         <div>
             &copy;
-            2022 - 2024 Okabe&#39;s LAB
+            2022 - 2025 Okabe&#39;s LAB
             <span id="footer-icon">
                 <i class="fa-solid fa-font-awesome fa-fw"></i>
             </span>
