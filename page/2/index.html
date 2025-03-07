@@ -167,6 +167,135 @@
         
 
 <div class="post">
+    <a href="/2024/03/25/bustub-2/">
+        <h2 class="post-title">CMU-DB 15-445 学习笔记（2）</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/3/25
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h1 id="对应课程"><a href="#对应课程" class="headerlink" title="对应课程"></a>对应课程</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/schedule.html">Schedule</a></li>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/05-storage3.pdf">Lecture 5: Storage Models &amp; Compression</a></li>
+</ul>
+<h2 id="三种数据处理模式"><a href="#三种数据处理模式" class="headerlink" title="三种数据处理模式"></a>三种数据处理模式</h2><ul>
+<li>OLTP: On-Line Transaction Processing</li>
+<li>OLAP: On-Line Analytical Processing</li>
+<li>HTAP: Hybrid Transaction + Analytical Processing</li>
+</ul>
+<h2 id="三种存储模型"><a href="#三种存储模型" class="headerlink" title="三种存储模型"></a>三种存储模型</h2><h3 id="N-ary-Storage-Modal-NSM-行存储"><a href="#N-ary-Storage-Modal-NSM-行存储" class="headerlink" title="N-ary Storage Modal(NSM) 行存储"></a>N-ary Storage Modal(NSM) 行存储</h3><p>适合 OLTP，一般 Page 大小都是 Hardware Page 的整数倍。</p>
+<p>优点：</p>
+<ul>
+<li>快速增删改查；</li>
+<li>适合 OLTP；</li>
+<li>可以基于 index-oriented 实现存储。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>不适用于扫描表的大范围内容；</li>
+<li>如果是想获取其中一列的值，会有很多随机写，内存 locality 很差；</li>
+<li>不适合压缩，因为单个页面里面有多种 value domains，重复的值出现的概率低。</li>
+</ul>
+<h3 id="Decomposition-Storage-Model-DSM-列存储"><a href="#Decomposition-Storage-Model-DSM-列存储" class="headerlink" title="Decomposition Storage Model(DSM) 列存储"></a>Decomposition Storage Model(DSM) 列存储</h3><ul>
+<li>适合 OLAP。</li>
+<li>一些系统可能会有一个 Buffer Pool，通常是日志结构，缓存行修改，并且定期转换为列存储。</li>
+<li>Oracle 保存以行格式存储的主表，但是同步按列存储的副本。</li>
+</ul>
+<p>两种存储方式：</p>
+<ul>
+<li>定长存储，这样做的好处就是不用额外的表示符确定某个数据（index &#x3D; offset &#x2F; value size）。但是对于不定长的数据，则需要通过字典压缩之类的方式，将变长内容映射到固定大小（32 bit）。</li>
+<li>用额外的列记录</li>
+</ul>
+<p>我们在做 OLAP 的时候，往往并不是只看其中一列，我们可能要在多列上获取值并且计算。基于此，我们需要 PAX。</p>
+<h3 id="Hybrid-Storage-Mode（PAX）混合存储"><a href="#Hybrid-Storage-Mode（PAX）混合存储" class="headerlink" title="Hybrid Storage Mode（PAX）混合存储"></a>Hybrid Storage Mode（PAX）混合存储</h3><ul>
+<li>PAX 即 Partition Attributes Across</li>
+<li><code>Paruqet</code> 和 <code>Orc</code> 格式使用的就是 PAX</li>
+<li>既要获得列存储快速处理的优点，又要获得行存储的优良空间 locality。</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/orc.png"></p>
+<h2 id="数据库压缩"><a href="#数据库压缩" class="headerlink" title="数据库压缩"></a>数据库压缩</h2><h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><ul>
+<li>必须产生定长的值</li>
+<li>解压缩应尽可能被延迟，需要的时候再进行（late materialization）</li>
+<li>必须是无损压缩</li>
+</ul>
+<h3 id="压缩粒度"><a href="#压缩粒度" class="headerlink" title="压缩粒度"></a>压缩粒度</h3><h4 id="Block-Level-Naive-Compression"><a href="#Block-Level-Naive-Compression" class="headerlink" title="Block Level(Naive Compression)"></a>Block Level(Naive Compression)</h4><ul>
+<li>使用通用压缩算法，Snappy, Zstd 等</li>
+<li>MySQL 使用的是通用的压缩，因为它是行存储，没法针对数据进行很好的压缩。 </li>
+<li>使用通用算法的弊端在于，虽然他们都是基于字典压缩算法的变形，但是由于 MYSQL 无法知道字典数据结构，所以 MYSQL 不得不做整体解压（无法根据字典拿到某个局部值）。</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/mysql_innodb_compression.png"></p>
+<p>我们真正想要获得的效果应该如下图所示。我们希望能够对某些局部值进行解压缩，而不用解压缩整个页。</p>
+<p><img src="/2024/03/25/bustub-2/database_ideal_compression.png"></p>
+<p>我们可以在列式存储中实现这一点。</p>
+<h4 id="Column-Level"><a href="#Column-Level" class="headerlink" title="Column Level"></a>Column Level</h4><h5 id="RLE-Run-Length-Encoding"><a href="#RLE-Run-Length-Encoding" class="headerlink" title="RLE(Run-Length Encoding)"></a>RLE(Run-Length Encoding)</h5><p>(value, index, number) 三元组，即（数据，索引，数量）。</p>
+<p><img src="/2024/03/25/bustub-2/RLE.png"></p>
+<h5 id="Bit-Packing"><a href="#Bit-Packing" class="headerlink" title="Bit Packing"></a>Bit Packing</h5><p><img src="/2024/03/25/bustub-2/bit_packing.png"></p>
+<p>通常数据都不会撑满设定的数值上限，例如 32 字节，我可能最大的数值只有 4 字节不到，那么我们就可以用 4 字节存储一个页中的任一数据（而不是原先的 32 字节）。</p>
+<h5 id="Mostly-Encoding"><a href="#Mostly-Encoding" class="headerlink" title="Mostly Encoding"></a>Mostly Encoding</h5><p><img src="/2024/03/25/bustub-2/mostly_encoding.png"></p>
+<p>对于 9999… 这么大的数，可以维护一个查询表来存储，其他的数保持 Bit Packing。</p>
+<h5 id="Bitmap-Encoding"><a href="#Bitmap-Encoding" class="headerlink" title="Bitmap Encoding"></a>Bitmap Encoding</h5><p><img src="/2024/03/25/bustub-2/bitmap.png"></p>
+<p>适用于有限值域，这里 M，F 两种值占两个字节 2 * 8 &#x3D; 16 bits。</p>
+<h5 id="Incremental-Encoding"><a href="#Incremental-Encoding" class="headerlink" title="Incremental Encoding"></a>Incremental Encoding</h5><p><img src="/2024/03/25/bustub-2/incremental_encoding.png"></p>
+<h5 id="Delta-Encoding"><a href="#Delta-Encoding" class="headerlink" title="Delta Encoding"></a>Delta Encoding</h5><p><img src="/2024/03/25/bustub-2/delta_encoding.png"></p>
+<p>利用差值进行压，甚至可以基于 RLE 进一步压缩。</p>
+<h5 id="Dictionary-Compression"><a href="#Dictionary-Compression" class="headerlink" title="Dictionary Compression"></a>Dictionary Compression</h5><p><img src="/2024/03/25/bustub-2/dictionary_compression.png"></p>
+<ul>
+<li><p>将原始值映射到一个新值，同时维护一个字典记录这种映射关系。</p>
+</li>
+<li><p>这里查询的时候也需要将查询值进行压缩，不然的话每一行查询都需要将压缩值进行解压，这样就失去了压缩带来的好处。</p>
+</li>
+<li><p>有时候我们希望对压缩值进行范围查询，所以我们也会希望映射值也能满足顺序。</p>
+</li>
+<li><p>如果满足字典顺序没有发生变化，那么 DBMS 就可以把 LIKE ‘And%’ 重写成 BETWEEN min AND max 这样的语句（因为满足顺序）。</p>
+<pre><code class="sql">SELECT name FROM users
+WHERE name LIKE &#39;And%&#39;;
+</code></pre>
+</li>
+<li><p>对于 DISTINCT 这样的语句，甚至可以直接在字典上查询（DISTINCT -&gt; 无重复值 -&gt; 字典无重复值）。</p>
+<pre><code class="sql">SELECT DISTINCT name
+    FROM users
+WHERE name LIKE &#39;And%&#39;;
+</code></pre>
+</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/order_preserving_encoding.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/CMU-DB/" style="color: #ff7d73">CMU-DB</a>
+        </span>
+        
+    </div>
+    <a href="/2024/03/25/bustub-2/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/03/24/bustub-1/">
         <h2 class="post-title">CMU-DB 15-445 学习笔记（1）</h2>
     </a>
@@ -364,7 +493,7 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #03a9f4">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
         </span>
         
     </div>
@@ -423,7 +552,7 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Kubenetes/" style="color: #ffa2c4">Kubenetes</a>
+            <a href="/tags/Kubenetes/" style="color: #00bcd4">Kubenetes</a>
         </span>
         
         <span class="tag">
@@ -659,7 +788,7 @@ dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, 
         
         <span class="tag">
             
-            <a href="/tags/Java/" style="color: #00a596">Java</a>
+            <a href="/tags/Java/" style="color: #03a9f4">Java</a>
         </span>
         
     </div>
@@ -815,12 +944,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #00bcd4">Rust</a>
+            <a href="/tags/Rust/" style="color: #00a596">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #00a596">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #00bcd4">Tokio</a>
         </span>
         
     </div>
@@ -1089,7 +1218,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
@@ -1177,7 +1306,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
     </div>
@@ -1224,7 +1353,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
     </div>

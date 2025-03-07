@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Istio Hello World | Okabe&#39;s LAB</title>
+    <title>cpp-template2 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -150,53 +150,60 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Istio Hello World</h1>
+        <h1>cpp-template2</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2024/6/4
+            2025/3/7
         </span>
         
-        
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
-            </span>
-            
-            
-            <span class="tag">
-                
-                <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
-            </span>
-            
-            <span class="tag">
-                
-                <a href="/tags/Istio/" style="color: #03a9f4">Istio</a>
-            </span>
-            
-            <span class="tag">
-                
-                <a href="/tags/Metallb/" style="color: #00bcd4">Metallb</a>
-            </span>
-            
-        </span>
         
     </div>
     
     <div class="content" v-pre>
-        <h2 id="部署应用"><a href="#部署应用" class="headerlink" title="部署应用"></a>部署应用</h2><p>注意，如果用 kind 需要将 HTTP_PROXY 设置为本机的 ip（而非 127.0.0.1），否则访问不到。</p>
-<p>按照 istio book info 教程一步步来：<a target="_blank" rel="noopener" href="https://istio.io/latest/docs/tasks/traffic-management/ingress/ingress-control/">https://istio.io/latest/docs/tasks/traffic-management/ingress/ingress-control/</a></p>
-<p>在安装 gateway 之后，由于我们用的是 kind 而不是在云服务商提供的环境，我们需要使用 metallb 来提供外部 ip：<a target="_blank" rel="noopener" href="https://metallb.universe.tf/installation/">https://metallb.universe.tf/installation/</a></p>
-<h2 id="可视化"><a href="#可视化" class="headerlink" title="可视化"></a>可视化</h2><ul>
-<li><p>安装 Kiali：<a target="_blank" rel="noopener" href="https://istio.io/latest/zh/docs/ops/integrations/kiali/#installation">https://istio.io/latest/zh/docs/ops/integrations/kiali/#installation</a></p>
-</li>
-<li><p>使用：<a target="_blank" rel="noopener" href="https://istio.io/latest/zh/docs/tasks/observability/kiali/">https://istio.io/latest/zh/docs/tasks/observability/kiali/</a></p>
-</li>
-</ul>
-<pre><code class="shell">ssh -NL 20000:localhost:20001 root@10.119.14.80 -p 22
+        <p>接上文，继续记录学习 C++ Template 这本书的心得。</p>
+<h2 id="变参模板"><a href="#变参模板" class="headerlink" title="变参模板"></a>变参模板</h2><p>以下是一个例子：</p>
+<pre><code class="c++">void print() &#123;&#125;
+
+template &lt;typename T, typename... Types&gt;
+void print(T firstArg, Types... args) &#123;
+    std::cout &lt;&lt; firstArg &lt;&lt; std::endl;
+    print(args...);
+&#125;
+</code></pre>
+<p>上述的代码必须要定义 <code>print()</code> 这个重载函数，否则编译会不通过。因为 <code>Types... args</code> 的参数数量最后会变成 0，这样就找不到对应的函数了，也可以采用如下的版本。</p>
+<pre><code class="c++">template &lt;typename T&gt;
+void print(T arg) &#123;
+    std::cout &lt;&lt; arg &lt;&lt; std::endl;
+&#125;
+
+template &lt;typename T, typename... Types&gt;
+void print(T firstArg, Types... args) &#123;
+    print(firstArg);
+    print(args...);
+&#125;
+</code></pre>
+<p>当传入的参数为 1 个的时候，会优先匹配第一个函数。</p>
+<h2 id="折叠表达式"><a href="#折叠表达式" class="headerlink" title="折叠表达式"></a>折叠表达式</h2><pre><code class="c++">template &lt;typename... T&gt; 
+auto foldSum(T... args) &#123; return (... + args); &#125;
+</code></pre>
+<h2 id="变参下标（Variadic-Indices）"><a href="#变参下标（Variadic-Indices）" class="headerlink" title="变参下标（Variadic Indices）"></a>变参下标（Variadic Indices）</h2><pre><code class="c++">template &lt;typename T, typename... Idx&gt;
+void printElements(const T &amp;v, Idx... idx) &#123;
+  print(v[idx]...);
+&#125;
+const char *names[]&#123;&quot;Alice&quot;, &quot;Bob&quot;, &quot;Peter&quot;&#125;;
+// print &quot;Alice&quot; and &quot;Bob&quot;
+printElements(names, 0, 1);
+
+template &lt;size_t... Idx, typename C&gt; void printElements(const C &amp;v) &#123;
+  print(v[Idx]...);
+&#125;
+const char *names[]&#123;&quot;Alice&quot;, &quot;Bob&quot;, &quot;Peter&quot;&#125;;
+// print &quot;Bob&quot; and &quot;Peter&quot;
+printElements&lt;1, 2&gt;(names);
 </code></pre>
 
     </div>
