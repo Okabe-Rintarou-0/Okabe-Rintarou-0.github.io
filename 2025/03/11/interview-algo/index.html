@@ -169,12 +169,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/Interview/" style="color: #ffa2c4">Interview</a>
+                <a href="/tags/Interview/" style="color: #ff7d73">Interview</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/Language/" style="color: #00a596">Language</a>
+                <a href="/tags/Language/" style="color: #03a9f4">Language</a>
             </span>
             
         </span>
@@ -239,6 +239,91 @@ int fastPowerWithMod(int x, int n, int mod) &#123;
 
 void merge(vector&lt;int&gt; &amp;fa, int x, int y) &#123; 
     fa[find(fa, x)] = find(fa, y); 
+&#125;
+</code></pre>
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><pre><code class="c++">#define left_child(x) ((x + 1) * 2 - 1)
+#define right_child(x) ((x + 1) * 2)
+#define parent(x) ((x + 1) / 2 - 1)
+
+void makeHeap(vector&lt;int&gt; &amp;v) &#123;
+  int n = v.size();
+  for (int i = 0; i &lt; n; i++) &#123;
+    int leftIdx = left_child(i);
+    int rightIdx = right_child(i);
+    if (leftIdx &gt;= n) &#123;
+      break;
+    &#125;
+    if (leftIdx &lt; n &amp;&amp; v[leftIdx] &gt; v[i]) &#123;
+      swap(v[leftIdx], v[i]);
+    &#125;
+    if (rightIdx &lt; n &amp;&amp; v[rightIdx] &gt; v[i]) &#123;
+      swap(v[rightIdx], v[i]);
+    &#125;
+  &#125;
+&#125;
+
+void push(vector&lt;int&gt; &amp;v, int ele) &#123;
+  v.push_back(ele);
+  int idx = v.size() - 1;
+  while (idx != 0) &#123;
+    int parentIdx = parent(idx);
+    if (v[parentIdx] &lt; v[idx]) &#123;
+      swap(v[parentIdx], v[idx]);
+      idx = parentIdx;
+    &#125; else &#123;
+      break;
+    &#125;
+  &#125;
+&#125;
+
+void siftDown(vector&lt;int&gt; &amp;v) &#123;
+  int n = v.size();
+  if (n == 0) &#123;
+    return;
+  &#125;
+  int idx = 0;
+  while (idx &lt; n) &#123;
+    int leftIdx = left_child(idx);
+    int rightIdx = right_child(idx);
+    int maxIdx = -1;
+    int maxV = v[idx];
+    if (leftIdx &lt; n &amp;&amp; v[leftIdx] &gt; maxV) &#123;
+      maxV = v[leftIdx];
+      maxIdx = leftIdx;
+    &#125;
+    if (rightIdx &lt; n &amp;&amp; v[rightIdx] &gt; maxV) &#123;
+      maxV = v[rightIdx];
+      maxIdx = rightIdx;
+    &#125;
+
+    if (maxIdx == -1) &#123;
+      break;
+    &#125;
+    swap(v[idx], v[maxIdx]);
+    idx = maxIdx;
+  &#125;
+&#125;
+
+int pop(vector&lt;int&gt; &amp;v) &#123;
+  int n = v.size();
+  if (n == 0) &#123;
+    return 0;
+  &#125;
+
+  int ret = v[0];
+  swap(v[n - 1], v[0]);
+  v.pop_back();
+  siftDown(v);
+  return ret;
+&#125;
+
+void heapSort(vector&lt;int&gt; &amp;v) &#123;
+  vector&lt;int&gt; h(v);
+  makeHeap(h);
+  int n = v.size();
+  for (int i = 0; i &lt; n; i++) &#123;
+    v[i] = pop(h);
+  &#125;
 &#125;
 </code></pre>
 
