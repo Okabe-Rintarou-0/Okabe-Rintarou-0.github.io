@@ -169,12 +169,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #00a596">C++</a>
+                <a href="/tags/C/" style="color: #ffa2c4">C++</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/Interview/" style="color: #03a9f4">Interview</a>
+                <a href="/tags/Interview/" style="color: #ff7d73">Interview</a>
             </span>
             
             <span class="tag">
@@ -188,7 +188,8 @@
     
     <div class="content" v-pre>
         <p>最近在面试阿里云文件存储 C++ 岗位，问了很多底层的问题，以前没有了解过或者印象不清，现在在此记录一番。</p>
-<h3 id="std-shared-ptr-和-std-weak-ptr"><a href="#std-shared-ptr-和-std-weak-ptr" class="headerlink" title="std::shared_ptr 和 std::weak_ptr"></a>std::shared_ptr 和 std::weak_ptr</h3><p><code>std::shared_ptr</code> 由指向的数据和控制块组成。控制块维护的是一些元数据，包括强引用计数和弱引用计数。</p>
+<h3 id="std-shared-ptr-和-std-weak-ptr"><a href="#std-shared-ptr-和-std-weak-ptr" class="headerlink" title="std::shared_ptr 和 std::weak_ptr"></a>std::shared_ptr 和 std::weak_ptr</h3><p><img src="/2025/03/20/interview-note/image.png"></p>
+<p><code>std::shared_ptr</code> 由指向的数据和控制块组成。控制块维护的是一些元数据，包括强引用计数和弱引用计数。</p>
 <ul>
 <li>当强引用计数变为 0 的时候，会释放指向的数据，但是保留控制块，因为可能存在若干 <code>std::weak_ptr</code> 指向该数据。可以通过 <code>std::weak_ptr::expired</code> 判断是否当前数据已过期（即强引用为 0，数据已经被释放）。</li>
 <li>当弱引用计数变为 0 的时候，控制块也被释放，此时 <code>std::shared_ptr</code> 走向生命周期的终点。</li>
