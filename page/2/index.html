@@ -167,6 +167,139 @@
         
 
 <div class="post">
+    <a href="/2024/03/27/c-1/">
+        <h2 class="post-title">C++ 笔记（1）—— 万能引用/完美转发/引用折叠</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Language/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Language
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/3/27
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h2 id="std-move"><a href="#std-move" class="headerlink" title="std::move"></a>std::move</h2><p><code>std::move</code> 的源码长这样：</p>
+<pre><code class="cpp">template &lt;class _Tp&gt;
+_LIBCPP_NODISCARD_EXT inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR typename remove_reference&lt;_Tp&gt;::type&amp;&amp;
+move(_Tp&amp;&amp; __t) _NOEXCEPT &#123;
+  typedef _LIBCPP_NODEBUG typename remove_reference&lt;_Tp&gt;::type _Up;
+  return static_cast&lt;_Up&amp;&amp;&gt;(__t);
+&#125;
+</code></pre>
+<p>它本质上是将一个引用强制转换成了<code>右值引用</code>。</p>
+<h2 id="万能引用-Universal-Reference"><a href="#万能引用-Universal-Reference" class="headerlink" title="万能引用(Universal Reference)"></a>万能引用(Universal Reference)</h2><p>当我们使用 <code>T &amp;&amp; x</code> 或者 <code>auto &amp;&amp; x</code> 这种需要类型推断的右值形式的时候，就会被编译器作为万能引用。所谓万能引用，就是既能绑定左值引用，又能绑定右值引用。（所以说，在 C++ 中，并不是说两个 <code>&amp;</code> 就代表是右值引用）。</p>
+<h2 id="引用折叠-Reference-Collapse"><a href="#引用折叠-Reference-Collapse" class="headerlink" title="引用折叠(Reference Collapse)"></a>引用折叠(Reference Collapse)</h2><ul>
+<li>左值-左值 T&amp; &amp;：函数定义的形参类型是左值引用，传入的实参是左值引用</li>
+<li>左值-右值 T&amp; &amp;&amp;：函数定义的形参类型是左值引用，传入的实参是右值引用</li>
+<li>右值-左值 T&amp;&amp; &amp;：函数定义的形参类型是右值引用，传入的实参是左值引用</li>
+<li>右值-右值 T&amp;&amp; &amp;&amp;：函数定义的形参类型是右值引用，传入的实参是右值引用<br>但是C++中不允许对引用再进行引用，对于上述情况的处理有如下的规则：</li>
+</ul>
+<p>所有的折叠引用最终都代表一个引用，要么是左值引用，要么是右值引用。规则是：如果任一引用为左值引用，则结果为左值引用。否则（即两个都是右值引用），结果为右值引用。</p>
+<pre><code class="cpp">#include &lt;iostream&gt;
+template &lt;typename T&gt;
+void PrintInner(T &amp;x)
+&#123;
+    std::cout &lt;&lt; &quot;I got a lvalue: &quot; &lt;&lt; x &lt;&lt; std::endl;
+&#125;
+
+template &lt;typename T&gt;
+void PrintInner(T &amp;&amp;x)
+&#123;
+    std::cout &lt;&lt; &quot;I got a rvalue: &quot; &lt;&lt; x &lt;&lt; std::endl;
+&#125;
+
+template &lt;typename T&gt;
+void Print(T &amp;&amp;x)
+&#123;
+    PrintInner(x);
+    PrintInner(std::move(x));
+    PrintInner(std::forward&lt;T&gt;(x));
+&#125;
+
+int main()
+&#123;
+    Print(5);
+    std::cout &lt;&lt; &quot;-------------------&quot; &lt;&lt; std::endl;
+
+    int x = 20;
+    Print(x);
+    std::cout &lt;&lt; &quot;-------------------&quot; &lt;&lt; std::endl;
+
+    auto &amp;&amp;x2 = 30;
+    std::cout &lt;&lt; std::boolalpha &lt;&lt; (typeid(x2) == typeid(int &amp;&amp;)) &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;-------------------&quot; &lt;&lt; std::endl;
+
+    auto &amp;&amp;x3 = x;
+    std::cout &lt;&lt; std::boolalpha &lt;&lt; (typeid(x3) == typeid(int &amp;)) &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>上面这个例子最终会输出：</p>
+<pre><code class="plaintext">I got a lvalue: 5
+I got a rvalue: 5
+I got a rvalue: 5
+-------------------
+I got a lvalue: 20
+I got a rvalue: 20
+I got a lvalue: 20
+-------------------
+true
+-------------------
+true
+</code></pre>
+<p>观察：</p>
+<ul>
+<li>虽然 5 是作为右值被传入函数 <code>Print</code>，但是这个右值被绑定到了形参 <code>x</code> 上，所以 <code>PrintInner</code> 最终调用的是左值引用的版本。</li>
+<li><code>std::move</code> 毋庸置疑，本质上就是都强制转换成右值引用。</li>
+<li><code>std::forward</code> 为了将 5 继续当作右值转发，我们可以使用 <code>std::forward</code>，也就是 <strong>完美转发</strong>。</li>
+<li>事实上，可以将 T &amp;&amp; x 和 T &amp;x 合并成 T &amp;&amp;，因为我们有万能引用。</li>
+</ul>
+<h2 id="常左值引用可以绑定一个右值。"><a href="#常左值引用可以绑定一个右值。" class="headerlink" title="常左值引用可以绑定一个右值。"></a>常左值引用可以绑定一个右值。</h2><pre><code class="cpp">const std::string &amp;&amp; func()  &#123;
+    return std::move(std::string(&quot;ok&quot;));
+&#125;
+const std::string &amp;ok = func(); // ok
+const std::string &amp;ok = &quot;ok&quot;;   // ok
+
+std::string &amp;fail = &quot;fail&quot;;
+error: non-const lvalue reference to type &#39;std::string&#39; (aka &#39;basic_string&lt;char, char_traits&lt;char&gt;, allocator&lt;char&gt;&gt;&#39;) cannot bind to a value of unrelated type &#39;const char[5]&#39;
+    std::string &amp;fail = &quot;fail&quot;;
+</code></pre>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/C/" style="color: #00a596">C++</a>
+        </span>
+        
+    </div>
+    <a href="/2024/03/27/c-1/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/03/27/bustub-3/">
         <h2 class="post-title">CMU-DB 15-445 学习笔记（3）</h2>
     </a>
@@ -244,12 +377,12 @@
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #00a596">Database</a>
+            <a href="/tags/Database/" style="color: #00bcd4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #ff7d73">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #03a9f4">CMU-DB</a>
         </span>
         
     </div>
@@ -373,12 +506,12 @@ WHERE name LIKE &#39;And%&#39;;
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #00a596">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #03a9f4">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #ff7d73">CMU-DB</a>
         </span>
         
     </div>
@@ -578,7 +711,7 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
         <span class="tag">
@@ -637,17 +770,17 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Kubeflow/" style="color: #ff7d73">Kubeflow</a>
+            <a href="/tags/Kubeflow/" style="color: #ffa2c4">Kubeflow</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Kubenetes/" style="color: #03a9f4">Kubenetes</a>
+            <a href="/tags/Kubenetes/" style="color: #ff7d73">Kubenetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/ML/" style="color: #ffa2c4">ML</a>
+            <a href="/tags/ML/" style="color: #00a596">ML</a>
         </span>
         
     </div>
@@ -873,12 +1006,12 @@ dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, 
         
         <span class="tag">
             
-            <a href="/tags/Spark/" style="color: #03a9f4">Spark</a>
+            <a href="/tags/Spark/" style="color: #ff7d73">Spark</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Java/" style="color: #ff7d73">Java</a>
+            <a href="/tags/Java/" style="color: #ffa2c4">Java</a>
         </span>
         
     </div>
@@ -1034,12 +1167,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #ffa2c4">Rust</a>
+            <a href="/tags/Rust/" style="color: #ff7d73">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #ff7d73">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #00a596">Tokio</a>
         </span>
         
     </div>
@@ -1308,7 +1441,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
         </span>
         
     </div>
@@ -1396,58 +1529,11 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
     <a href="/2023/04/06/k8s-note-1/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2023/03/23/archive-1/">
-        <h2 class="post-title">Kubernetes 笔记（0）—— K8s 实践报告</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2023/3/23
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            
-
-	<div class="row">
-    <embed src="/2023/03/23/archive-1/k8s实践报告.pdf" width="100%" height="550" type="application/pdf">
-	</div>
-
-
-
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
-        </span>
-        
-    </div>
-    <a href="/2023/03/23/archive-1/" class="go-post">阅读全文</a>
 </div>
 
 
@@ -1461,8 +1547,14 @@ mysql-config-5bhm7k67gb   1      6m35s
     
     <span class="current">2</span>
     
+    <a class="page-num" href="/page/3">3</a>
     
     
+    
+    
+    <a class="page-num" href="/page/3/">
+        <i class="fa-solid fa-caret-right fa-fw"></i>
+    </a>
     
 </div>
 
