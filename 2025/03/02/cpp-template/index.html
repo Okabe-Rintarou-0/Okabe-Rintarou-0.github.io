@@ -178,7 +178,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #00bcd4">C++</a>
+                <a href="/tags/C/" style="color: #03a9f4">C++</a>
             </span>
             
         </span>
@@ -231,7 +231,7 @@ auto max(T1 a, T2 b) -&gt; std::decay_t&lt;decltype(true ? a : b)&gt; &#123;
 <li>去除引用</li>
 <li>将数组退化成指针</li>
 </ul>
-<p><code>delctype</code> 则是老老实实地获取类型，不会进行退化操作。有一个比较有意思的特殊场景：</p>
+<p><code>decltype</code> 则是老老实实地获取类型，不会进行退化操作。有一个比较有意思的特殊场景：</p>
 <pre><code class="c++">// will return int &amp;
 auto f(int a) -&gt; decltype((a)) &#123; return a; &#125;
 </code></pre>
