@@ -167,6 +167,125 @@
         
 
 <div class="post">
+    <a href="/2025/03/24/sfinae/">
+        <h2 class="post-title">SFINAE —— Substitution Failure Is Not An Error</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/3/24
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h3 id="IsConvertible"><a href="#IsConvertible" class="headerlink" title="IsConvertible"></a>IsConvertible</h3><pre><code class="c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template &lt;typename FROM, typename TO&gt; struct IsConvetible &#123;
+  // FROM should be converted to TO implicitly
+  static void aux(TO);
+
+  // Should use another typename F, otherwise it will cause an compilation error
+  // immediately
+  template &lt;typename F, typename = decltype(aux(std::declval&lt;F&gt;()))&gt;
+  static std::true_type test(void *);
+
+  // Will failed with: No viable conversion from &#39;double&#39; to &#39;std::string&#39;
+  //   template &lt;typename = decltype(aux(std::declval&lt;FROM&gt;()))&gt;
+  //   static std::true_type test(void *);
+
+  // If the above function failed, it will fallback here
+  template &lt;typename&gt; static std::false_type test(...);
+
+  static constexpr bool value = decltype(test&lt;FROM&gt;(nullptr))::value;
+&#125;;
+
+int main() &#123;
+  std::cout &lt;&lt; std::boolalpha;
+  std::cout &lt;&lt; IsConvetible&lt;double, std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;double, int&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;const char *, std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;const char[10], std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;char[10], std::string&gt;::value &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code>false
+true
+true
+true
+true
+</code></pre>
+<h3 id="IsDefaultConstructible"><a href="#IsDefaultConstructible" class="headerlink" title="IsDefaultConstructible"></a>IsDefaultConstructible</h3><pre><code class="c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template &lt;typename T&gt; struct IsDefaultConstructibleHelper &#123;
+
+  // Should use another typename U, otherwise it will cause an compilation error
+  // immediately
+  template &lt;typename U, typename = decltype(U())&gt;
+  static std::true_type test(void *);
+
+  // If the above function failed, it will fallback here.
+  template &lt;typename&gt; static std::false_type test(...);
+
+  static constexpr bool value = decltype(test&lt;T&gt;(nullptr))::value;
+&#125;;
+
+template &lt;typename T&gt;
+constexpr bool IsDefaultConstructible = IsDefaultConstructibleHelper&lt;T&gt;::value;
+
+class WithDefaultConstructor &#123;&#125;;
+
+class WithoutDefaultConstructor &#123;
+  WithoutDefaultConstructor() = delete;
+&#125;;
+
+int main() &#123;
+  std::cout &lt;&lt; std::boolalpha;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;int&gt; &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;WithDefaultConstructor&gt; &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;WithoutDefaultConstructor&gt; &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code>true
+true
+false
+</code></pre>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
+        </span>
+        
+    </div>
+    <a href="/2025/03/24/sfinae/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2025/03/21/cpp-template2/">
         <h2 class="post-title">C++ Template 阅读笔记（2）</h2>
     </a>
@@ -469,17 +588,17 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #00a596">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #00a596">Interview</a>
+            <a href="/tags/Interview/" style="color: #00bcd4">Interview</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
+            <a href="/tags/Language/" style="color: #03a9f4">Language</a>
         </span>
         
     </div>
@@ -661,12 +780,12 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #ff7d73">Interview</a>
+            <a href="/tags/Interview/" style="color: #ffa2c4">Interview</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #03a9f4">Language</a>
+            <a href="/tags/Language/" style="color: #00a596">Language</a>
         </span>
         
     </div>
@@ -867,7 +986,7 @@ T accum(T begin, T end) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
     </div>
@@ -1019,12 +1138,12 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #ffa2c4">Istio</a>
+            <a href="/tags/Istio/" style="color: #00a596">Istio</a>
         </span>
         
         <span class="tag">
@@ -1080,7 +1199,7 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Docker/" style="color: #ff7d73">Docker</a>
+            <a href="/tags/Docker/" style="color: #ffa2c4">Docker</a>
         </span>
         
     </div>
@@ -1172,7 +1291,7 @@ int main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
     </div>
@@ -1387,46 +1506,11 @@ Called second.
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ff7d73">C++</a>
         </span>
         
     </div>
     <a href="/2024/05/25/c-2/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2024/05/24/Ulaanbuh/">
-        <h2 class="post-title">Ulaanbuh</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2024/5/24
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>I will always cherish my visit in Ulaanbuh desert.</p>
-<p>My favourite photo.</p>
-<p><img src="/2024/05/24/Ulaanbuh/image-1.png"></p>
-<p>The galaxy.</p>
-<p><img src="/2024/05/24/Ulaanbuh/image.png"></p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        
-        
-    </div>
-    <a href="/2024/05/24/Ulaanbuh/" class="go-post">阅读全文</a>
 </div>
 
 

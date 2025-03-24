@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Tags: Docker | Okabe&#39;s LAB</title>
+    <title>SFINAE —— Substitution Failure Is Not An Error | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -31,6 +31,10 @@
 
 
 <script src="/js/lib/preview.js"></script>
+
+
+
+
 
 
 
@@ -144,217 +148,127 @@
 </transition>
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
-            <div id="archives">
-    
-    <div class="categories-tags">
-        
-        
-        
-        <span>
-            <a href="/tags/Database/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Database
-            </a>
+            <div class="article">
+    <div>
+        <h1>SFINAE —— Substitution Failure Is Not An Error</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/3/24
         </span>
         
         
-        
-        <span>
-            <a href="/tags/CMU-DB/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                CMU-DB
-            </a>
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/C/" style="color: #ff7d73">C++</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
+            </span>
+            
         </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubernetes/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubernetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/C/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                C++
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubeflow/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubeflow
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubenetes/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubenetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/ML/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                ML
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Rust/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Rust
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Tokio/" style="background: #00a596">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Tokio
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Spark/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Spark
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Java/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Java
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Docker/" style="background: linear-gradient(120deg, #9abbf7 0%, #ffbbf4 100%)">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Docker
-            </a>
-        </span>
-        
-        
-        
-        
-        
-        <span>
-            <a href="/tags/Istio/" style="background: #00a596">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Istio
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Metallb/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Metallb
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Interview/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Interview
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Language/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Language
-            </a>
-        </span>
-        
         
     </div>
     
-    <div class="timeline">
-        <div class="timeline-tail"></div>
-        <div class="timeline-content">
-            <div class="item-time">2024/6/3</div>
-            <a href="/2024/06/03/docker-problem/">
-                <h3>记一次使用 Docker 遇到的奇怪问题</h3>
-            </a>
-            <div class="info">
-                
-                
-                <span class="tags">
-                    <span class="icon">
-                        <i class="fa-solid fa-tags fa-fw"></i>
-                    </span>
-                    
-                    
-                    <span class="tag">
-                        
-                        <a href="/tags/Docker/" style="color: #03a9f4">Docker</a>
-                    </span>
-                    
-                </span>
-                
-            </div>
-        </div>
+    <div class="content" v-pre>
+        <h3 id="IsConvertible"><a href="#IsConvertible" class="headerlink" title="IsConvertible"></a>IsConvertible</h3><pre><code class="c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template &lt;typename FROM, typename TO&gt; struct IsConvetible &#123;
+  // FROM should be converted to TO implicitly
+  static void aux(TO);
+
+  // Should use another typename F, otherwise it will cause an compilation error
+  // immediately
+  template &lt;typename F, typename = decltype(aux(std::declval&lt;F&gt;()))&gt;
+  static std::true_type test(void *);
+
+  // Will failed with: No viable conversion from &#39;double&#39; to &#39;std::string&#39;
+  //   template &lt;typename = decltype(aux(std::declval&lt;FROM&gt;()))&gt;
+  //   static std::true_type test(void *);
+
+  // If the above function failed, it will fallback here
+  template &lt;typename&gt; static std::false_type test(...);
+
+  static constexpr bool value = decltype(test&lt;FROM&gt;(nullptr))::value;
+&#125;;
+
+int main() &#123;
+  std::cout &lt;&lt; std::boolalpha;
+  std::cout &lt;&lt; IsConvetible&lt;double, std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;double, int&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;const char *, std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;const char[10], std::string&gt;::value &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsConvetible&lt;char[10], std::string&gt;::value &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code>false
+true
+true
+true
+true
+</code></pre>
+<h3 id="IsDefaultConstructible"><a href="#IsDefaultConstructible" class="headerlink" title="IsDefaultConstructible"></a>IsDefaultConstructible</h3><pre><code class="c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template &lt;typename T&gt; struct IsDefaultConstructibleHelper &#123;
+
+  // Should use another typename U, otherwise it will cause an compilation error
+  // immediately
+  template &lt;typename U, typename = decltype(U())&gt;
+  static std::true_type test(void *);
+
+  // If the above function failed, it will fallback here.
+  template &lt;typename&gt; static std::false_type test(...);
+
+  static constexpr bool value = decltype(test&lt;T&gt;(nullptr))::value;
+&#125;;
+
+template &lt;typename T&gt;
+constexpr bool IsDefaultConstructible = IsDefaultConstructibleHelper&lt;T&gt;::value;
+
+class WithDefaultConstructor &#123;&#125;;
+
+class WithoutDefaultConstructor &#123;
+  WithoutDefaultConstructor() = delete;
+&#125;;
+
+int main() &#123;
+  std::cout &lt;&lt; std::boolalpha;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;int&gt; &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;WithDefaultConstructor&gt; &lt;&lt; std::endl;
+  std::cout &lt;&lt; IsDefaultConstructible&lt;WithoutDefaultConstructor&gt; &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code>true
+true
+false
+</code></pre>
+
     </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
     
 </div>
 
@@ -386,6 +300,29 @@
         
     </div>
     <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
     
 </body>
 </html>

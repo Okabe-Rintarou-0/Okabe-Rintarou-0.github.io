@@ -167,6 +167,94 @@
         
 
 <div class="post">
+    <a href="/2023/04/06/k8s-note-1/">
+        <h2 class="post-title">Kubernetes 笔记（1）—— Informer 与 Controller</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2023/4/6
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h1 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h1><p><img src="/2023/04/06/k8s-note-1/informer.png"></p>
+<h2 id="组成部分"><a href="#组成部分" class="headerlink" title="组成部分"></a>组成部分</h2><ul>
+<li><p>Controller：Informer 的实施载体，可以创建 reflector 及控制 processLoop。processLoop 将DeltaFIFO 队列中的数据 pop 出，首先调用Indexer进行缓存并建立索引，然后分发给 processor 进行处理。</p>
+</li>
+<li><p>Reflector：Informer 并没有直接访问 api-server，而是通过一个叫 Reflector 的对象进行 api-server 的访问。Reflector 通过 ListAndWatch 监控指定的 kubernetes 资源，当资源发生变化的时候，例如发生了 Added 资源添加等事件，会将其资源对象存放在本地缓存 DeltaFIFO 中。</p>
+</li>
+<li><p>DeltaFIFO：是一个先进先出的缓存队列，用来存储 Watch API 返回的各种事件，如Added、Updated、Deleted。</p>
+</li>
+<li><p>Indexer：Indexer 使用一个线程安全的数据存储来存储对象和它们的键值。需要注意的是，Indexer 中的数据与 etcd中 的数据是完全一致的，这样 client-go 需要数据时，无须每次都从 api-server 获取，从而减少了请求过多造成对 api-server 的压力。一句话总结：Indexer 是用于存储+快速查找资源。</p>
+</li>
+<li><p>Processor：记录了所有的回调函数（即  ResourceEventHandler）的实例，并负责触发回调函数</p>
+</li>
+</ul>
+<h2 id="使用-client-go-自定义-controller"><a href="#使用-client-go-自定义-controller" class="headerlink" title="使用 client-go 自定义 controller"></a>使用 client-go 自定义 controller</h2><p>controller 可以使用 informer 来绑定事件的回调函数，以实现对对象的控制。比如对于 replicaset 而言，监听三种事件，判断 replicaset 实际的 replicas 数量是否符合预期，若不符合预期，则进行相应的扩缩容。</p>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><p>源自：<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/HanFa/learn-k8s/master/lesson3/lesson3_slides.pdf">https://raw.githubusercontent.com/HanFa/learn-k8s/master/lesson3/lesson3_slides.pdf</a></p>
+<ul>
+<li><p>启动 worker goroutine 之前，先确保 <strong>cache is synced</strong></p>
+<ul>
+<li><p>Replicaset controller 例子</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L208">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L208</a></p>
+</li>
+<li><p>Sample controller 例子</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/HanFa/sample-controller/blob/735d68047545e2fd1fd2bf3c04526f2cf9614e7c/controller.go#L160">https://github.com/HanFa/sample-controller/blob/735d68047545e2fd1fd2bf3c04526f2cf9614e7c/controller.go#L160</a></p>
+</li>
+</ul>
+</li>
+<li><p>从cache，或者说informer里拿到的object, 如果要写入，一定要先进行deepcopy，避免 cache 里面的 object被污染。indexer 里面的数据只读的。</p>
+<ul>
+<li><p>Replicaset controller 例子</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L712">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L712</a></p>
+</li>
+<li><p>Sample controller 例子<br>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L325">https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L325</a></p>
+</li>
+</ul>
+</li>
+<li><p>Informer 的周期性 resync 机制会导致重复冗余的 update 事件，用 ResourceVersion 进行 <strong>early return</strong></p>
+<ul>
+<li><p>Replicaset controller 例子</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L420">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L420</a></p>
+</li>
+<li><p>Sample controller 例子</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L134">https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L134</a></p>
+</li>
+</ul>
+</li>
+<li><p>使用shareinformer来让多个informer共享一个cache；使用NewSharedInformerFactory来新建informer的reference给控制器使用。</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/HanFa/sample-controller/blob/b3876539afadc37d7b8fc6bd3a2cfd61fb39df4a/main.go#L62">https://github.com/HanFa/sample-controller/blob/b3876539afadc37d7b8fc6bd3a2cfd61fb39df4a/main.go#L62</a></p>
+</li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
+        </span>
+        
+    </div>
+    <a href="/2023/04/06/k8s-note-1/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2023/03/23/archive-1/">
         <h2 class="post-title">Kubernetes 笔记（0）—— K8s 实践报告</h2>
     </a>
@@ -206,7 +294,7 @@
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
         </span>
         
     </div>
