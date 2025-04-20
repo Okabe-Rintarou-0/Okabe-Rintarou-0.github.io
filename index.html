@@ -197,7 +197,7 @@
 <p>最近看 DeepSeek 的 3FS 的时候发现他们会用 FoundationDB 做 <code>chunk metadata</code> 的存储（3FS 有点像 GFS，也是以 chunk 作为存储单位）。正好不久之后要去阿里云开始一段存储相关的实习，学习一下相关知识。</p>
 <p>FoundationDB 是一个分布式 KV 存储数据库，适用于读多写少的场景，支持 SSI（Serializable Snapshot Isolation）级别的事务。</p>
 <h3 id="FoundationDB-如何实现-SSI"><a href="#FoundationDB-如何实现-SSI" class="headerlink" title="FoundationDB 如何实现 SSI"></a>FoundationDB 如何实现 SSI</h3><p>SSI 这一级别是通过 OCC + MVCC 实现的。</p>
-<p>首先，让我们复习一下事务隔离级别，可以从这篇文章切入：<a target="_blank" rel="noopener" href="https://lotabout.me/2020/QQA-Isolation-Level-of-Database/%E3%80%82%E9%80%9A%E8%BF%87">https://lotabout.me/2020/QQA-Isolation-Level-of-Database/。通过</a> MVCC 的快照，我们可以很容易地实现 Snapshot Isolation，虽然这解决了脏读和幻读的问题，但是无法解决两种问题（也就是上面链接中的 P4 和 A5B 问题）。</p>
+<p>首先，让我们复习一下事务隔离级别，可以从这篇文章切入：<a target="_blank" rel="noopener" href="https://lotabout.me/2020/QQA-Isolation-Level-of-Database/">事务隔离级别备忘</a>。通过 MVCC 的快照，我们可以很容易地实现 Snapshot Isolation，虽然这解决了脏读和幻读的问题，但是无法解决两种问题（也就是上面链接中的 P4 和 A5B 问题）。</p>
 <ul>
 <li><p>P4 Lost Update</p>
 <p>  <img src="/2025/04/20/foundation-db/lost_update.png"></p>
@@ -290,7 +290,7 @@
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #03a9f4">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #ff7d73">Key-Value Store</a>
         </span>
         
     </div>
@@ -404,12 +404,12 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #00bcd4">Language</a>
+            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
         </span>
         
     </div>
@@ -724,12 +724,12 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #ff7d73">Interview</a>
+            <a href="/tags/Interview/" style="color: #00bcd4">Interview</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
+            <a href="/tags/Language/" style="color: #00a596">Language</a>
         </span>
         
     </div>
@@ -911,7 +911,7 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #ff7d73">Interview</a>
+            <a href="/tags/Interview/" style="color: #00a596">Interview</a>
         </span>
         
         <span class="tag">
@@ -1117,7 +1117,7 @@ T accum(T begin, T end) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
     </div>
@@ -1269,7 +1269,7 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
         <span class="tag">
@@ -1279,7 +1279,7 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Metallb/" style="color: #ff7d73">Metallb</a>
+            <a href="/tags/Metallb/" style="color: #00a596">Metallb</a>
         </span>
         
     </div>
@@ -1330,7 +1330,7 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Docker/" style="color: #00bcd4">Docker</a>
+            <a href="/tags/Docker/" style="color: #ff7d73">Docker</a>
         </span>
         
     </div>
@@ -1422,7 +1422,7 @@ int main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
     </div>
