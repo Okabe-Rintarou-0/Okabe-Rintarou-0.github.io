@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Kubernetes 笔记（0）—— K8s 实践报告 | Okabe&#39;s LAB</title>
+    <title>Foundation DB 学习笔记 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -150,14 +150,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Kubernetes 笔记（0）—— K8s 实践报告</h1>
+        <h1>Foundation DB 学习笔记</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2023/3/23
+            2025/4/20
         </span>
         
         
@@ -169,7 +169,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
+                <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Key-Value-Store/" style="color: #00a596">Key-Value Store</a>
             </span>
             
         </span>
@@ -180,11 +185,90 @@
         
 
 	<div class="row">
-    <embed src="/2023/03/23/archive-1/k8s实践报告.pdf" width="100%" height="550" type="application/pdf">
+    <embed src="/2025/04/20/foundation-db/paper.pdf" width="100%" height="550" type="application/pdf">
 	</div>
 
 
 
+
+<p>在线讲解：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&amp;vd_source=f7e4c2acec163bdcd3e200e3623cc3e3</a></p>
+<p>最近看 DeepSeek 的 3FS 的时候发现他们会用 FoundationDB 做 <code>chunk metadata</code> 的存储（3FS 有点像 GFS，也是以 chunk 作为存储单位）。正好不久之后要去阿里云开始一段存储相关的实习，学习一下相关知识。</p>
+<p>FoundationDB 是一个分布式 KV 存储数据库，适用于读多写少的场景，支持 SSI（Serializable Snapshot Isolation）级别的事务。</p>
+<h3 id="FoundationDB-如何实现-SSI"><a href="#FoundationDB-如何实现-SSI" class="headerlink" title="FoundationDB 如何实现 SSI"></a>FoundationDB 如何实现 SSI</h3><p>SSI 这一级别是通过 OCC + MVCC 实现的。</p>
+<p>首先，让我们复习一下事务隔离级别，可以从这篇文章切入：<a target="_blank" rel="noopener" href="https://lotabout.me/2020/QQA-Isolation-Level-of-Database/%E3%80%82%E9%80%9A%E8%BF%87">https://lotabout.me/2020/QQA-Isolation-Level-of-Database/。通过</a> MVCC 的快照，我们可以很容易地实现 Snapshot Isolation，虽然这解决了脏读和幻读的问题，但是无法解决两种问题（也就是上面链接中的 P4 和 A5B 问题）。</p>
+<ul>
+<li><p>P4 Lost Update</p>
+<p>  <img src="/2025/04/20/foundation-db/lost_update.png"></p>
+<p>  T2 修改 x 为 120，然而 T2 提交后被 T1 提交的修改覆盖，最终 x &#x3D; 130。对外界而言，x &#x3D; 120 这一修改不可见，被覆盖。</p>
+</li>
+<li><p>A5B Write Skew</p>
+<p>  <img src="/2025/04/20/foundation-db/write_skew.png"></p>
+<p>  x + y 应该满足约束 <code>x + y &lt;= 100</code>，由于 T1 和 T2 的 <code>write set</code> 没有相交，所以两个事务都能提交成功，然而约束已经被破坏。</p>
+</li>
+</ul>
+<p>为了解决上述问题，FoundationDB 会维护一个 <code>read set</code>，如果 <code>read set</code> 中的某个 <code>key range</code> 对应的最新的一次 <code>commit version</code> 大于事务的 <code>read version</code>，就会 abort 当前事务。这种乐观的方式有若干好处：</p>
+<ul>
+<li>无需锁，高效；</li>
+<li>读多写少，abort 是小概率事件。</li>
+</ul>
+<p>在 FoundationDB 中，<code>resolvers</code> 会保留最近一段时间（如 5 秒，MVCC window）内已提交的写入操作在内存中，这个时间范围就可以看作是一个 “窗口”。当一个新的事务进行冲突检测时，会将其读取的数据与这个窗口内的写入操作进行比较，以确定是否存在数据冲突。如果在这个窗口内，事务读取的数据被其他事务修改了，那么就会检测到冲突，该事务可能会被中止或重试。</p>
+<p><img src="/2025/04/20/foundation-db/example.png"></p>
+<h3 id="FoundationDB-的架构"><a href="#FoundationDB-的架构" class="headerlink" title="FoundationDB 的架构"></a>FoundationDB 的架构</h3><p><img src="/2025/04/20/foundation-db/architecture.png"></p>
+<p>整个系统是自上而下启动的。FoundationDB 的控制面是通过 Paxos 算法选举出 Cluster Controller（即 leader），如下图所示。</p>
+<p><img src="/2025/04/20/foundation-db/control_plane.png"></p>
+<p>下图为数据面，主要由 TS + LS + SS 组成。</p>
+<p><img src="/2025/04/20/foundation-db/data_plane.png"></p>
+<h4 id="TS"><a href="#TS" class="headerlink" title="TS"></a>TS</h4><ul>
+<li>Sequencer：<ul>
+<li>负责获取 read&#x2F;commit version。</li>
+</ul>
+</li>
+<li>Proxy：<ul>
+<li>一个中介，负责获取 read version 和事务提交。</li>
+</ul>
+</li>
+<li>Resolver：<ul>
+<li>分布式地解决读写冲突。</li>
+<li>多节点，按照 <code>key range</code> 分片（shard）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="LS"><a href="#LS" class="headerlink" title="LS"></a>LS</h4><ul>
+<li>按照 <code>key range</code> 分片（shard）。</li>
+</ul>
+<h4 id="SS"><a href="#SS" class="headerlink" title="SS"></a>SS</h4><ul>
+<li>单机存储系统，从 LS 的 WAL 异步复制数据。</li>
+<li>多版本数据只存储在内存中</li>
+<li>5s 的 MVCC window（太长了会产生大量假阳性）</li>
+</ul>
+<h3 id="Log-System"><a href="#Log-System" class="headerlink" title="Log System"></a>Log System</h3><ul>
+<li>Log Server 下面绑了若干 Storage Server。</li>
+<li>按照 key range 映射到若干个 replica。</li>
+<li>之所以需要向未被映射到的 Log Server 传递空消息，是因为 Log Server 是按照顺序执行的，不这样做会产生“空洞”。</li>
+</ul>
+<p><img src="/2025/04/20/foundation-db/log_system.png"></p>
+<h3 id="Commit-Path"><a href="#Commit-Path" class="headerlink" title="Commit Path"></a>Commit Path</h3><ol>
+<li>Client:<ol>
+<li>Buffer Modifications</li>
+<li>Send Read&#x2F;Write Set To Proxy</li>
+</ol>
+</li>
+<li>Proxy: Get Commit Version from Sequencer</li>
+<li>Proxy: Send User Data KeyRange To Resolvers</li>
+<li>Resolver: Check RW Conflict</li>
+<li>Proxy: Commit Phase When no Conflict<ol>
+<li>Send Data to LS</li>
+<li>Committed When All LS return Success</li>
+<li>Send Commit Version to Sequencer for Read</li>
+<li>Proxy return OK to Client</li>
+</ol>
+</li>
+<li>SS pull WAL from LS</li>
+</ol>
+<p>Read: 1 roundtrip<br>Write: 4 roundtrip</p>
+<h3 id="Recovery-Replication"><a href="#Recovery-Replication" class="headerlink" title="Recovery &amp;&amp; Replication"></a>Recovery &amp;&amp; Replication</h3><p><img src="/2025/04/20/foundation-db/recovery.png"></p>
+<p>k &#x3D; f + 1</p>
+<p>这里 k 表示需要复制的日志份数，f 表示系统可容忍的故障节点数。即需要复制的日志份数比可容忍的故障节点数多 1，通过这种方式来保证即使部分节点故障，日志信息也不会丢失，能维持系统的正常运行和数据一致性。</p>
 
     </div>
     

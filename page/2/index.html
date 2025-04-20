@@ -167,6 +167,221 @@
         
 
 <div class="post">
+    <a href="/2024/05/25/c-2/">
+        <h2 class="post-title">C++ 笔记（2）—— Effective Modern C++ (1-3 章)</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Language/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Language
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/5/25
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p>以下笔记囊括了前三章我学习到的新知识。</p>
+<h2 id="Item-1-——-模板参数"><a href="#Item-1-——-模板参数" class="headerlink" title="Item 1 —— 模板参数"></a>Item 1 —— 模板参数</h2><p>推导按值传递的模板形式参数类型 <code>T</code> 时，若传入的实参带有 <code>const</code> 或 <code>volatile</code> 时，将会去掉。<br>因为按值传递就相当于是对数据进行了拷贝，不应该有上述限制修饰。</p>
+<p>若形式参数为 <code>T</code>，传入的数据为函数或者数组，将会退化成对应的指针。除非使用 <code>T &amp;</code>。</p>
+<h2 id="Item-2-——-auto"><a href="#Item-2-——-auto" class="headerlink" title="Item 2 —— auto"></a>Item 2 —— auto</h2><p>一般而言，使用 <code>auto</code> 和模板 <code>T</code> 是一样的。除了以下的情况：</p>
+<pre><code class="c++">// x 的类别为 std::initializer_list&lt;int&gt;
+auto x = &#123;1, 2, 3&#125;;
+
+template &lt;typename T&gt;
+void func(T x);
+// 错误，无法推断 T 的类型
+func(&#123;1, 2, 3&#125;)
+
+// 错误，无法推断类型
+// auto 用在函数类型推导时会被当作模板类型推导
+auto func() &#123;
+    return &#123;1, 2, 3&#125;
+&#125;
+</code></pre>
+<p><code>auto</code> 可以用来推断一些只有编译器清楚的类型，比如 lambda 表达式。</p>
+<pre><code class="c++">auto x = []() &#123; return &quot;test&quot;; &#125;;
+auto y = std::function&#123;[]() &#123; return &quot;test&quot;; &#125;&#125;;
+</code></pre>
+<p>比起 <code>y</code> 用 <code>std::function</code> 包裹，使用 <code>auto</code> 的效率更高，内存占用更少。</p>
+<h2 id="Item-3-——-decltype"><a href="#Item-3-——-decltype" class="headerlink" title="Item 3 —— decltype"></a>Item 3 —— decltype</h2><p>下面的代码将报错：</p>
+<pre><code class="c++">template &lt;typename Container, typename Index&gt;
+auto func(Container&amp; c, Index i) &#123;
+    return c[i];
+&#125;
+std::vector&lt;int&gt; vec&#123;1, 2&#125;;
+func(vec, 1) = 10;
+</code></pre>
+<p>此处 <code>auto</code> 相当于 <code>T</code>，按值传递。这将会把 <code>vector::operator[]</code> 返回的 <code>T&amp;</code> 的引用给去掉。我们无法给一个右值赋值。</p>
+<p>而如下的代码将通过编译：</p>
+<pre><code class="c++">template &lt;typename Container, typename Index&gt;
+decltype(auto) func(Container&amp; c, Index i) &#123;
+    return c[i];
+&#125;
+std::vector&lt;int&gt; vec&#123;1, 2&#125;;
+func(vec, 1) = 10;
+</code></pre>
+<p>一般而言，不同于 <code>auto</code> 和模板类型推导，<code>decltype</code> 只会鹦鹉学舌。<br>对于类型为 <code>T</code> 的表达式，除非该表达式仅有一个名字，否则 <code>decltype</code> 总是得出类型 <code>T &amp;</code>。</p>
+<pre><code class="c++">// 此处类型为 int &amp;
+decltype(auto) f() &#123;
+    int x = 0;
+    return (x);
+&#125;
+</code></pre>
+<h2 id="Item-5-——-优先选用-auto-而非显式类别声明"><a href="#Item-5-——-优先选用-auto-而非显式类别声明" class="headerlink" title="Item 5 —— 优先选用 auto 而非显式类别声明"></a>Item 5 —— 优先选用 auto 而非显式类别声明</h2><ul>
+<li><p>例子 1：vector&lt;int&gt;::size()</p>
+<p>  vector&lt;int&gt;::size() 返回的类型是 vector&lt;int&gt;::size_type，用很多常见的显示类别去声明会产生隐式的类型转换，在不同平台可能会有一定问题。</p>
+</li>
+<li><p>例子 2：遍历 map</p>
+<pre><code class="c++">std::map&lt;std::string, int&gt; m;
+for (const std::pair&lt;std::string, int&gt;&amp; p : m) &#123;
+&#125;
+</code></pre>
+<p>  这么写看似没有问题，但是实际上真正遍历的时候 <code>p</code> 的类型应该是 <code>std::pair&lt;const std::string, int&gt; &amp;</code>。上述的遍历方式会新建临时变量。这是 map 中的源码：</p>
+<pre><code class="c++">typedef pair&lt;const key_type, mapped_type&gt;        value_type;
+...
+typedef value_type&amp;                              reference;
+</code></pre>
+<p>  转换成 <code>auto</code> 之后：</p>
+<pre><code class="c++">std::map&lt;std::string, int&gt; m;
+for (const auto&amp; p : m) &#123;
+&#125;
+</code></pre>
+<p>  此时 <code>p</code> 的类型为 <code>const std::map::value_type &amp;</code>，符合预期。</p>
+</li>
+<li><p>例子 3：std::vector&lt;bool&gt;</p>
+<p>  std::vector&lt;bool&gt;::operator[] 的返回值不是 <code>bool &amp;</code>，而是 <code>std::vector&lt;bool&gt;::reference</code>。这是因为 <code>bool</code> 在 c++ 里面是用一个 bit 表示的，<code>vector&lt;bool&gt;</code> 不允许直接返回一个 bit 的引用。</p>
+<p>  这里如果用 <code>auto</code> 就可能会产生问题，而用 <code>bool</code> 则可以实现隐式类型转换。</p>
+</li>
+</ul>
+<h2 id="Item-7-——-与"><a href="#Item-7-——-与" class="headerlink" title="Item 7 —— () 与 {}"></a>Item 7 —— () 与 {}</h2><pre><code class="c++">std::vector&lt;int&gt;&#123;1, 2&#125;;
+std::vector&lt;int&gt;(1, 2);
+</code></pre>
+<p>两者完全不一样。</p>
+<p>只要有机会，总是倾向于使用具有 <code>std::initializer_list</code> 类型的构造函数。</p>
+<h2 id="Item-9-——-using-与-typedef"><a href="#Item-9-——-using-与-typedef" class="headerlink" title="Item 9 —— using 与 typedef"></a>Item 9 —— using 与 typedef</h2><p><code>using</code> 支持模板，而 <code>typedef</code> 只能新建一个模板类：</p>
+<pre><code class="c++">template &lt;typename T&gt;
+class Container &#123;
+    T x;
+&#125;;
+
+// 支持
+template &lt;typename T&gt;
+using ContainerList = std::vector&lt;Container&lt;T&gt;&gt;;
+ContainerList&lt;int&gt; list;
+// 不支持
+template &lt;typename T&gt;
+typedef std::vector&lt;Container&lt;T&gt;&gt; ContainerList;
+
+// 支持
+template &lt;typename T&gt;
+class ContainerList &#123;
+   public:
+    typedef std::vector&lt;Container&lt;T&gt;&gt; type;
+&#125;;
+typename ContainerList&lt;int&gt;::type list;
+</code></pre>
+<p>这里必须要有 <code>typename</code>，因为有些<strong>特例化</strong>实现可能会定义一个叫做 <code>type</code> 的成员对象，需要明确告诉编译器这里用的是 <code>type</code> 这个类型。</p>
+<h3 id="Item-10-——-优先使用-enum-class"><a href="#Item-10-——-优先使用-enum-class" class="headerlink" title="Item 10 —— 优先使用 enum class"></a>Item 10 —— 优先使用 enum class</h3><p><code>enum class</code> 会限制作用域。普通的 <code>enum</code> 中的枚举值可能会与其他的同名变量产生歧义。而使用 <code>enum class</code> 声明的枚举值只能通过 <code>enum_class_name::value</code> 的方式来访问。</p>
+<p>同时，没有 <code>class</code> 限制的枚举值可以发生隐式类型转换，而加了限制的不行：</p>
+<pre><code class="c++">enum Color1 &#123; red, white &#125;;
+enum class Color2 &#123; red, white &#125;;
+// 可以
+if (Color1::red &gt; 1.5) &#123;
+&#125;
+// 不可以
+if (Color2::red &gt; 1.5) &#123;
+&#125;
+</code></pre>
+<p><code>enum class</code> 底层使用 <code>int</code>，也可以使用其他类型：</p>
+<pre><code class="c++">enum class Status: std::uint32_t;
+</code></pre>
+<h3 id="Item-11-——-使用-delete-而非未定义的私有函数"><a href="#Item-11-——-使用-delete-而非未定义的私有函数" class="headerlink" title="Item 11 —— 使用 delete 而非未定义的私有函数"></a>Item 11 —— 使用 delete 而非未定义的私有函数</h3><p>应该将声明为 <code>delete</code> 的函数声明为 <code>public</code>，这样便于生成更好的报错信息。<br>假如设置为 <code>private</code>，用户使用了这个函数，一些编译器会先检查函数的可访问性，说该函数是 <code>private</code>，但是更重要的信息显然是该函数被标记为了 <code>delete</code>。</p>
+<h3 id="Item-12-——-使用-override-关键字"><a href="#Item-12-——-使用-override-关键字" class="headerlink" title="Item 12 —— 使用 override 关键字"></a>Item 12 —— 使用 override 关键字</h3><p>使用 override 可以让编译器更好地识别函数是否实现了重写。例如 C++ 11 中有一个鲜为人知的特性：</p>
+<pre><code class="c++">class A &#123;
+    void doSomething() &amp;;
+    void doSomething() &amp;&amp;;
+&#125;
+</code></pre>
+<p>是两个函数，<code>&amp;&amp;</code> 对应右值调用该函数的情况，例如下面的例子：</p>
+<pre><code class="c++">class A &#123;
+   public:
+    void doSomething() &amp; &#123; std::cout &lt;&lt; &quot;Called first.&quot; &lt;&lt; std::endl; &#125;
+    void doSomething() &amp;&amp; &#123; std::cout &lt;&lt; &quot;Called second.&quot; &lt;&lt; std::endl; &#125;
+&#125;;
+
+A getRVal() &#123;
+    return A&#123;&#125;;
+&#125;
+
+int main() &#123;
+    A a&#123;&#125;;
+    a.doSomething();
+    getRVal().doSomething();
+&#125;
+</code></pre>
+<p>将输出：</p>
+<pre><code>Called first.
+Called second.
+</code></pre>
+<h3 id="Item-14-——-noexcept"><a href="#Item-14-——-noexcept" class="headerlink" title="Item 14 —— noexcept"></a>Item 14 —— noexcept</h3><p>在保证一定不会产生异常的前提下，能用 <code>noexcept</code> 就用，因为编译器可以对具有该标识的函数进行更好的优化。同时，编译器不会强求 <code>noexcept</code> 一定要调用具有 <code>noexcept</code> 标识的函数。</p>
+<h3 id="Item-15-——-constexpr"><a href="#Item-15-——-constexpr" class="headerlink" title="Item 15 —— constexpr"></a>Item 15 —— constexpr</h3><ul>
+<li><code>constexpr</code> 对象（包括函数）都具有 <code>const</code> 属性，且由编译期已知的值完成初始化。</li>
+<li><code>constexpr</code> 函数在调用的时候，如果传入的实参值是编译器已知的，则会产出编译期结果。否则退化成普通的函数，在运行时计算结果。</li>
+</ul>
+<p>好处是可以在编译期就确定一些变量的值，坏处是可能增加编译时间。</p>
+<h3 id="Item-16-——-保证-const-函数的线程安全性"><a href="#Item-16-——-保证-const-函数的线程安全性" class="headerlink" title="Item 16 —— 保证 const 函数的线程安全性"></a>Item 16 —— 保证 const 函数的线程安全性</h3><p>对于被 <code>const</code> 修饰的函数，我们应该保证其线程安全性。例如：</p>
+<pre><code class="c++">class A &#123;
+   private:
+    bool is_valid&#123;&#125;;
+    int val&#123;&#125;;
+    mutable std::mutex mtx;
+
+   public:
+    int getVal() const &#123;
+        std::lock_guard&lt;std::mutex&gt; lock_guard(mtx);
+        if (is_valid) &#123;
+            return val;
+        &#125;
+        return -1;
+    &#125;
+&#125;;
+</code></pre>
+<p>为了这一点，我们通常会配合 <code>std::mutex</code> 或者 <code>std::atomic</code> 等同步原语。由于 <code>mutex</code> 在上锁的时候会修改其内部状态（该函数未被标记为 <code>const</code>），所以我们需要通过 <code>mutable</code> 告诉 <code>const</code> 函数该变量是会变化的，不应该在函数内限制其不可变。</p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+        </span>
+        
+    </div>
+    <a href="/2024/05/25/c-2/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/05/24/Ulaanbuh/">
         <h2 class="post-title">Ulaanbuh</h2>
     </a>
@@ -412,12 +627,12 @@ error: non-const lvalue reference to type &#39;std::string&#39; (aka &#39;basic_
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #00a596">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #ff7d73">CMU-DB</a>
         </span>
         
     </div>
@@ -746,12 +961,12 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #03a9f4">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
         </span>
         
     </div>
@@ -805,17 +1020,17 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Kubeflow/" style="color: #00a596">Kubeflow</a>
+            <a href="/tags/Kubeflow/" style="color: #00bcd4">Kubeflow</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Kubenetes/" style="color: #00bcd4">Kubenetes</a>
+            <a href="/tags/Kubenetes/" style="color: #ffa2c4">Kubenetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/ML/" style="color: #03a9f4">ML</a>
+            <a href="/tags/ML/" style="color: #00a596">ML</a>
         </span>
         
     </div>
@@ -1041,12 +1256,12 @@ dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, 
         
         <span class="tag">
             
-            <a href="/tags/Spark/" style="color: #ff7d73">Spark</a>
+            <a href="/tags/Spark/" style="color: #03a9f4">Spark</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Java/" style="color: #03a9f4">Java</a>
+            <a href="/tags/Java/" style="color: #00a596">Java</a>
         </span>
         
     </div>
@@ -1202,285 +1417,16 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #00bcd4">Rust</a>
+            <a href="/tags/Rust/" style="color: #ffa2c4">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #03a9f4">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #00a596">Tokio</a>
         </span>
         
     </div>
     <a href="/2024/02/05/rust-note-1/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2023/04/06/k8s-note-2/">
-        <h2 class="post-title">Kubernetes 笔记（2）—— 记一次 Kubernetes 小练习</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2023/4/6
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <h1 id="Lab-1"><a href="#Lab-1" class="headerlink" title="Lab 1"></a>Lab 1</h1><p>该 lab 基于 Minikube，用于练习 K8s 最基本的 Api Object，如 ConfigMap，Secret，Pod，Service 等等。</p>
-<h2 id="使用-Secret-指定-Mysql-密码"><a href="#使用-Secret-指定-Mysql-密码" class="headerlink" title="使用 Secret 指定 Mysql 密码"></a>使用 Secret 指定 Mysql 密码</h2><pre><code class="shell">kubectl apply -f lab1/mysql_secret.yml
-</code></pre>
-<p>该 YAML 文件中制定了数据库的密码。</p>
-<pre><code class="yaml">stringData:
-  db_password: &#39;123456&#39;
-</code></pre>
-<p>在创建 Mysql 对应的 Pod 的时候，可以使用这个 Secret 来指定 Mysql 的密码。<br>如下所示，使用环境变量指定 Mysql root 用户的密码，这个密码源自 Secret 中定义的 db_password</p>
-<pre><code class="yaml">env:
-    - name: MYSQL_ROOT_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: mysql-secret
-        key: db_password
-</code></pre>
-<p>创建 Mysql 对应的 Pod：</p>
-<pre><code class="shell">kubectl apply -f lab1/mysql_pod.yml
-</code></pre>
-<p>验证 Mysql 正确指定了密码：</p>
-<pre><code class="shell">kubectl exec -it mysql -- mysql -uroot -p123456
-</code></pre>
-<p>有关 Secret 的更多声明方式：<a target="_blank" rel="noopener" href="https://github.com/omerbsezer/Fast-Kubernetes/blob/main/K8s-Secret.md">https://github.com/omerbsezer/Fast-Kubernetes/blob/main/K8s-Secret.md</a></p>
-<h2 id="创建-Mysql-对应的-Service"><a href="#创建-Mysql-对应的-Service" class="headerlink" title="创建 Mysql 对应的 Service"></a>创建 Mysql 对应的 Service</h2><pre><code class="shell">kubectl apply -f lab1/mysql_service.yml
-</code></pre>
-<p>该 YAML 文件中指定了选中的 Pod 以及端口。使用 NodePort 的方式会在每个 Node 的 ip 上暴露一个端口，<br>来访问对应的 Service 服务。<br>同时，可以随机暴露出一个端口外部访问的端口（默认值：30000-32767）。</p>
-<p>一般而言，对于数据库这种服务，应该使用 ClusterIp，只在集群内部使用，这边为了测试服务连接，故暴露给外部。</p>
-<pre><code class="yaml">spec:
-  type: NodePort
-  selector:
-    app: db
-  ports:
-    - protocol: TCP
-      port: 3306
-      targetPort: 3306
-</code></pre>
-<p>这里的 selector 对应了 <code>lab1/mysql_pod.yml</code> 中指定的 labels：</p>
-<pre><code class="yaml">labels:
-  app: db
-</code></pre>
-<p>创建该 Service：</p>
-<pre><code class="shell">kubectl apply -f lab1/mysql_service.yml
-</code></pre>
-<p>查看当前的 Service：</p>
-<pre><code class="shell">$ kubectl get svc
-NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-kubernetes      ClusterIP   10.96.0.1        &lt;none&gt;        443/TCP          25m
-mysql-service   NodePort    10.108.143.219   &lt;none&gt;        3306:30160/TCP   14s
-</code></pre>
-<p>其中 <em>3306</em> 是集群内的端口，pod 可以通过这个端口进行访问：<code>mysql-service:3306</code>（通过 service 名直接访问该服务）。30160 是对外可见的端口，在集群外部可以通过 <code>nodeIp:30160</code> 访问。</p>
-<p>可以看到集群暴露了 30160 的端口给外部使用，不过我们使用的是 Minikube，所有的 k8s 组件都跑在 Docker 容器里，<br>所以我们必须要用 tunnel 才能真正访问该 Service：</p>
-<pre><code class="shell">minikube service --url mysql-service
-</code></pre>
-<p>该指令会开启一个 tunnel，并且提供一个可访问的 url，相当于让我们能够去访问 30160 端口，并最终访问到内部的 Service。</p>
-<pre><code class="shell">$ minikube service --url mysql-service
-http://127.0.0.1:51634
-❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
-</code></pre>
-<p>可以用一些数据库工具来验证是否能够连接：</p>
-<p><img src="/2023/04/06/k8s-note-2/image.png"></p>
-<h2 id="使用-ConfigMap-配置数据库信息"><a href="#使用-ConfigMap-配置数据库信息" class="headerlink" title="使用 ConfigMap 配置数据库信息"></a>使用 ConfigMap 配置数据库信息</h2><p>ConfigMap 和 Secret 基本一致，只不过后者用于存储密文信息。但是注意，单纯使用 Secret 仍然存在风险，<br>因为其使用的 base64 并不能保证安全性，应该配合 k8s 提供的 RBAC 机制使用。</p>
-<p>这边指定了使用的 mysql-server。</p>
-<pre><code class="yaml">data:
-  db_server: &quot;mysql-service&quot;
-</code></pre>
-<p>添加该 ConfigMap：</p>
-<pre><code class="shell">kubectl apply -f lab1/mysql_configmap.yml
-</code></pre>
-<p>我们启动一个测试 Pod 查看效果：</p>
-<pre><code class="shell">kubectl apply -f lab1/test_pod.yml
-</code></pre>
-<p>在该 Pod 内部查看环境变量是否正确：</p>
-<pre><code class="shell">kubectl exec -it test -- bin/sh
-echo $MYSQL_SERVER
-echo $MYSQL_ROOT_PASSWORD
-</code></pre>
-<p>应该得到如下的输出：</p>
-<pre><code class="shell">$ kubectl exec -it test -- bin/sh
-/ # echo $MYSQL_SERVER
-mysql-service
-/ # echo $MYSQL_ROOT_PASSWORD
-123456
-</code></pre>
-<p>注意，k8s 里的 Service 是 ping 不通的，以下摘自：<a target="_blank" rel="noopener" href="https://kuboard.cn/learning/faq/ping-service.html">https://kuboard.cn/learning/faq/ping-service.html</a></p>
-<blockquote>
-<p>因为 Kubernetes 只是为 Service 生成了一个虚拟 IP 地址，实现的方式有：</p>
-<ul>
-<li>User space 代理模式</li>
-<li>Iptables 代理模式</li>
-<li>IPVS 代理模式</li>
-</ul>
-<p>不管是哪种代理模式，Kubernetes Service 的 IP 背后都没有任何实体可以响应「ICMP」，全称为 Internet 控制报文协议（Internet Control Message Protocol）。</p>
-</blockquote>
-<p>我们可以在 test pod 里面安装 telnet 指令，查看连接情况：</p>
-<pre><code class="shell">apk update
-apk add busybox-extras
-</code></pre>
-<p><strong>注意，可以直接用 Service 的名字，依靠 DNS 访问服务，但是这里只是 hostname，还需要指定端口号</strong></p>
-<pre><code class="shell">telnet &quot;$MYSQL_SERVER:3306&quot;
-</code></pre>
-<h2 id="修改-ConfigMap-之后更新-Pod"><a href="#修改-ConfigMap-之后更新-Pod" class="headerlink" title="修改 ConfigMap 之后更新 Pod"></a>修改 ConfigMap 之后更新 Pod</h2><p>我们可以通过以下方式对 Api Object 的配置进行修改，以之前的 ConfigMap 为例：</p>
-<pre><code class="shell">kubectl edit configmap mysql-config
-</code></pre>
-<p>这会启动一个文本编辑器让你进行修改。这里我们把 <code>db_server</code> 修改成了 <code>dummy</code>。<br>我们再次进入 test Pod，看看环境变量是否改变：</p>
-<pre><code class="shell">kubectl exec -it test -- bin/sh
-echo $MYSQL_SERVER
-</code></pre>
-<p>输出依旧是之前的 <code>mysql-service</code>，也就是说修改 ConfigMap 不会导致引用它的 Pod 的自动更新。我们需要一些其他手段让 Pod 在 ConfigMap 更新的时候也进行更新。</p>
-<h3 id="使用-Deployment"><a href="#使用-Deployment" class="headerlink" title="使用 Deployment"></a>使用 Deployment</h3><p>Deployment 可以支持滚动升级，当我们的 ConfigMap 修改的时候，可以认为是一次版本变动，我们可以通过 Deployment 更新对应的 Pod。 </p>
-<p>我们先删除之前的 test Pod，</p>
-<pre><code class="shell">kubectl delete -f lab1/test_pod.yml
-</code></pre>
-<p>接下来我们要用 Deployment 来管理这个 Pod。Deployment 的 Template 对应了 Pod 的 Spec。</p>
-<p>创建对应的 Deployment：</p>
-<pre><code class="shell">kubectl apply -f lab1/test_deployment.yml
-</code></pre>
-<p>查看生成的 Pod(s)：</p>
-<pre><code class="shell">$ kubectl get pods
-NAME                   READY   STATUS    RESTARTS   AGE
-mysql                  1/1     Running   0          102m
-test-7775f744b-c7sgs   1/1     Running   0          25s
-</code></pre>
-<p>进入该 Pod 查看环境变量：</p>
-<pre><code class="shell">kubectl exec -it test-7775f744b-c7sgs -- bin/sh
-echo $MYSQL_SERVER
-</code></pre>
-<p>输出为 <code>dummy</code>，现在我们把 configmap 修改为之前的版本。</p>
-<p>然后，我们使用如下方法（ <a target="_blank" rel="noopener" href="https://www.qttc.net/504-how-update-latest-configmap-in-pods.html">https://www.qttc.net/504-how-update-latest-configmap-in-pods.html</a> ）更新 Pod：</p>
-<pre><code class="shell">kubectl rollout restart deploy/test
-</code></pre>
-<p>我们可以在另外两个终端，通过：</p>
-<pre><code class="shell">kubectl get rs -w
-</code></pre>
-<p>以及 </p>
-<pre><code class="shell">kubectl get pods -w
-</code></pre>
-<p>查看发生的变化：</p>
-<pre><code>$ kubectl get rs -w
-NAME             DESIRED   CURRENT   READY   AGE
-test-7775f744b   1         1         1       9m32s
-test-595fb97b87   1         0         0       0s
-test-595fb97b87   1         0         0       0s
-test-595fb97b87   1         1         0       0s
-test-595fb97b87   1         1         1       5s
-test-7775f744b    0         1         1       9m58s
-test-7775f744b    0         1         1       9m58s
-test-7775f744b    0         0         0       9m58s
-</code></pre>
-<pre><code>$ kubectl get pods -w
-NAME                   READY   STATUS    RESTARTS   AGE  
-mysql                  1/1     Running   0          112m 
-test-7775f744b-c7sgs   1/1     Running   0          9m46s
-test-595fb97b87-mqb2m   0/1     Pending   0          0s
-test-595fb97b87-mqb2m   0/1     Pending   0          0s
-test-595fb97b87-mqb2m   0/1     ContainerCreating   0          0s
-test-595fb97b87-mqb2m   1/1     Running             0          5s
-test-7775f744b-c7sgs    1/1     Terminating         0          9m58s
-test-7775f744b-c7sgs    0/1     Terminating         0          10m
-test-7775f744b-c7sgs    0/1     Terminating         0          10m
-test-7775f744b-c7sgs    0/1     Terminating         0          10m
-</code></pre>
-<p>可以通过如下指令查看 Deployment 的历史版本：</p>
-<pre><code class="shell">kubectl rollout history deploy/test
-</code></pre>
-<p>我们再次进入 test Pod，查看环境变量：</p>
-<pre><code class="shell">kubectl exec -it test-595fb97b87-mqb2m -- bin/sh
-echo $MYSQL_SERVER
-</code></pre>
-<p>更新成功：<code>mysql-service</code>。具体的，还可以根据 <a target="_blank" rel="noopener" href="https://github.com/omerbsezer/Fast-Kubernetes/blob/main/K8s-Rollout-Rollback.md">https://github.com/omerbsezer/Fast-Kubernetes/blob/main/K8s-Rollout-Rollback.md</a> 中提到的两种策略，指定更新策略。<br><code>Recreate</code> 是全部删除，然后新建（显然服务会有一段时间 Down），而 <code>RollingUpdate</code> 也就是滚动升级，两个版本的 Pod 将同时存在，慢慢将所有 Pod 变为最新版本（关闭一部分旧的，开启一部分新的）。</p>
-<h3 id="使用-Kustomize"><a href="#使用-Kustomize" class="headerlink" title="使用 Kustomize"></a>使用 Kustomize</h3><p>项目网址：<a target="_blank" rel="noopener" href="https://github.com/kubernetes-sigs/kustomize">https://github.com/kubernetes-sigs/kustomize</a></p>
-<blockquote>
-<p>kustomize lets you customize raw, template-free YAML files for multiple purposes, leaving the original YAML untouched and usable as is.</p>
-</blockquote>
-<p>推荐阅读：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1110336">https://developer.aliyun.com/article/1110336</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/liwench/article/details/129849776">https://blog.csdn.net/liwench/article/details/129849776</a></li>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/71165168/can-someone-explain-patchesstrategicmerge">https://stackoverflow.com/questions/71165168/can-someone-explain-patchesstrategicmerge</a></li>
-</ul>
-<p>我们先删除之前测试的残留：</p>
-<pre><code class="shell">kubectl delete -f lab1/mysql_configmap.yml
-kubectl delete -f lab1/test_deployment.yml
-</code></pre>
-<p>创建如下的 Kustomization.yml：</p>
-<pre><code class="yaml">resources:
-  - test_deployment.yml
-configMapGenerator:
-  - name: mysql-config
-    literals:
-      - db_server=mysql-service
-</code></pre>
-<p>查看对应的生成结果（只是打印，没有创建）：</p>
-<pre><code class="shell">kubectl kustomize lab1/base
-kubectl kustomize lab1/stagging
-</code></pre>
-<p>应用到 k8s：</p>
-<pre><code class="shell">kubectl apply -k lab1/base
-</code></pre>
-<p>查看生成的 ConfigMap：</p>
-<pre><code class="shell">$ kubectl get configmap
-NAME                      DATA   AGE
-kube-root-ca.crt          1      164m
-mysql-config-5bhm7k67gb   1      38s
-</code></pre>
-<p>进入 Pod，查看环境变量：</p>
-<pre><code class="shell">kubectl exec -it test-6fc4d8f9cc-f6zwr -- bin/sh
-echo $MYSQL_SERVER
-</code></pre>
-<p>结果为 mysql-service，和预期一致。</p>
-<p>接下来修改为 <code>dummy</code>。</p>
-<pre><code class="shell">kubectl apply -k lab1/stagging
-</code></pre>
-<p>可以发现自动创建了新的 Pod：</p>
-<pre><code class="shell">$ kubectl get pods
-NAME                    READY   STATUS        RESTARTS   AGE
-mysql                   1/1     Running       0          166m
-test-6fc4d8f9cc-f6zwr   1/1     Terminating   0          2m13s
-test-85d74d7669-d9ft8   1/1     Running       0          26s
-</code></pre>
-<p>进入 Pod，查看环境变量：</p>
-<pre><code class="shell">kubectl exec -it test-85d74d7669-d9ft8 -- bin/sh
-echo $MYSQL_SERVER
-</code></pre>
-<p>输出为 <code>dummy</code>，成功！</p>
-<p>注意，原来的 configmap 还是存在的（这种方式比较好，删除总是一个比较危险的行为）。</p>
-<pre><code class="shell">$ kubectl get configmap
-NAME                      DATA   AGE
-kube-root-ca.crt          1      174m
-mysql-config-2h6ddfhh59   1      4m48s
-mysql-config-5bhm7k67gb   1      6m35s
-</code></pre>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
-        </span>
-        
-    </div>
-    <a href="/2023/04/06/k8s-note-2/" class="go-post">阅读全文</a>
 </div>
 
 

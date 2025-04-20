@@ -167,6 +167,137 @@
         
 
 <div class="post">
+    <a href="/2025/04/20/foundation-db/">
+        <h2 class="post-title">Foundation DB 学习笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/4/20
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            
+
+	<div class="row">
+    <embed src="/2025/04/20/foundation-db/paper.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+
+<p>在线讲解：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&amp;vd_source=f7e4c2acec163bdcd3e200e3623cc3e3</a></p>
+<p>最近看 DeepSeek 的 3FS 的时候发现他们会用 FoundationDB 做 <code>chunk metadata</code> 的存储（3FS 有点像 GFS，也是以 chunk 作为存储单位）。正好不久之后要去阿里云开始一段存储相关的实习，学习一下相关知识。</p>
+<p>FoundationDB 是一个分布式 KV 存储数据库，适用于读多写少的场景，支持 SSI（Serializable Snapshot Isolation）级别的事务。</p>
+<h3 id="FoundationDB-如何实现-SSI"><a href="#FoundationDB-如何实现-SSI" class="headerlink" title="FoundationDB 如何实现 SSI"></a>FoundationDB 如何实现 SSI</h3><p>SSI 这一级别是通过 OCC + MVCC 实现的。</p>
+<p>首先，让我们复习一下事务隔离级别，可以从这篇文章切入：<a target="_blank" rel="noopener" href="https://lotabout.me/2020/QQA-Isolation-Level-of-Database/%E3%80%82%E9%80%9A%E8%BF%87">https://lotabout.me/2020/QQA-Isolation-Level-of-Database/。通过</a> MVCC 的快照，我们可以很容易地实现 Snapshot Isolation，虽然这解决了脏读和幻读的问题，但是无法解决两种问题（也就是上面链接中的 P4 和 A5B 问题）。</p>
+<ul>
+<li><p>P4 Lost Update</p>
+<p>  <img src="/2025/04/20/foundation-db/lost_update.png"></p>
+<p>  T2 修改 x 为 120，然而 T2 提交后被 T1 提交的修改覆盖，最终 x &#x3D; 130。对外界而言，x &#x3D; 120 这一修改不可见，被覆盖。</p>
+</li>
+<li><p>A5B Write Skew</p>
+<p>  <img src="/2025/04/20/foundation-db/write_skew.png"></p>
+<p>  x + y 应该满足约束 <code>x + y &lt;= 100</code>，由于 T1 和 T2 的 <code>write set</code> 没有相交，所以两个事务都能提交成功，然而约束已经被破坏。</p>
+</li>
+</ul>
+<p>为了解决上述问题，FoundationDB 会维护一个 <code>read set</code>，如果 <code>read set</code> 中的某个 <code>key range</code> 对应的最新的一次 <code>commit version</code> 大于事务的 <code>read version</code>，就会 abort 当前事务。这种乐观的方式有若干好处：</p>
+<ul>
+<li>无需锁，高效；</li>
+<li>读多写少，abort 是小概率事件。</li>
+</ul>
+<p>在 FoundationDB 中，<code>resolvers</code> 会保留最近一段时间（如 5 秒，MVCC window）内已提交的写入操作在内存中，这个时间范围就可以看作是一个 “窗口”。当一个新的事务进行冲突检测时，会将其读取的数据与这个窗口内的写入操作进行比较，以确定是否存在数据冲突。如果在这个窗口内，事务读取的数据被其他事务修改了，那么就会检测到冲突，该事务可能会被中止或重试。</p>
+<p><img src="/2025/04/20/foundation-db/example.png"></p>
+<h3 id="FoundationDB-的架构"><a href="#FoundationDB-的架构" class="headerlink" title="FoundationDB 的架构"></a>FoundationDB 的架构</h3><p><img src="/2025/04/20/foundation-db/architecture.png"></p>
+<p>整个系统是自上而下启动的。FoundationDB 的控制面是通过 Paxos 算法选举出 Cluster Controller（即 leader），如下图所示。</p>
+<p><img src="/2025/04/20/foundation-db/control_plane.png"></p>
+<p>下图为数据面，主要由 TS + LS + SS 组成。</p>
+<p><img src="/2025/04/20/foundation-db/data_plane.png"></p>
+<h4 id="TS"><a href="#TS" class="headerlink" title="TS"></a>TS</h4><ul>
+<li>Sequencer：<ul>
+<li>负责获取 read&#x2F;commit version。</li>
+</ul>
+</li>
+<li>Proxy：<ul>
+<li>一个中介，负责获取 read version 和事务提交。</li>
+</ul>
+</li>
+<li>Resolver：<ul>
+<li>分布式地解决读写冲突。</li>
+<li>多节点，按照 <code>key range</code> 分片（shard）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="LS"><a href="#LS" class="headerlink" title="LS"></a>LS</h4><ul>
+<li>按照 <code>key range</code> 分片（shard）。</li>
+</ul>
+<h4 id="SS"><a href="#SS" class="headerlink" title="SS"></a>SS</h4><ul>
+<li>单机存储系统，从 LS 的 WAL 异步复制数据。</li>
+<li>多版本数据只存储在内存中</li>
+<li>5s 的 MVCC window（太长了会产生大量假阳性）</li>
+</ul>
+<h3 id="Log-System"><a href="#Log-System" class="headerlink" title="Log System"></a>Log System</h3><ul>
+<li>Log Server 下面绑了若干 Storage Server。</li>
+<li>按照 key range 映射到若干个 replica。</li>
+<li>之所以需要向未被映射到的 Log Server 传递空消息，是因为 Log Server 是按照顺序执行的，不这样做会产生“空洞”。</li>
+</ul>
+<p><img src="/2025/04/20/foundation-db/log_system.png"></p>
+<h3 id="Commit-Path"><a href="#Commit-Path" class="headerlink" title="Commit Path"></a>Commit Path</h3><ol>
+<li>Client:<ol>
+<li>Buffer Modifications</li>
+<li>Send Read&#x2F;Write Set To Proxy</li>
+</ol>
+</li>
+<li>Proxy: Get Commit Version from Sequencer</li>
+<li>Proxy: Send User Data KeyRange To Resolvers</li>
+<li>Resolver: Check RW Conflict</li>
+<li>Proxy: Commit Phase When no Conflict<ol>
+<li>Send Data to LS</li>
+<li>Committed When All LS return Success</li>
+<li>Send Commit Version to Sequencer for Read</li>
+<li>Proxy return OK to Client</li>
+</ol>
+</li>
+<li>SS pull WAL from LS</li>
+</ol>
+<p>Read: 1 roundtrip<br>Write: 4 roundtrip</p>
+<h3 id="Recovery-Replication"><a href="#Recovery-Replication" class="headerlink" title="Recovery &amp;&amp; Replication"></a>Recovery &amp;&amp; Replication</h3><p><img src="/2025/04/20/foundation-db/recovery.png"></p>
+<p>k &#x3D; f + 1</p>
+<p>这里 k 表示需要复制的日志份数，f 表示系统可容忍的故障节点数。即需要复制的日志份数比可容忍的故障节点数多 1，通过这种方式来保证即使部分节点故障，日志信息也不会丢失，能维持系统的正常运行和数据一致性。</p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Database/" style="color: #00bcd4">Database</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Key-Value-Store/" style="color: #03a9f4">Key-Value Store</a>
+        </span>
+        
+    </div>
+    <a href="/2025/04/20/foundation-db/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2025/03/24/sfinae/">
         <h2 class="post-title">SFINAE —— Substitution Failure Is Not An Error</h2>
     </a>
@@ -273,12 +404,12 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
+            <a href="/tags/Language/" style="color: #00a596">Language</a>
         </span>
         
     </div>
@@ -588,17 +719,17 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00a596">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #00bcd4">Interview</a>
+            <a href="/tags/Interview/" style="color: #00a596">Interview</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #03a9f4">Language</a>
+            <a href="/tags/Language/" style="color: #00bcd4">Language</a>
         </span>
         
     </div>
@@ -780,12 +911,12 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #ffa2c4">Interview</a>
+            <a href="/tags/Interview/" style="color: #03a9f4">Interview</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #00a596">Language</a>
+            <a href="/tags/Language/" style="color: #ffa2c4">Language</a>
         </span>
         
     </div>
@@ -986,7 +1117,7 @@ T accum(T begin, T end) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
     </div>
@@ -1138,17 +1269,17 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #00a596">Istio</a>
+            <a href="/tags/Istio/" style="color: #ff7d73">Istio</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Metallb/" style="color: #ff7d73">Metallb</a>
+            <a href="/tags/Metallb/" style="color: #00bcd4">Metallb</a>
         </span>
         
     </div>
@@ -1199,7 +1330,7 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Docker/" style="color: #ffa2c4">Docker</a>
+            <a href="/tags/Docker/" style="color: #00a596">Docker</a>
         </span>
         
     </div>
@@ -1291,226 +1422,11 @@ int main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
     </div>
     <a href="/2024/05/29/cpp-3/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2024/05/25/c-2/">
-        <h2 class="post-title">C++ 笔记（2）—— Effective Modern C++ (1-3 章)</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/Language/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Language
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2024/5/25
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>以下笔记囊括了前三章我学习到的新知识。</p>
-<h2 id="Item-1-——-模板参数"><a href="#Item-1-——-模板参数" class="headerlink" title="Item 1 —— 模板参数"></a>Item 1 —— 模板参数</h2><p>推导按值传递的模板形式参数类型 <code>T</code> 时，若传入的实参带有 <code>const</code> 或 <code>volatile</code> 时，将会去掉。<br>因为按值传递就相当于是对数据进行了拷贝，不应该有上述限制修饰。</p>
-<p>若形式参数为 <code>T</code>，传入的数据为函数或者数组，将会退化成对应的指针。除非使用 <code>T &amp;</code>。</p>
-<h2 id="Item-2-——-auto"><a href="#Item-2-——-auto" class="headerlink" title="Item 2 —— auto"></a>Item 2 —— auto</h2><p>一般而言，使用 <code>auto</code> 和模板 <code>T</code> 是一样的。除了以下的情况：</p>
-<pre><code class="c++">// x 的类别为 std::initializer_list&lt;int&gt;
-auto x = &#123;1, 2, 3&#125;;
-
-template &lt;typename T&gt;
-void func(T x);
-// 错误，无法推断 T 的类型
-func(&#123;1, 2, 3&#125;)
-
-// 错误，无法推断类型
-// auto 用在函数类型推导时会被当作模板类型推导
-auto func() &#123;
-    return &#123;1, 2, 3&#125;
-&#125;
-</code></pre>
-<p><code>auto</code> 可以用来推断一些只有编译器清楚的类型，比如 lambda 表达式。</p>
-<pre><code class="c++">auto x = []() &#123; return &quot;test&quot;; &#125;;
-auto y = std::function&#123;[]() &#123; return &quot;test&quot;; &#125;&#125;;
-</code></pre>
-<p>比起 <code>y</code> 用 <code>std::function</code> 包裹，使用 <code>auto</code> 的效率更高，内存占用更少。</p>
-<h2 id="Item-3-——-decltype"><a href="#Item-3-——-decltype" class="headerlink" title="Item 3 —— decltype"></a>Item 3 —— decltype</h2><p>下面的代码将报错：</p>
-<pre><code class="c++">template &lt;typename Container, typename Index&gt;
-auto func(Container&amp; c, Index i) &#123;
-    return c[i];
-&#125;
-std::vector&lt;int&gt; vec&#123;1, 2&#125;;
-func(vec, 1) = 10;
-</code></pre>
-<p>此处 <code>auto</code> 相当于 <code>T</code>，按值传递。这将会把 <code>vector::operator[]</code> 返回的 <code>T&amp;</code> 的引用给去掉。我们无法给一个右值赋值。</p>
-<p>而如下的代码将通过编译：</p>
-<pre><code class="c++">template &lt;typename Container, typename Index&gt;
-decltype(auto) func(Container&amp; c, Index i) &#123;
-    return c[i];
-&#125;
-std::vector&lt;int&gt; vec&#123;1, 2&#125;;
-func(vec, 1) = 10;
-</code></pre>
-<p>一般而言，不同于 <code>auto</code> 和模板类型推导，<code>decltype</code> 只会鹦鹉学舌。<br>对于类型为 <code>T</code> 的表达式，除非该表达式仅有一个名字，否则 <code>decltype</code> 总是得出类型 <code>T &amp;</code>。</p>
-<pre><code class="c++">// 此处类型为 int &amp;
-decltype(auto) f() &#123;
-    int x = 0;
-    return (x);
-&#125;
-</code></pre>
-<h2 id="Item-5-——-优先选用-auto-而非显式类别声明"><a href="#Item-5-——-优先选用-auto-而非显式类别声明" class="headerlink" title="Item 5 —— 优先选用 auto 而非显式类别声明"></a>Item 5 —— 优先选用 auto 而非显式类别声明</h2><ul>
-<li><p>例子 1：vector&lt;int&gt;::size()</p>
-<p>  vector&lt;int&gt;::size() 返回的类型是 vector&lt;int&gt;::size_type，用很多常见的显示类别去声明会产生隐式的类型转换，在不同平台可能会有一定问题。</p>
-</li>
-<li><p>例子 2：遍历 map</p>
-<pre><code class="c++">std::map&lt;std::string, int&gt; m;
-for (const std::pair&lt;std::string, int&gt;&amp; p : m) &#123;
-&#125;
-</code></pre>
-<p>  这么写看似没有问题，但是实际上真正遍历的时候 <code>p</code> 的类型应该是 <code>std::pair&lt;const std::string, int&gt; &amp;</code>。上述的遍历方式会新建临时变量。这是 map 中的源码：</p>
-<pre><code class="c++">typedef pair&lt;const key_type, mapped_type&gt;        value_type;
-...
-typedef value_type&amp;                              reference;
-</code></pre>
-<p>  转换成 <code>auto</code> 之后：</p>
-<pre><code class="c++">std::map&lt;std::string, int&gt; m;
-for (const auto&amp; p : m) &#123;
-&#125;
-</code></pre>
-<p>  此时 <code>p</code> 的类型为 <code>const std::map::value_type &amp;</code>，符合预期。</p>
-</li>
-<li><p>例子 3：std::vector&lt;bool&gt;</p>
-<p>  std::vector&lt;bool&gt;::operator[] 的返回值不是 <code>bool &amp;</code>，而是 <code>std::vector&lt;bool&gt;::reference</code>。这是因为 <code>bool</code> 在 c++ 里面是用一个 bit 表示的，<code>vector&lt;bool&gt;</code> 不允许直接返回一个 bit 的引用。</p>
-<p>  这里如果用 <code>auto</code> 就可能会产生问题，而用 <code>bool</code> 则可以实现隐式类型转换。</p>
-</li>
-</ul>
-<h2 id="Item-7-——-与"><a href="#Item-7-——-与" class="headerlink" title="Item 7 —— () 与 {}"></a>Item 7 —— () 与 {}</h2><pre><code class="c++">std::vector&lt;int&gt;&#123;1, 2&#125;;
-std::vector&lt;int&gt;(1, 2);
-</code></pre>
-<p>两者完全不一样。</p>
-<p>只要有机会，总是倾向于使用具有 <code>std::initializer_list</code> 类型的构造函数。</p>
-<h2 id="Item-9-——-using-与-typedef"><a href="#Item-9-——-using-与-typedef" class="headerlink" title="Item 9 —— using 与 typedef"></a>Item 9 —— using 与 typedef</h2><p><code>using</code> 支持模板，而 <code>typedef</code> 只能新建一个模板类：</p>
-<pre><code class="c++">template &lt;typename T&gt;
-class Container &#123;
-    T x;
-&#125;;
-
-// 支持
-template &lt;typename T&gt;
-using ContainerList = std::vector&lt;Container&lt;T&gt;&gt;;
-ContainerList&lt;int&gt; list;
-// 不支持
-template &lt;typename T&gt;
-typedef std::vector&lt;Container&lt;T&gt;&gt; ContainerList;
-
-// 支持
-template &lt;typename T&gt;
-class ContainerList &#123;
-   public:
-    typedef std::vector&lt;Container&lt;T&gt;&gt; type;
-&#125;;
-typename ContainerList&lt;int&gt;::type list;
-</code></pre>
-<p>这里必须要有 <code>typename</code>，因为有些<strong>特例化</strong>实现可能会定义一个叫做 <code>type</code> 的成员对象，需要明确告诉编译器这里用的是 <code>type</code> 这个类型。</p>
-<h3 id="Item-10-——-优先使用-enum-class"><a href="#Item-10-——-优先使用-enum-class" class="headerlink" title="Item 10 —— 优先使用 enum class"></a>Item 10 —— 优先使用 enum class</h3><p><code>enum class</code> 会限制作用域。普通的 <code>enum</code> 中的枚举值可能会与其他的同名变量产生歧义。而使用 <code>enum class</code> 声明的枚举值只能通过 <code>enum_class_name::value</code> 的方式来访问。</p>
-<p>同时，没有 <code>class</code> 限制的枚举值可以发生隐式类型转换，而加了限制的不行：</p>
-<pre><code class="c++">enum Color1 &#123; red, white &#125;;
-enum class Color2 &#123; red, white &#125;;
-// 可以
-if (Color1::red &gt; 1.5) &#123;
-&#125;
-// 不可以
-if (Color2::red &gt; 1.5) &#123;
-&#125;
-</code></pre>
-<p><code>enum class</code> 底层使用 <code>int</code>，也可以使用其他类型：</p>
-<pre><code class="c++">enum class Status: std::uint32_t;
-</code></pre>
-<h3 id="Item-11-——-使用-delete-而非未定义的私有函数"><a href="#Item-11-——-使用-delete-而非未定义的私有函数" class="headerlink" title="Item 11 —— 使用 delete 而非未定义的私有函数"></a>Item 11 —— 使用 delete 而非未定义的私有函数</h3><p>应该将声明为 <code>delete</code> 的函数声明为 <code>public</code>，这样便于生成更好的报错信息。<br>假如设置为 <code>private</code>，用户使用了这个函数，一些编译器会先检查函数的可访问性，说该函数是 <code>private</code>，但是更重要的信息显然是该函数被标记为了 <code>delete</code>。</p>
-<h3 id="Item-12-——-使用-override-关键字"><a href="#Item-12-——-使用-override-关键字" class="headerlink" title="Item 12 —— 使用 override 关键字"></a>Item 12 —— 使用 override 关键字</h3><p>使用 override 可以让编译器更好地识别函数是否实现了重写。例如 C++ 11 中有一个鲜为人知的特性：</p>
-<pre><code class="c++">class A &#123;
-    void doSomething() &amp;;
-    void doSomething() &amp;&amp;;
-&#125;
-</code></pre>
-<p>是两个函数，<code>&amp;&amp;</code> 对应右值调用该函数的情况，例如下面的例子：</p>
-<pre><code class="c++">class A &#123;
-   public:
-    void doSomething() &amp; &#123; std::cout &lt;&lt; &quot;Called first.&quot; &lt;&lt; std::endl; &#125;
-    void doSomething() &amp;&amp; &#123; std::cout &lt;&lt; &quot;Called second.&quot; &lt;&lt; std::endl; &#125;
-&#125;;
-
-A getRVal() &#123;
-    return A&#123;&#125;;
-&#125;
-
-int main() &#123;
-    A a&#123;&#125;;
-    a.doSomething();
-    getRVal().doSomething();
-&#125;
-</code></pre>
-<p>将输出：</p>
-<pre><code>Called first.
-Called second.
-</code></pre>
-<h3 id="Item-14-——-noexcept"><a href="#Item-14-——-noexcept" class="headerlink" title="Item 14 —— noexcept"></a>Item 14 —— noexcept</h3><p>在保证一定不会产生异常的前提下，能用 <code>noexcept</code> 就用，因为编译器可以对具有该标识的函数进行更好的优化。同时，编译器不会强求 <code>noexcept</code> 一定要调用具有 <code>noexcept</code> 标识的函数。</p>
-<h3 id="Item-15-——-constexpr"><a href="#Item-15-——-constexpr" class="headerlink" title="Item 15 —— constexpr"></a>Item 15 —— constexpr</h3><ul>
-<li><code>constexpr</code> 对象（包括函数）都具有 <code>const</code> 属性，且由编译期已知的值完成初始化。</li>
-<li><code>constexpr</code> 函数在调用的时候，如果传入的实参值是编译器已知的，则会产出编译期结果。否则退化成普通的函数，在运行时计算结果。</li>
-</ul>
-<p>好处是可以在编译期就确定一些变量的值，坏处是可能增加编译时间。</p>
-<h3 id="Item-16-——-保证-const-函数的线程安全性"><a href="#Item-16-——-保证-const-函数的线程安全性" class="headerlink" title="Item 16 —— 保证 const 函数的线程安全性"></a>Item 16 —— 保证 const 函数的线程安全性</h3><p>对于被 <code>const</code> 修饰的函数，我们应该保证其线程安全性。例如：</p>
-<pre><code class="c++">class A &#123;
-   private:
-    bool is_valid&#123;&#125;;
-    int val&#123;&#125;;
-    mutable std::mutex mtx;
-
-   public:
-    int getVal() const &#123;
-        std::lock_guard&lt;std::mutex&gt; lock_guard(mtx);
-        if (is_valid) &#123;
-            return val;
-        &#125;
-        return -1;
-    &#125;
-&#125;;
-</code></pre>
-<p>为了这一点，我们通常会配合 <code>std::mutex</code> 或者 <code>std::atomic</code> 等同步原语。由于 <code>mutex</code> 在上锁的时候会修改其内部状态（该函数未被标记为 <code>const</code>），所以我们需要通过 <code>mutable</code> 告诉 <code>const</code> 函数该变量是会变化的，不应该在函数内限制其不可变。</p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/C/" style="color: #ff7d73">C++</a>
-        </span>
-        
-    </div>
-    <a href="/2024/05/25/c-2/" class="go-post">阅读全文</a>
 </div>
 
 
