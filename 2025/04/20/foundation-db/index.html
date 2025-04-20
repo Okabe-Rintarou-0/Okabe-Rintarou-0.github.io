@@ -169,12 +169,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+                <a href="/tags/Database/" style="color: #03a9f4">Database</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/Key-Value-Store/" style="color: #00a596">Key-Value Store</a>
+                <a href="/tags/Key-Value-Store/" style="color: #00bcd4">Key-Value Store</a>
             </span>
             
         </span>
@@ -191,7 +191,7 @@
 
 
 
-<p>在线讲解：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&amp;vd_source=f7e4c2acec163bdcd3e200e3623cc3e3</a></p>
+<p>在线讲解：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1834y1Y7m7/?spm_id_from=333.1391.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">[Paper Reading] FoundationDB：开源分布式 KV 存储的内部实现原理</a></p>
 <p>最近看 DeepSeek 的 3FS 的时候发现他们会用 FoundationDB 做 <code>chunk metadata</code> 的存储（3FS 有点像 GFS，也是以 chunk 作为存储单位）。正好不久之后要去阿里云开始一段存储相关的实习，学习一下相关知识。</p>
 <p>FoundationDB 是一个分布式 KV 存储数据库，适用于读多写少的场景，支持 SSI（Serializable Snapshot Isolation）级别的事务。</p>
 <h3 id="FoundationDB-如何实现-SSI"><a href="#FoundationDB-如何实现-SSI" class="headerlink" title="FoundationDB 如何实现 SSI"></a>FoundationDB 如何实现 SSI</h3><p>SSI 这一级别是通过 OCC + MVCC 实现的。</p>
