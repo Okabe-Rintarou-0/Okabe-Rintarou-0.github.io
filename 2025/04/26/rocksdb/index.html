@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Tags: Java | Okabe&#39;s LAB</title>
+    <title>RocksDB 学习笔记 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -31,6 +31,10 @@
 
 
 <script src="/js/lib/preview.js"></script>
+
+
+
+
 
 
 
@@ -144,242 +148,148 @@
 </transition>
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
-            <div id="archives">
-    
-    <div class="categories-tags">
-        
-        
-        
-        <span>
-            <a href="/tags/Database/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Database
-            </a>
+            <div class="article">
+    <div>
+        <h1>RocksDB 学习笔记</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/4/26
         </span>
         
         
-        
-        <span>
-            <a href="/tags/CMU-DB/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                CMU-DB
-            </a>
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            </span>
+            
         </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubernetes/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubernetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/C/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                C++
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubeflow/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubeflow
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Kubenetes/" style="background: #00a596">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Kubenetes
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/ML/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                ML
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Rust/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Rust
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Tokio/" style="background: #ffa2c4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Tokio
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Spark/" style="background: #00a596">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Spark
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Java/" style="background: linear-gradient(120deg, #9abbf7 0%, #ffbbf4 100%)">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Java
-            </a>
-        </span>
-        
-        
-        
-        
-        
-        <span>
-            <a href="/tags/Docker/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Docker
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Istio/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Istio
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Metallb/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Metallb
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Interview/" style="background: #03a9f4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Interview
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Language/" style="background: #ff7d73">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Language
-            </a>
-        </span>
-        
-        
-        
-        <span>
-            <a href="/tags/Key-Value-Store/" style="background: #00bcd4">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                Key-Value Store
-            </a>
-        </span>
-        
         
     </div>
     
-    <div class="timeline">
-        <div class="timeline-tail"></div>
-        <div class="timeline-content">
-            <div class="item-time">2024/3/12</div>
-            <a href="/2024/03/12/spark-note-1/">
-                <h3>Spark 笔记（1）——安装与基础使用</h3>
-            </a>
-            <div class="info">
-                
-                <span class="category">
-                    <a href="/categories/Big-Data/">
-                        <span class="icon">
-                            <i class="fa-solid fa-bookmark fa-fw"></i>
-                        </span>
-                        Big Data
-                    </a>
-                </span>
-                
-                
-                <span class="tags">
-                    <span class="icon">
-                        <i class="fa-solid fa-tags fa-fw"></i>
-                    </span>
-                    
-                    
-                    <span class="tag">
-                        
-                        <a href="/tags/Spark/" style="color: #00a596">Spark</a>
-                    </span>
-                    
-                    <span class="tag">
-                        
-                        <a href="/tags/Java/" style="color: #00bcd4">Java</a>
-                    </span>
-                    
-                </span>
-                
-            </div>
-        </div>
+    <div class="content" v-pre>
+        
+
+	<div class="row">
+    <embed src="/2025/04/26/rocksdb/rocksdb.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+
+<h3 id="RocksDB-架构"><a href="#RocksDB-架构" class="headerlink" title="RocksDB 架构"></a>RocksDB 架构</h3><p><img src="/2025/04/26/rocksdb/arch.png"></p>
+<p>先写入 <code>WAL</code>，再写入 <code>MemTable</code>。<code>MemTable</code> 达到一定的大小就会变为 <code>Immutable MemTable</code>，后台异步以 <code>SSTable</code> 的形式 flush 到磁盘中。</p>
+<p><code>MemTable</code> 中还包含了一个 <code>Bloom Filter</code>，用于快速判断一个元素是否<strong>不存在</strong>。</p>
+<h3 id="Column-Family"><a href="#Column-Family" class="headerlink" title="Column Family"></a>Column Family</h3><p>RocksDB 中列族是一个逻辑上的分组，列族之间使用不同的 LSM Tree，但是共享 WAL。</p>
+<h3 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/coguin/p/11405082.html">RocksDB Version管理概述</a></p>
+<p><img src="/2025/04/26/rocksdb/version.png"></p>
+<p><code>Version</code> 会指向不同的 SST，并且 <code>Version</code> 和 <code>SSTable</code> 都是以引用计数的方式维护，一旦引用计数变为 0，就会进行回收。</p>
+<h3 id="Write-Batch"><a href="#Write-Batch" class="headerlink" title="Write Batch"></a>Write Batch</h3><p>参考文献：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://youjiali1995.github.io/rocksdb/write-batch/">RocksDB 源码分析 – Write Batch</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/643930273">RocksDB 剖析 | WriteThread 如何控制并发写入流程</a></li>
+</ol>
+<p>上面这篇文章讲的挺清楚的，RocksDB 默认是不开启并行写的，因为跳表结构并不适合并发写入，WAL 如果要并发写也需要一定同步机制维护其写入顺序。所以，RocksDB 采用的是分批写入的方式，以保证其吞吐量。<code>Write Batch Group</code> 会有一个 <code>leader</code>（当前的第一个 <code>writer</code>），然后后面的 <code>writer</code> 将成为 <code>follower</code>，构成一条双向链表（通过 <code>link_older</code>，<code>link_newer</code>）相连。这个 <code>group</code> 会有个大小上限，超过之后就会截断。截断后的新 <code>writer</code> 将会变为新的 <code>leader</code>，构成新的 <code>group</code>。</p>
+<p>RocksDB 使用 <code>atomic::&lt;Writer *&gt;</code> 的形式组织链表，可以通过 <code>CAS</code> 以 <code>latch-free</code> 的方式添加 <code>writer</code>：</p>
+<pre><code class="c++">Writer* writers = newest_writer-&gt;load(std::memory_order_relaxed);
+while (true) &#123;
+  w-&gt;link_older = writers;
+  if (newest_writer-&gt;compare_exchange_weak(writers, w)) &#123;
+    return (writers == nullptr);
+  &#125;
+&#125;
+</code></pre>
+<p>这边正好学习了一下 <code>std::atomic</code> 的用法，比起其他语言，c++ 的原子对象的 <code>load</code> 操作还可以选择不同的参数：</p>
+<ol>
+<li><code>std::memory_order_relaxed</code>：仅保证原子性，不强制内存顺序。</li>
+<li><code>std::memory_order_acquire</code>：确保后续读操作不会重排到此操作之前。</li>
+<li><code>std::memory_order_seq_cst</code>（默认）：顺序一致性，提供最强的内存屏障。</li>
+</ol>
+<p>尝试写了一个链表插入练习：</p>
+<pre><code class="c++">#include &lt;atomic&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+
+struct ListNode &#123;
+  int val;
+
+  std::atomic&lt;ListNode *&gt; next;
+&#125;;
+
+void insertListNode(std::atomic&lt;ListNode *&gt; &amp;tail, ListNode **root, int val) &#123;
+  ListNode *newNode = new ListNode;
+  newNode-&gt;val = val;
+  newNode-&gt;next = nullptr;
+  ListNode *oldTail = tail.load(std::memory_order_relaxed);
+  while (true) &#123;
+    if (tail.compare_exchange_weak(oldTail, newNode)) &#123;
+      break;
+    &#125;
+  &#125;
+  if (oldTail == nullptr) &#123;
+    *root = newNode;
+  &#125; else &#123;
+    oldTail-&gt;next = newNode;
+  &#125;
+&#125;
+
+void printList(ListNode *root) &#123;
+  if (root == nullptr) &#123;
+    std::cout &lt;&lt; &quot;List is empty&quot; &lt;&lt; std::endl;
+    return;
+  &#125;
+  ListNode *p = root;
+  while (p) &#123;
+    std::cout &lt;&lt; p-&gt;val &lt;&lt; &quot; &quot;;
+    p = p-&gt;next.load(std::memory_order_relaxed);
+  &#125;
+  std::cout &lt;&lt; std::endl;
+&#125;
+
+int main() &#123;
+  std::atomic&lt;ListNode *&gt; tail = nullptr;
+  ListNode *root = nullptr;
+  for (int i = 0; i &lt; 3; i++) &#123;
+    std::thread t([&amp;, i]() &#123;
+      while (1) &#123;
+        insertListNode(tail, &amp;root, i);
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      &#125;
+    &#125;);
+    t.detach();
+  &#125;
+
+  while (1) &#123;
+    printList(root);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  &#125;
+&#125;
+</code></pre>
+<p>一种 Lazy Initialize 的方式：</p>
+<pre><code class="c++">std::optional&lt;std::mutex&gt; mtx;
+mtx.emplace();
+</code></pre>
+
     </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
     
 </div>
 
@@ -411,6 +321,29 @@
         
     </div>
     <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
     
 </body>
 </html>
