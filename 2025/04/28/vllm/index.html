@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Kubernetes 笔记（1）—— Informer 与 Controller | Okabe&#39;s LAB</title>
+    <title>vllm 学习笔记 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -150,14 +150,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Kubernetes 笔记（1）—— Informer 与 Controller</h1>
+        <h1>vllm 学习笔记</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2023/4/6
+            2025/4/28
         </span>
         
         
@@ -169,7 +169,17 @@
             
             <span class="tag">
                 
-                <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
+                <a href="/tags/LLM/" style="color: #00a596">LLM</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/vllm/" style="color: #ffa2c4">vllm</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/AI-Infra/" style="color: #03a9f4">AI Infra</a>
             </span>
             
         </span>
@@ -177,55 +187,33 @@
     </div>
     
     <div class="content" v-pre>
-        <h1 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h1><p><img src="/2023/04/06/k8s-note-1/informer.png"></p>
-<h2 id="组成部分"><a href="#组成部分" class="headerlink" title="组成部分"></a>组成部分</h2><ul>
-<li><p>Controller：Informer 的实施载体，可以创建 reflector 及控制 processLoop。processLoop 将DeltaFIFO 队列中的数据 pop 出，首先调用Indexer进行缓存并建立索引，然后分发给 processor 进行处理。</p>
-</li>
-<li><p>Reflector：Informer 并没有直接访问 api-server，而是通过一个叫 Reflector 的对象进行 api-server 的访问。Reflector 通过 ListAndWatch 监控指定的 kubernetes 资源，当资源发生变化的时候，例如发生了 Added 资源添加等事件，会将其资源对象存放在本地缓存 DeltaFIFO 中。</p>
-</li>
-<li><p>DeltaFIFO：是一个先进先出的缓存队列，用来存储 Watch API 返回的各种事件，如Added、Updated、Deleted。</p>
-</li>
-<li><p>Indexer：Indexer 使用一个线程安全的数据存储来存储对象和它们的键值。需要注意的是，Indexer 中的数据与 etcd中 的数据是完全一致的，这样 client-go 需要数据时，无须每次都从 api-server 获取，从而减少了请求过多造成对 api-server 的压力。一句话总结：Indexer 是用于存储+快速查找资源。</p>
-</li>
-<li><p>Processor：记录了所有的回调函数（即  ResourceEventHandler）的实例，并负责触发回调函数</p>
-</li>
-</ul>
-<h2 id="使用-client-go-自定义-controller"><a href="#使用-client-go-自定义-controller" class="headerlink" title="使用 client-go 自定义 controller"></a>使用 client-go 自定义 controller</h2><p>controller 可以使用 informer 来绑定事件的回调函数，以实现对对象的控制。比如对于 replicaset 而言，监听三种事件，判断 replicaset 实际的 replicas 数量是否符合预期，若不符合预期，则进行相应的扩缩容。</p>
-<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><p>源自：<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/HanFa/learn-k8s/master/lesson3/lesson3_slides.pdf">https://raw.githubusercontent.com/HanFa/learn-k8s/master/lesson3/lesson3_slides.pdf</a></p>
-<ul>
-<li><p>启动 worker goroutine 之前，先确保 <strong>cache is synced</strong></p>
-<ul>
-<li><p>Replicaset controller 例子</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L208">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L208</a></p>
-</li>
-<li><p>Sample controller 例子</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/HanFa/sample-controller/blob/735d68047545e2fd1fd2bf3c04526f2cf9614e7c/controller.go#L160">https://github.com/HanFa/sample-controller/blob/735d68047545e2fd1fd2bf3c04526f2cf9614e7c/controller.go#L160</a></p>
-</li>
-</ul>
-</li>
-<li><p>从cache，或者说informer里拿到的object, 如果要写入，一定要先进行deepcopy，避免 cache 里面的 object被污染。indexer 里面的数据只读的。</p>
-<ul>
-<li><p>Replicaset controller 例子</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L712">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L712</a></p>
-</li>
-<li><p>Sample controller 例子<br>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L325">https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L325</a></p>
-</li>
-</ul>
-</li>
-<li><p>Informer 的周期性 resync 机制会导致重复冗余的 update 事件，用 ResourceVersion 进行 <strong>early return</strong></p>
-<ul>
-<li><p>Replicaset controller 例子</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L420">https://github.com/kubernetes/kubernetes/blob/b7b824bb9e01edfb39411b8c139eab592af0d667/pkg/controller/replicaset/replica_set.go#L420</a></p>
-</li>
-<li><p>Sample controller 例子</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L134">https://github.com/kubernetes/sample-controller/blob/f42769d51c5abf1dcc8f887fe1086b14bff6a573/controller.go#L134</a></p>
-</li>
-</ul>
-</li>
-<li><p>使用shareinformer来让多个informer共享一个cache；使用NewSharedInformerFactory来新建informer的reference给控制器使用。</p>
-<p>  <a target="_blank" rel="noopener" href="https://github.com/HanFa/sample-controller/blob/b3876539afadc37d7b8fc6bd3a2cfd61fb39df4a/main.go#L62">https://github.com/HanFa/sample-controller/blob/b3876539afadc37d7b8fc6bd3a2cfd61fb39df4a/main.go#L62</a></p>
-</li>
-</ul>
+        <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ol>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/717581669">大模型推理加速与KV Cache（一）：什么是KV Cache</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=mWvqA_BNtsU&list=PLJj_urhaf2_qxpg8A5-6xoMvMLBKQMTX1">[FIXME][EP05][直播版] vllm从开源到部署，Prefix Caching和开源答疑</a></li>
+</ol>
+<h3 id="Prefix-Caching"><a href="#Prefix-Caching" class="headerlink" title="Prefix Caching"></a>Prefix Caching</h3><p><img src="/2025/04/28/vllm/multi_turn_chat.png"></p>
+<p>预备知识：</p>
+<ol>
+<li>LLM 的 <code>Prefill</code> 阶段：当用户输入一个 prompt（例如 “Hello, how are”），模型会一次性处理整个输入文本，计算所有输入 token 的隐藏状态。这个阶段通常是并行计算的，效率较高；LLM 的 <code>Decode</code> 阶段：模型从第一个生成的 token 开始，逐个预测后续的 token（例如 “you”、”today” 等）。每个新 token 的生成都依赖于前一个 token。</li>
+<li>在多轮对话中，需要传递上下文，这些上下文总是共享一个前缀，如上图所示。显然，我们可以缓存这些前缀对应的 KV tensor，这也就是 <code>Prefix Caching</code>，缓存的对象便是 <code>K</code> 和 <code>V</code> tensor。</li>
+<li><code>Prefix Caching</code> 只节省了 <code>Prefill</code> 阶段的耗时（也就是降低了 <code>TTFT</code> ，<code>Time To First Token</code>），并不能节省解码阶段的耗时（也就是 <code>TPOT</code> ，<code>Time Per Output Token</code>）。</li>
+</ol>
+<p><img src="/2025/04/28/vllm/prefix_caching.png"></p>
+<p>vllm 中的 <code>Prefix Caching</code> 主要思路：</p>
+<ol>
+<li>将若干个 <code>tokens</code>（默认 16 个）组成一个 <code>block</code>，对于每个 <code>block</code>，计算其 hash 值并更新 <code>prefix hash</code>。</li>
+<li>将 <code>prefix hash</code> -&gt; <code>kv cache</code> 的映射存储到 <code>kv store</code> 中（例如 redis，注意后者的 <code>kv</code> 指的是键值存储）。</li>
+<li>若无法 <code>allocate</code> 缓存空间，以一定的策略（如 LFU，LRU）evict 一些缓存。</li>
+</ol>
+<p>伪代码：</p>
+<pre><code class="python">prefix_hash = &quot;&quot;
+for chunk in chunked_token:
+    chunk_hash = hash(prefix_hash + chunk)
+    prefix_hash = chunk_hash
+
+for chunk_hash, chunk_kv in zip(...):
+    kv_store.put(chunk_hash, chunk_kv)
+</code></pre>
 
     </div>
     
