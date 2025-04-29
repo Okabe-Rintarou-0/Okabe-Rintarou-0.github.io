@@ -169,12 +169,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/LLM/" style="color: #00a596">LLM</a>
+                <a href="/tags/LLM/" style="color: #03a9f4">LLM</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/vllm/" style="color: #ffa2c4">vllm</a>
+                <a href="/tags/vllm/" style="color: #00a596">vllm</a>
             </span>
             
             <span class="tag">
@@ -189,7 +189,49 @@
     <div class="content" v-pre>
         <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ol>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/717581669">大模型推理加速与KV Cache（一）：什么是KV Cache</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=W83Zgbg8SkE&list=PLJj_urhaf2_qxpg8A5-6xoMvMLBKQMTX1&index=9">[FIXME][EP02][直播版] vllm源码讲解，分布式推理</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=mWvqA_BNtsU&list=PLJj_urhaf2_qxpg8A5-6xoMvMLBKQMTX1">[FIXME][EP05][直播版] vllm从开源到部署，Prefix Caching和开源答疑</a></li>
+<li><a target="_blank" rel="noopener" href="https://kevincheung2259.github.io/2025/03/29/CacheBlend/">CacheBlend-高效提高KVCache复用性的方法</a></li>
+</ol>
+<h3 id="Distributed-Inference"><a href="#Distributed-Inference" class="headerlink" title="Distributed Inference"></a>Distributed Inference</h3><p>具体的通信代码可以参考：<a target="_blank" rel="noopener" href="https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/models/llama.py">vllm&#x2F;model_executor&#x2F;models&#x2F;llama.py</a></p>
+<h4 id="分布式通信手段"><a href="#分布式通信手段" class="headerlink" title="分布式通信手段"></a>分布式通信手段</h4><ol>
+<li>nvlink</li>
+<li>InfiniBand</li>
+<li>RDMA</li>
+</ol>
+<h4 id="并行方式"><a href="#并行方式" class="headerlink" title="并行方式"></a>并行方式</h4><ol>
+<li><p>TP(Tensor Parallel)：</p>
+<p> 将 tensor 拆分运算，然后通过 <code>all-reduce</code> 汇总。例如 LLM 的 <code>Decoder</code> 采用多头注意力（multihead-attention），假设有 $h$ 个头部，$n$ 张卡，则可以每张卡 $h&#x2F;n$ 个头部并行计算。</p>
+<p> <img src="/2025/04/28/vllm/multihead_attn.png"></p>
+</li>
+<li><p>PP(Pipeline Parallel)：</p>
+<p> 一个 request 由多个 node 流水线式地执行。可以提高吞吐，但是无法降低 <code>TTFT</code>。</p>
+<p> 每个worker负责一个layers的子集</p>
+<ul>
+<li><code>vllm/model_executor/models/llama.py</code> 中 self.start_layer –&gt; self.end_layer   </li>
+<li>在 worker 之间: <code>communicate IntermediateTensor</code></li>
+<li><code>vllm/worker/model_runner.py</code>: 搜索 <code>get_pp_group()</code></li>
+</ul>
+</li>
+<li><p>EP(Expert Parallel)：</p>
+<p> 用于 MoE（Mixture of Expert）架构。在处理一个 request 的时候，只有一个很小的专家子集会被激活（通过门控控制）。router 会将 request 转发到相应的 expert 节点（MoE 的前置计算可能不是在相应的 expert 节点上进行的）。这里多个 expert 是并行的，同时计算不同的 batch。</p>
+<ul>
+<li>Shuffle (DeepEP communication kernel)</li>
+<li>Forward</li>
+<li>Shuffle back</li>
+</ul>
+</li>
+</ol>
+<p><img src="/2025/04/28/vllm/expert_parallel.png"></p>
+<ol start="4">
+<li><p>DP(Data Parallel)</p>
+<p> 因为大型分布式生产环境中，EP &gt;&gt; TP（attention head 可能就十几个，而 experts 可能有几百个），这时候就需要 data parallel。</p>
+<ul>
+<li>TP * DP &#x3D;&#x3D; EP（通过请求并行的方式去拉满计算资源）</li>
+<li>在实践中难以应用。</li>
+<li>对请求进行padding避免造成死锁。</li>
+</ul>
+</li>
 </ol>
 <h3 id="Prefix-Caching"><a href="#Prefix-Caching" class="headerlink" title="Prefix Caching"></a>Prefix Caching</h3><p><img src="/2025/04/28/vllm/multi_turn_chat.png"></p>
 <p>预备知识：</p>
@@ -214,6 +256,22 @@ for chunk in chunked_token:
 for chunk_hash, chunk_kv in zip(...):
     kv_store.put(chunk_hash, chunk_kv)
 </code></pre>
+<h4 id="Prefix-Caching-的扩展——CacheBalend"><a href="#Prefix-Caching-的扩展——CacheBalend" class="headerlink" title="Prefix Caching 的扩展——CacheBalend"></a>Prefix Caching 的扩展——CacheBalend</h4><p><img src="/2025/04/28/vllm/cache_blend_1.png"></p>
+<ul>
+<li>Prefix Caching 只利用了前缀，缓存利用率有限；</li>
+<li>Full KV Cache 使用所有的 Cache，会忽视 <code>cross attention</code>，产生低质量结果；</li>
+<li>CacheBlend 通过重新计算一部分 KV，进行折中。</li>
+</ul>
+<p>以下是忽视 <code>cross attention</code> 的结果：</p>
+<div style="text-align: center;">
+  <img src="/2025/04/28/vllm/cache_blend_2.png" alt="Alt text" style="display: inline-block; margin-right: 10px;">
+  <img src="/2025/04/28/vllm/cache_blend_3.png" alt="Alt text" style="display: inline-block;">
+</div>
+
+<h3 id="PD-分离"><a href="#PD-分离" class="headerlink" title="PD 分离"></a>PD 分离</h3><p><img src="/2025/04/28/vllm/pd_disaggregation.png"></p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/14689463165">Chunked Prefill</a></li>
+</ol>
 
     </div>
     
