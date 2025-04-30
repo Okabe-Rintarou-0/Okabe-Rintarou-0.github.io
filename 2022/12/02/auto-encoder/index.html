@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Auto Encoder 笔记 | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>Auto Encoder 笔记</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/2
+        </span>
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/AI/" style="color: #00a596">AI</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Anto-Encoder/" style="color: #ff7d73">Anto Encoder</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <p><img src="/2022/12/02/auto-encoder/ae4.png"></p>
+<h2 id="Image"><a href="#Image" class="headerlink" title="Image"></a>Image</h2><p>训练一个 <code>Encoder</code> 和 <code>Decoder</code>：</p>
+<ul>
+<li><code>Encoder</code> 将图像这样高维度的信息压缩为一个低维度的向量（Dimension Reduction）。</li>
+<li><code>Decoder</code> 将这个低维度的向量重新复原为原始图像。</li>
+</ul>
+<p><img src="/2022/12/02/auto-encoder/ae1.png"></p>
+<h3 id="为什么这种方法行之有效？"><a href="#为什么这种方法行之有效？" class="headerlink" title="为什么这种方法行之有效？"></a>为什么这种方法行之有效？</h3><p>为什么我们能够将一个高维度的图像信息压缩为一个很低维度的向量？因为对于图像而言，绝大多数都是无意义的噪声，<br>就像你随机生成一个灰度图的二维矩阵，大概率得到的是一堆噪音。而真正有意义的图像其实只占极少的比例。</p>
+<p>以 3x3 的图像举例，在这么小的图像里，可能只有两种布局是有意义的，那么 <code>Encoder</code> 完全可以输出一个二维的向量，<br>代表这两种情况。</p>
+<p><img src="/2022/12/02/auto-encoder/ae2.png"></p>
+<p>也就是说，在图像这样的极高维空间中，真正有意义的图像只占很小的空间，我们可以用压缩的信息（类似于 Word Embedding）将它们尽可能表示出来 。</p>
+<h2 id="De-noising-Auto-encoder"><a href="#De-noising-Auto-encoder" class="headerlink" title="De-noising Auto-encoder"></a>De-noising Auto-encoder</h2><p><code>BERT</code> 的预训练也用到了去噪自编码器的思想。</p>
+<p><img src="/2022/12/02/auto-encoder/ae3.png"></p>
+<h2 id="Feature-Disentangle"><a href="#Feature-Disentangle" class="headerlink" title="Feature Disentangle"></a>Feature Disentangle</h2><p><img src="/2022/12/02/auto-encoder/ae5.png"></p>
+<p>Encoder 虽然能够将多种特征，信息提取成一个向量，但是我们无法知道向量中哪个维度对应了什么。<code>Feature Disentangle</code> 就是要去解决这个问题。</p>
+<p><img src="/2022/12/02/auto-encoder/ae6.png"></p>
+<h3 id="应用：Voice-Conversion"><a href="#应用：Voice-Conversion" class="headerlink" title="应用：Voice Conversion"></a>应用：Voice Conversion</h3><p>既然我们可以用 <code>Feature Disentangle</code> 来了解哪些维度对应了声音的特征，哪些维度对应了声音的内容，<br>那我们就可以选择对应声音的特征的维度进行声音的替换（保持声音内容的维度不变，将声音特征的部分替换成新垣结衣的）。</p>
+<p><img src="/2022/12/02/auto-encoder/ae7.png"></p>
+<h2 id="Discrete-Latent-Representation"><a href="#Discrete-Latent-Representation" class="headerlink" title="Discrete Latent Representation"></a>Discrete Latent Representation</h2><p><img src="/2022/12/02/auto-encoder/ae8.png"></p>
+<h2 id="Text-as-Representation"><a href="#Text-as-Representation" class="headerlink" title="Text as Representation"></a>Text as Representation</h2><p>尝试让 <code>Encoder</code> 生成摘要（既然 <code>Decoder</code> 能够将其还原，说明 <code>Encoder</code> 生成的东西代表了文章的核心和精华内容）。 </p>
+<p>和 <code>CycleGAN</code> 一样。如果不使用 <code>Discriminator</code> 会导致这个摘要完全不可读（<code>Encoder</code> 和 <code>Decoder</code> 在加密通话）</p>
+<h2 id="Generator-what-VAE-does"><a href="#Generator-what-VAE-does" class="headerlink" title="Generator(what VAE does)"></a>Generator(what VAE does)</h2><p><img src="/2022/12/02/auto-encoder/ae9.png"></p>
+<h2 id="Compression"><a href="#Compression" class="headerlink" title="Compression"></a>Compression</h2><p><img src="/2022/12/02/auto-encoder/ae10.png"></p>
+<h2 id="Anomaly-Detection（异常检测）"><a href="#Anomaly-Detection（异常检测）" class="headerlink" title="Anomaly Detection（异常检测）"></a>Anomaly Detection（异常检测）</h2><p>异常检测是一个 <code>One-class</code> 的分类问题，数据集是极度不对称的：你有大量正常的数据，和极少数不正常的数据，甚至你不知道不正常的数据长什么样，<br>这时候你要怎么训练？这不是一个一般的分类问题，需要用 <code>Auto-encoder</code> 来进行解决。</p>
+<p>判断是否能够重构：</p>
+<p><img src="/2022/12/02/auto-encoder/ae11.png"></p>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>

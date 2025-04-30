@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Explainable AI 笔记 | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>Explainable AI 笔记</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/5
+        </span>
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/AI/" style="color: #ff7d73">AI</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Explainable-AI/" style="color: #ffa2c4">Explainable AI</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <h3 id="Mask"><a href="#Mask" class="headerlink" title="Mask"></a>Mask</h3><p>用一个灰色色块遮盖图像，最后一行的图像展示了不同位置遮盖之后分类的概率，由此我们可以发现模型学习到了什么重要的特征。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_0.png"></p>
+<p>比如上图中的狗，遮住脸之后模型就无法辨别了，所以模型学习到了狗的面部特征。</p>
+<h3 id="Saliency-Map"><a href="#Saliency-Map" class="headerlink" title="Saliency Map"></a>Saliency Map</h3><p>修改某一像素的值 $e$，得到最终输出结果 $x$。计算 $e$ 关于 $x$ 的偏导数，将数值以下方的图像展示。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_1.png"></p>
+<p>一般而言，如果这个偏导数很大，说明这个像素对模型判定结果的影响很大，可以证明这个像素较为重要。 </p>
+<p>但是你不能说一个特征很重要，修改对应的像素就一定会产生很大的判定结果的变化。这是因为，以分类问题为例，假如说模型有充分的信心判定一张图片是狗的图片（判断到了很多特征，比如狗腿，狗头），<br>那么你修改其中一个比较重要的特征，可能还是不影响模型判断它是狗。</p>
+<p>通过这种方式，你还可以判断你的模型是否真的学习到了正确的特征。下图是一个错误的例子，机器学习到只要判定左下角是否有文字，就可以判定是不是马，<br>因为所有的马的训练集都有左下角的文字。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_2.png"></p>
+<h3 id="SmoothGrad"><a href="#SmoothGrad" class="headerlink" title="SmoothGrad"></a>SmoothGrad</h3><p><code>SmoothGrad</code> 是对 <code>Saliency Map</code> 的一种改进。其做法就是将原图加随机噪声生成多份，再获取对应的多份 <code>Saliency Map</code>，最终取平均得到 <code>SmoothGrad</code>。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_3.png"></p>
+<h3 id="用另一个网络来聆听-可视化一个模型的隐藏层输出"><a href="#用另一个网络来聆听-可视化一个模型的隐藏层输出" class="headerlink" title="用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出"></a>用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出</h3><p><img src="/2022/12/05/explainable-ai/Explainable-AI_4.png"></p>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>

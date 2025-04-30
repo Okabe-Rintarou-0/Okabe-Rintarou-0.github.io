@@ -172,6 +172,15 @@
     </a>
     <div class="category-and-date">
         
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
@@ -198,8 +207,21 @@
 </ol>
 <h4 id="并行方式"><a href="#并行方式" class="headerlink" title="并行方式"></a>并行方式</h4><ol>
 <li><p>TP(Tensor Parallel)：</p>
-<p> 将 tensor 拆分运算，然后通过 <code>all-reduce</code> 汇总。例如 LLM 的 <code>Decoder</code> 采用多头注意力（multihead-attention），假设有 $h$ 个头部，$n$ 张卡，则可以每张卡 $h&#x2F;n$ 个头部并行计算。</p>
+<p> 将 tensor 拆分运算，然后通过 <code>all-reduce</code> &#x2F; <code>all-gather</code> 汇总。例如 LLM 的 <code>Decoder</code> 采用多头注意力（multihead-attention），假设有 $h$ 个头部，$n$ 张卡，则可以每张卡 $h&#x2F;n$ 个头部并行计算。</p>
 <p> <img src="/2025/04/28/vllm/multihead_attn.png"></p>
+<pre><code class="python"># llama前向传播的代码
+def forward(
+    self,
+    positions: torch.Tensor,
+    hidden_states: torch.Tensor,
+) -&gt; torch.Tensor:
+    qkv, _ = self.qkv_proj(hidden_states)
+    q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)
+    q, k = self.rotary_emb(positions, q, k)
+    attn_output = self.attn(q, k, v)
+    output, _ = self.o_proj(attn_output)
+    return output
+</code></pre>
 </li>
 <li><p>PP(Pipeline Parallel)：</p>
 <p> 一个 request 由多个 node 流水线式地执行。可以提高吞吐，但是无法降低 <code>TTFT</code>。</p>
@@ -265,9 +287,78 @@ for chunk_hash, chunk_kv in zip(...):
   <img src="/2025/04/28/vllm/cache_blend_3.png" alt="Alt text" style="display: inline-block;">
 </div>
 
-<h3 id="PD-分离"><a href="#PD-分离" class="headerlink" title="PD 分离"></a>PD 分离</h3><p><img src="/2025/04/28/vllm/pd_disaggregation.png"></p>
+<h3 id="PD-分离"><a href="#PD-分离" class="headerlink" title="PD 分离"></a>PD 分离</h3><p>为什么需要 PD 分离？</p>
+<blockquote>
+<p>在大模型推理中，常用以下两项指标评估性能：<br>TTFT（Time-To-First-Token）：首 token 的生成时间，主要衡量 Prefill 阶段性能。<br>TPOT（Time-Per-Output-Token）：生成每个 token 的时间，主要衡量 Decode 阶段性能。<br>当 Prefill 和 Decode 在同一块 GPU 上运行时，由于两阶段的计算特性差异（Prefill 是计算密集型，而 Decode 是存储密集型），资源争抢会导致 TTFT 和 TPOT 之间的权衡。例如：</p>
+<p>若优先处理 Prefill 阶段以降低 TTFT，Decode 阶段的性能（TPOT）可能下降。<br>若尽量提升 TPOT，则会增加 Prefill 请求的等待时间，导致 TTFT 上升。<br>PD 分离式架构的提出正是为了打破这一矛盾。通过将 Prefill 和 Decode 分离运行，可以针对不同阶段的特性独立优化资源分配，从而在降低首 token 延迟的同时提高整体吞吐量。</p>
+</blockquote>
+<p>Prefill 和 Decode 阶段分别受限于什么？</p>
+<blockquote>
+<p>Prefill 阶段：吞吐量随 batch size 增加逐渐趋于平稳。这是因为 Prefill 的计算受限特性（compute-bound），当 batch 中的总 token 数超过某个阈值时，计算资源成为瓶颈。</p>
+<p>Decode 阶段：吞吐量随 batch size 增加显著提升。由于 Decode 阶段的存储受限特性（memory-bound），增大 batch size 可提高计算效率，从而显著增加吞吐量。</p>
+</blockquote>
+<p><img src="/2025/04/28/vllm/phase.png"></p>
+<p>摘自 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/9433793184">LLM推理优化 - Prefill-Decode分离式推理架构</a></p>
+<p><img src="/2025/04/28/vllm/pd_disaggregation.png"></p>
 <ol>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/14689463165">Chunked Prefill</a></li>
+<li>xP yD 问题，Prefill Instance 和 Decode Instance 的数量如何调整？</li>
+<li>先 D 后 P 的模式：D node收到后先检查是否有 KVCache，没有的话再转给 P node去做，这个思路主要考虑的是 <code>TTFT</code>。</li>
+</ol>
+<h4 id="传递-KV-Cache"><a href="#传递-KV-Cache" class="headerlink" title="传递 KV Cache"></a>传递 KV Cache</h4><ul>
+<li><p>两种模式：pooling 模式，P2P 模式，LMCache都支持上面两种模式，Mooncake(pooling)，NIXL(p2p)。</p>
+</li>
+<li><p>怎么从 vllm 提取（注入）KVCache</p>
+<ul>
+<li><code>connector API</code> in <code>vllm/worker/model_runner.py</code>。</li>
+<li>在模型 <code>forward</code> 前：尝试接收 KVCache 并注入到到 vllm 的 pages memory 中。</li>
+<li>在模型 <code>forward</code> 后，将 KVCache 从 pages memory 中并将它发送出去。</li>
+</ul>
+<p>  <img src="/2025/04/28/vllm/vllm_connector.png"></p>
+</li>
+<li><p><code>vllm/distributed/kv_transfer/kv_transfer_agent.py</code></p>
+<pre><code class="python"># 本质上是根据 model input 计算出 KVCache 放在 page memory中的什么地方
+def recv_kv_caches_and_hidden_states(
+    self, model_executable: torch.nn.Module,
+    model_input: &quot;ModelInputForGPUWithSamplingMetadata&quot;,
+    kv_caches: List[torch.Tensor]
+) -&gt; Tuple[Union[torch.Tensor, IntermediateTensors], bool,
+        &quot;ModelInputForGPUWithSamplingMetadata&quot;]:
+            
+    return self.connector.recv_kv_caches_and_hidden_states(
+        model_executable, model_input, kv_caches)
+</code></pre>
+<p>  可以先看 <code>vllm\distributed\kv_transfer\kv_connector\simple_connector.py</code>。</p>
+</li>
+</ul>
+<h3 id="Speculative-Decoding"><a href="#Speculative-Decoding" class="headerlink" title="Speculative Decoding"></a>Speculative Decoding</h3><p>前文提到 Prefill 是 <code>gpu-bound</code>，计算密集型（把 request 的 tokens 全部输入 llm，生成第一个 token，并构建 KVCache）；而 Decode 是 <code>memory-bound</code>，依赖 Prefill 阶段生成的 KVCache，访存的时间往往大于计算的时间。那么有没有一种方法可以在不怎么增加 memory access 的前提下，提升计算的吞吐呢？<strong>有的，兄弟，有的</strong>，<code>Speculative Decoding</code>。</p>
+<p><code>Speculative Decoding</code> 干了什么？其实就是去根据输入猜接下来的若干个 tokens 是什么，然后并行地进行验证。假如猜测 3 个 tokens，我们并行地验证这 3 个 tokens 是否正确的，由于是并行的，我们差不多只花费了原来只生成 1 个 token 的时间，最终获得了 3 个 tokens，也就是将吞吐提升了 3 倍，而访存只增加了（3 - 1）* token size。</p>
+<p>那么如何猜呢？其实用一个古老的方法，<code>n-gram</code> 就行了。</p>
+<blockquote>
+<p>An n-gram is a sequence of n adjacent symbols in particular order. The symbols may be n adjacent letters (including punctuation marks and blanks), syllables, or rarely whole words found in a language dataset; or adjacent phonemes extracted from a speech-recording dataset, or adjacent base pairs extracted from a genome. They are collected from a text corpus or speech corpus.</p>
+</blockquote>
+<p><img src="/2025/04/28/vllm/ngram.png"></p>
+<p>也就是说，我们根据一定的前缀，就能大致猜出后续的 token 搭配。<code>Speculative Decoding</code> 会根据输入构建 <code>ngram</code>，然后猜测后续的 tokens。</p>
+<p><img src="/2025/04/28/vllm/speculative_decoding.png"></p>
+<p>为什么这是有效的呢？下面几个 <code>workload</code> 就能说明这个问题：</p>
+<ol>
+<li>全文搜索，在用户给定的内容中寻找内容，或者给出一定答案。此处的回答一定是和用户内容强相关的，本质上会复读一部分；</li>
+<li>代码生成场景，变量名、函数名等都很容易被 <code>ngram</code> 预测。</li>
+</ol>
+<h4 id="Tree-Verification"><a href="#Tree-Verification" class="headerlink" title="Tree Verification"></a>Tree Verification</h4><p><img src="/2025/04/28/vllm/tree_verification.png"></p>
+<h4 id="Model-based（draft-model）Speculative-Decoding"><a href="#Model-based（draft-model）Speculative-Decoding" class="headerlink" title="Model-based（draft model）Speculative Decoding"></a>Model-based（draft model）Speculative Decoding</h4><ol>
+<li><p>Parallel guessing（并行猜测）</p>
+<ul>
+<li>优点：快，在不知道第一个 token 情况下直接猜第二个。</li>
+<li>缺点：在猜测第二个 token 的时候不知道第一个token是什么，容易胡言乱语</li>
+</ul>
+</li>
+<li><p>Autoregression guessing（自回归猜测）</p>
+<ul>
+<li>优点：在猜测第二个 token 的时候知道第一个 token，准确率较高</li>
+<li>缺点：慢</li>
+</ul>
+</li>
 </ol>
 
             
@@ -283,17 +374,17 @@ for chunk_hash, chunk_kv in zip(...):
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #00bcd4">LLM</a>
+            <a href="/tags/LLM/" style="color: #ff7d73">LLM</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/vllm/" style="color: #03a9f4">vllm</a>
+            <a href="/tags/vllm/" style="color: #00a596">vllm</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #00bcd4">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #03a9f4">AI Infra</a>
         </span>
         
     </div>
@@ -305,6 +396,15 @@ for chunk_hash, chunk_kv in zip(...):
         <h2 class="post-title">RocksDB 学习笔记</h2>
     </a>
     <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Database/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Database
+            </a>
+        </span>
         
         <span class="date">
             <span class="icon">
@@ -559,12 +659,12 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #00bcd4">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #00a596">Key-Value Store</a>
         </span>
         
     </div>
@@ -576,6 +676,15 @@ mtx.emplace();
         <h2 class="post-title">SFINAE —— Substitution Failure Is Not An Error</h2>
     </a>
     <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Language/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Language
+            </a>
+        </span>
         
         <span class="date">
             <span class="icon">
@@ -678,12 +787,7 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Language/" style="color: #03a9f4">Language</a>
+            <a href="/tags/C/" style="color: #00bcd4">C++</a>
         </span>
         
     </div>
@@ -898,6 +1002,15 @@ const std::string &amp;s3 = r2;
     </a>
     <div class="category-and-date">
         
+        <span class="category">
+            <a href="/categories/Interview/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Interview
+            </a>
+        </span>
+        
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
@@ -993,17 +1106,7 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Interview/" style="color: #ffa2c4">Interview</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Language/" style="color: #00bcd4">Language</a>
+            <a href="/tags/C/" style="color: #00bcd4">C++</a>
         </span>
         
     </div>
@@ -1015,6 +1118,15 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         <h2 class="post-title">面试常用算法复习</h2>
     </a>
     <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Interview/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Interview
+            </a>
+        </span>
         
         <span class="date">
             <span class="icon">
@@ -1185,12 +1297,12 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Interview/" style="color: #00bcd4">Interview</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Language/" style="color: #00a596">Language</a>
+            <a href="/tags/Algorithm/" style="color: #ff7d73">Algorithm</a>
         </span>
         
     </div>
@@ -1404,6 +1516,15 @@ T accum(T begin, T end) &#123;
     </a>
     <div class="category-and-date">
         
+        <span class="category">
+            <a href="/categories/Cloud-Native/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Cloud Native
+            </a>
+        </span>
+        
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
@@ -1494,7 +1615,21 @@ istioctl install --set profile=ambient --skip-confirmation
     </div>
     <div class="post-tags">
         
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
         
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Istio/" style="color: #00bcd4">Istio</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Kmesh/" style="color: #00a596">Kmesh</a>
+        </span>
         
     </div>
     <a href="/2024/07/09/kmesh-env/" class="go-post">阅读全文</a>
@@ -1543,17 +1678,17 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #03a9f4">Istio</a>
+            <a href="/tags/Istio/" style="color: #00bcd4">Istio</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Metallb/" style="color: #ff7d73">Metallb</a>
+            <a href="/tags/Metallb/" style="color: #00a596">Metallb</a>
         </span>
         
     </div>
@@ -1570,6 +1705,9 @@ istioctl install --set profile=ambient --skip-confirmation
     
     <a class="page-num" href="/page/3">3</a>
     
+    
+    <span class="page-omit">...</span>
+    <a class="page-num" href="/page/4">4</a>
     
     
     <a class="page-num" href="/page/2/">

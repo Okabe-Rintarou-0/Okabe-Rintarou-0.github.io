@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Transformer 笔记——Attention Is All You Need | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>Transformer 笔记——Attention Is All You Need</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/11/20
+        </span>
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/AI/" style="color: #03a9f4">AI</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Transformer/" style="color: #00a596">Transformer</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <h2 id="Core——注意力计算公式"><a href="#Core——注意力计算公式" class="headerlink" title="Core——注意力计算公式"></a>Core——注意力计算公式</h2><p><img src="/2022/11/20/transformer/attention.png"></p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p><img src="/2022/11/20/transformer/transformer1.png"></p>
+<h2 id="Encoder"><a href="#Encoder" class="headerlink" title="Encoder"></a>Encoder</h2><ul>
+<li><p>Add &amp; Norm</p>
+<p>  利用了 <code>Residual</code> 的思想，于此同时加上一个 <code>Layer Normalization</code>。</p>
+<p>  （关于 <code>Layer Norm</code> 和 <code>Batch Norm</code> 的区别，请看 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/74516930">NLP中 batch normalization与 layer normalization</a> ）</p>
+<p>  <img src="/2022/11/20/transformer/transformer2.png"></p>
+<p>  多头注意力模块 + <code>Add &amp; Norm</code> 构成了图中深蓝色的模块，这个模块将会再被用于图中最右的结构。</p>
+</li>
+</ul>
+<h2 id="Decoder"><a href="#Decoder" class="headerlink" title="Decoder"></a>Decoder</h2><p><code>Decoder</code> 分为两种：<code>AT</code> 和 <code>NAT</code></p>
+<ul>
+<li><p>AT</p>
+<p>  接受 <code>Encoder</code> 的输出，以及自己之前的输出作为输入，反复生成下一个字。</p>
+<p>  以语音识别为例，输出是一段中文，需要有一个特殊 token 代表开始和结束。</p>
+<p>  <img src="/2022/11/20/transformer/transformer3.png"></p>
+</li>
+<li><p>NAT</p>
+<p>  不同于 <code>AT</code> 会一直迭代生成直到输出一个 <code>END</code>，<code>NAT</code> 是给若干个 <code>START</code> 然后并行生成若干个字符。</p>
+<p>  <img src="/2022/11/20/transformer/transformer4.png"></p>
+</li>
+</ul>
+<h2 id="Encoder-和-Decoder-结构对比"><a href="#Encoder-和-Decoder-结构对比" class="headerlink" title="Encoder 和 Decoder 结构对比"></a>Encoder 和 Decoder 结构对比</h2><ul>
+<li><p>Decoder 的多头注意力机制模块是 <code>masked</code> 的：</p>
+<p>  未被掩码的 <code>Self-attention</code> 会观察整个上下文，但是对于 <code>decoder</code> 而言不能观察后文（因为生成一个字的时候，后面的字还未生成，只能获取前文的上下文信息）。<br>  比如已经生成“机器”的时候，即将生成“学”，模型只能从“机器”这一前文观察到上下文信息，因为此时“习”还没有被生成。</p>
+<p>  本质上就是输入到 <code>encoder</code> 的序列是已知的，可以一窥全文，而 <code>decoder</code> 则是循环生成序列，还未生成，何来后文？</p>
+</li>
+</ul>
+<h2 id="Cross-Attention"><a href="#Cross-Attention" class="headerlink" title="Cross Attention"></a>Cross Attention</h2><p>将 <code>decoder</code> 的向量的 <code>q</code> 和 <code>encoder</code> 的向量的 <code>k</code> 和 <code>v</code> 共同计算 <code>attention score</code>，即为 <code>Cross Attention</code>。</p>
+<p><img src="/2022/11/20/transformer/transformer5.png"></p>
+<h2 id="Train"><a href="#Train" class="headerlink" title="Train"></a>Train</h2><ul>
+<li><p>Teacher Forcing</p>
+<p>  在训练 <code>decoder</code> 的时候避免 <code>Error propogation</code>（一步错步步错），投喂 <code>Ground truth</code>。</p>
+<p>  <code>decoder</code> 输出的是一个概率分布，因而使用 <code>cross entropy</code> 作为损失函数。</p>
+<p>  <img src="/2022/11/20/transformer/transformer6.png"></p>
+<p>  存在的问题：训练的时候“偷看”了正确结果，但是测试的时候怎么办呢？存在 mismatch。</p>
+</li>
+<li><p>Tips</p>
+<ul>
+<li><p>Copy Mechanism</p>
+<p>  应对难以生成或者无需凭空生成（比如生成摘要）序列的情况：</p>
+<p>  <img src="/2022/11/20/transformer/transformer7.png"></p>
+</li>
+<li><p>Guided Attention</p>
+<p>  对 Attention 的训练加以限制，比如语音识别的 Attention 必须从左到右：</p>
+<p>  <img src="/2022/11/20/transformer/transformer8.png"></p>
+</li>
+<li><p>Beam Search</p>
+<p>  是对 <code>Greedy Search</code> 的一个改进算法。相对 <code>Greedy Search</code> 扩大了搜索空间，但远远不及穷举搜索指数级的搜索空间，是二者的一个折中方案。</p>
+<p>  <img src="/2022/11/20/transformer/transformer9.png"></p>
+</li>
+<li><p>对于语音生成，在测试的时候添加噪音反而会有好的结果：可能是语音的 <code>ground truth</code> 不是一个绝对的东西，比如”你好“可能对应男生，女生，中性等多种音调的声音。</p>
+</li>
+<li><p>无法 optimize 的函数（不可微分） 可以考虑用 RL 硬 train？</p>
+</li>
+<li><p>上面提到的 mismatch 问题可以用 <code>Schedule Sampling</code> 解决：在 <code>Teacher Forcing</code> 的时候投喂一些错误的 <code>ground truth</code>，比如<code>机气学习</code></p>
+</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>

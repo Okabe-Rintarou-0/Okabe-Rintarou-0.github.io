@@ -315,12 +315,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #03a9f4">Rust</a>
+            <a href="/tags/Rust/" style="color: #ffa2c4">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #ffa2c4">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #03a9f4">Tokio</a>
         </span>
         
     </div>
@@ -332,6 +332,15 @@ impl Manager &#123;
         <h2 class="post-title">Kubernetes 笔记（2）—— 记一次 Kubernetes 小练习</h2>
     </a>
     <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Cloud-Native/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Cloud Native
+            </a>
+        </span>
         
         <span class="date">
             <span class="icon">
@@ -602,6 +611,15 @@ mysql-config-5bhm7k67gb   1      6m35s
     </a>
     <div class="category-and-date">
         
+        <span class="category">
+            <a href="/categories/Cloud-Native/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Cloud Native
+            </a>
+        </span>
+        
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
@@ -677,7 +695,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
     </div>
@@ -689,6 +707,15 @@ mysql-config-5bhm7k67gb   1      6m35s
         <h2 class="post-title">Kubernetes 笔记（0）—— K8s 实践报告</h2>
     </a>
     <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Cloud-Native/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Cloud Native
+            </a>
+        </span>
         
         <span class="date">
             <span class="icon">
@@ -724,11 +751,516 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
     <a href="/2023/03/23/archive-1/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/15/rl/">
+        <h2 class="post-title">RL 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/15
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p><img src="/2022/12/15/rl/RL_0.png"></p>
+<p><img src="/2022/12/15/rl/RL_1.png"></p>
+<h2 id="ChatGPT-告诉我们-Trajectory-和-Episode-的区别"><a href="#ChatGPT-告诉我们-Trajectory-和-Episode-的区别" class="headerlink" title="ChatGPT 告诉我们 Trajectory 和 Episode 的区别"></a>ChatGPT 告诉我们 <code>Trajectory</code> 和 <code>Episode</code> 的区别</h2><p><img src="/2022/12/15/rl/RL_15.png"></p>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><p>强化学习的步骤和基本的机器学习的步骤是类似的：</p>
+<ul>
+<li><p>第一步：找一个具有未知参数的函数：</p>
+<p>  在强化学习中对应于 <code>Actor</code> 的 <code>Policy Network</code>，它通过从 <code>Environment</code> 获取 <code>Observation</code>，并基于此预测要执行什么 <code>Action</code>。<br>  如果这里的 <code>Action</code> 是 <code>stochastic</code> 的，那么就会得到一个 <code>Action</code> 的概率分布，类似于分类问题.</p>
+<p>  <img src="/2022/12/15/rl/RL_2.png"></p>
+</li>
+<li><p>第二步：定义 “loss”：</p>
+<p>  我们要使得获取的总体奖励的期望值最大。</p>
+<p>  <code>Total reward</code> &#x3D; <code>Return</code></p>
+<p>  <img src="/2022/12/15/rl/RL_3.png"></p>
+</li>
+<li><p>第三步：如何进行优化：</p>
+<p>  需要定义一个结束条件，然后让模型经历一个 <code>Trajectory</code>，要使得这个 <code>Trajectory</code> 获得的 <code>Reward</code> 最大。</p>
+<p>  <img src="/2022/12/15/rl/RL_4.png"></p>
+<p>  <code>Actor</code> 与 <code>Critic</code> 和 <code>GAN</code> 有异曲同工之妙。<code>Actor</code> 对应于 <code>Generator</code>，生成带有随机性的决策；<code>Critic</code> 对应于 <code>Discriminator</code>，判定决策的分数，<br>  并为 <code>Actor</code> 修改策略提供依据和指正。但是不同点在于，<code>GAN</code> 中的 <code>Discriminator</code> 是一个已知的可训练的 model，而强化学习中的 <code>Environment</code> 和 <code>Reward</code> 更像是一个黑盒子，<br>  它们根本不是模型，无法用一般的梯度下降法来解决。</p>
+</li>
+</ul>
+<h2 id="How-to-control-actor"><a href="#How-to-control-actor" class="headerlink" title="How to control actor"></a>How to control actor</h2><p><img src="/2022/12/15/rl/RL_5.png"></p>
+<p>其中 $A_n$ 代表一个权重（正数代表我们希望这种动作发生），$e_n$ 代表第 $n$ 次动作产生的“误差”。</p>
+<ul>
+<li><p>Version 0</p>
+<p>  <img src="/2022/12/15/rl/RL_6.png"></p>
+<p>  缺点：如果只用一个动作获得的奖励（而不看后续获得的奖励的话），那么 <code>actor</code> 就会偏向于只追求短期利益，<br>  只追求会获得奖励的动作。这显然是错误的，本质上就是一种贪心策略。</p>
+</li>
+<li><p>Version 1</p>
+<p>  <img src="/2022/12/15/rl/RL_7.png"></p>
+<p>  改进之后会考虑后续的奖励了，但是在很久之后获得的奖励 $r_N$ 真的可以归功于动作 $a_1$ 吗？显然不能！<br>  我们希望奖励前面有个系数，且这个系数是衰减的，越遥远的奖励和当前执行动作的相关性往往越弱。</p>
+</li>
+<li><p>Version 2</p>
+<p>  <img src="/2022/12/15/rl/RL_8.png"></p>
+<p>  引入折扣因子 $\gamma$ 解决上述问题。</p>
+</li>
+<li><p>Version 3</p>
+<p>  奖励是相对的，有些环境只会产生正的反馈，那么如果不对奖励进行修正，那么一些低奖励的动作也会被鼓励。<br>  因此，可以对奖励减去基准 $b$，以对奖励进行标准化。</p>
+<p>  <img src="/2022/12/15/rl/RL_9.png"></p>
+</li>
+<li><p>Version 3.5</p>
+<p>  如何更好地确定系数 $A_n$？使用下面讲到的 <code>Critic</code> 的 <code>Value function</code>：</p>
+<p>  <img src="/2022/12/15/rl/RL_24.png"></p>
+<p>  $V^\theta(s_t)$ 是一个期望值，也就是一个均值（相当于你随机做一串动作获得的奖励差不多就是这个值），作为被减去的 <code>baseline</code>。</p>
+<p>  $G^\prime_t$ 则是 <code>actor</code> 获取的实际收益。如果说这个收益大于均值，我们就认为这个动作是好的，是值得鼓励的。</p>
+<p>  <img src="/2022/12/15/rl/RL_25.png"></p>
+</li>
+<li><p>Version 4</p>
+<p>  $V^\theta(s_t)$ 是多条路径取平均的结果（因为你在训练 <code>Critic</code> 网络并且让其趋向于期望值），<br>  而 $G^\prime_t$ 则是某一个 <code>sample</code> 的结果，假如说这个 <code>sample</code> 碰巧特别好或者碰巧特别坏，<br>  那么这样计算出来的差值真的能用来评估这个在状态 $s_t$ 下的动作 $a_t$ 的好坏吗？</p>
+<p>  举个例子，假如说极端一点， $a_t$ 其实是一个极好的决策，但是后面的决策都做的烂的惨不忍睹，导致 $G^\prime_t \rightarrow -\infty$，这会导致 $A_t &#x3D; G^\prime_t - V^\theta(s_t) \rightarrow -\infty$。<br>  这样就说明我们非常不鼓励 <code>actor</code> 去做 $a_t$，这不就事与愿违了吗？</p>
+<p>  所以正确的做法应该是用平均减去平均，以评估 $a_t$ 这一动作的优劣，这也就是大名鼎鼎的 <code>A2C(Advantage Actor-Critic)</code>：</p>
+<p>  <img src="/2022/12/15/rl/RL_26.png"></p>
+<p>  注意到，我们上面说了 $V^\theta(s_t)$ 会趋向于累计奖励的期望值（乘上折扣因子），也就是说：</p>
+<p>  $$<br>  E(G^\prime_t) &#x3D; V^\theta(s_t)\<br>  E(G^\prime_{t+1}) &#x3D; V^\theta(s_{t+1})\<br>  E(r_t) &#x3D; E(G^\prime_{t} - \gamma G^\prime_{t+1})<br>  &#x3D; E(G^\prime_{t}) - \gamma E(G^\prime_{t+1})<br>  &#x3D; V^\theta(s_t) - \gamma V^\theta(s_{t+1})<br>  $$</p>
+<p>  故而有：<br>  $$<br>  A_n &#x3D; r_t - E(r_t) &#x3D; r_t + \gamma V^\theta(s_{t+1}) + V^\theta(s_t)<br>  $$</p>
+<p>  这里 ppt 上因为之前假设 $\gamma &#x3D; 1$，所以上面省略了 $\gamma$ 这一因子。</p>
+</li>
+</ul>
+<h2 id="Policy-based-Value-based"><a href="#Policy-based-Value-based" class="headerlink" title="Policy-based &amp; Value-based"></a>Policy-based &amp; Value-based</h2><p><img src="/2022/12/15/rl/RL_12.png"></p>
+<h2 id="On-policy-vs-Off-policy"><a href="#On-policy-vs-Off-policy" class="headerlink" title="On-policy vs Off-policy"></a>On-policy vs Off-policy</h2><p><img src="/2022/12/15/rl/RL_11.png"></p>
+<h2 id="Policy-Gradient"><a href="#Policy-Gradient" class="headerlink" title="Policy Gradient"></a>Policy Gradient</h2><p><img src="/2022/12/15/rl/RL_10.png"></p>
+<p>$R_\theta$ 代表了一个 <code>Episode</code> 获得的奖励的总和，$\pi_\theta$ 则代表我们的网络（<code>policy network</code>），其输入是环境的 <code>state</code> ，输出是执行各个动作的概率分布。我们希望 $R_\theta$ 的期望值 $\overline{R_\theta}$ 越大越好。</p>
+<p><img src="/2022/12/15/rl/RL_13.png"></p>
+<p>$P(\tau|\theta)$ 可以由下面的式子计算，其中 $\tau$ 代表了一个 <code>Trajectory</code>。</p>
+<p><img src="/2022/12/15/rl/RL_14.png"></p>
+<p>$R_\theta$ 的期望可以通过穷举获得（但是显然不可能，所以可以用尽可能多的次数来近似）</p>
+<p><img src="/2022/12/15/rl/RL_16.png"></p>
+<p>接下来就可以用 <code>Gradient Discent</code> 来解决这一问题：</p>
+<p><img src="/2022/12/15/rl/RL_17.png"></p>
+<p>这里认为 $R(\tau)$ 和 $\theta$ 无关，所以即使 $R(\tau)$ 不可微分也无妨。<br>由右边的导数公式就能算出最后的结果。</p>
+<p><img src="/2022/12/15/rl/RL_18.png"></p>
+<p><img src="/2022/12/15/rl/RL_19.png"></p>
+<h2 id="Actor-Critic"><a href="#Actor-Critic" class="headerlink" title="Actor-Critic"></a>Actor-Critic</h2><h3 id="Critic"><a href="#Critic" class="headerlink" title="Critic"></a>Critic</h3><p><code>Critic</code> 会有一个 <code>Value function</code> $V^\theta(s)$，它的值代表了 <code>actor</code> 看到状态 $s$ 之后所能获得的打过折扣的累计奖励的期望值。</p>
+<p><img src="/2022/12/15/rl/RL_20.png"></p>
+<h3 id="如何训练-Value-function"><a href="#如何训练-Value-function" class="headerlink" title="如何训练 Value function"></a>如何训练 <code>Value function</code></h3><ul>
+<li><p>蒙特卡罗方法</p>
+<p>  让 <code>actor</code> 与环境交互若干次。每次都会获取奖励 $G$，我们期望 $V^\theta(s)$ 的值和 $G$ 越接近越好，可以用 <code>MSE</code> 作为损失函数。</p>
+<p>  比如下面的例子，我们就希望 $V^\theta(s_a)$ 与 $G^\prime_a$ 越接近越好。</p>
+<p>  <img src="/2022/12/15/rl/RL_21.png"></p>
+</li>
+<li><p>Temporal-Difference（简称 TD）</p>
+<p>  与蒙特卡罗方法不同，<code>TD</code> 是每一步都进行参数更新。</p>
+<p>  由：</p>
+<p>  $$V^\theta(s_t)&#x3D;\gamma V^\theta(s_{t+1})+r_t$$，</p>
+<p>  可知：</p>
+<p>  $$V^\theta(s_t)-\gamma V^\theta(s_{t+1})&#x3D;r_t$$</p>
+<p>  所以此时我们只要让 $V^\theta(s_t)-\gamma V^\theta(s_{t+1})$ 和 $r_t$ 尽可能接近就行。因为在 $t$ 时刻获得的奖励 $r_t$ 是已知的。</p>
+<p>  <img src="/2022/12/15/rl/RL_22.png"></p>
+</li>
+<li><p>蒙特卡罗方法和 TD 可能会计算出不同的 $V^\theta(s)$</p>
+<p>  <img src="/2022/12/15/rl/RL_23.png"></p>
+</li>
+</ul>
+<h3 id="整体训练技巧"><a href="#整体训练技巧" class="headerlink" title="整体训练技巧"></a>整体训练技巧</h3><p>Actor 网络和 Critic 网络可以共享。</p>
+<p><img src="/2022/12/15/rl/RL_27.png"></p>
+<h2 id="Reward-Shaping"><a href="#Reward-Shaping" class="headerlink" title="Reward Shaping"></a>Reward Shaping</h2><p>在有些环境中，大多数 action 都无法获得或者无法获得较多的 reward，而只有极少数 action 或者只有在最后才能获得较多的 reward（比如围棋）。</p>
+<p>我们需要设计额外的 reward 帮助 agent 学习，也就是 <code>reward shaping</code>。</p>
+<p><img src="/2022/12/15/rl/RL_28.png"></p>
+<p>为 agent 赋予 curiosity，在探索环境中获取 reward，但是必须要避免一直读无意义的新内容以获取 reward。</p>
+<h2 id="No-reward-Learning-from-demonstration"><a href="#No-reward-Learning-from-demonstration" class="headerlink" title="No reward: Learning from demonstration"></a>No reward: Learning from demonstration</h2><p>在有些情况下，我们甚至连 reward 都没有，或者说我们难以设计一个好的 reward。<br>这时候，我们可以用一组 export 的 demonstration 来为 agent 提供“动作指导”。</p>
+<p><img src="/2022/12/15/rl/RL_29.jpg"></p>
+<p>这种方式有点类似于监督学习，但是我们不能只用监督学习的方式来训练 agent。使用监督学习，实际上就是让 agent 学会模仿 export 的动作，本质上是一种 cloning 的行为。<br>但是，我们往往无法知道 export 的 demonstration 里面哪些是不该学习的“个性化”的 action。而且，如果只学习 export 的 demonstration，那么 agent 就会无法学习到一些突发情况的解决方式，<br>因为 export 实在太厉害了，往往都是顺利地解决问题。</p>
+<p><img src="/2022/12/15/rl/RL_30.jpg"></p>
+<h3 id="Inverse-Reinforcement-Learning"><a href="#Inverse-Reinforcement-Learning" class="headerlink" title="Inverse Reinforcement Learning"></a>Inverse Reinforcement Learning</h3><p>我们可以通过 export 的 demonstration 来学习一个 <code>Reward Function</code>，然后再利用这个 <code>Reward Function</code> 进行普通的强化学习。</p>
+<p><img src="/2022/12/15/rl/RL_31.jpg"></p>
+<p>我们需要定义一个 reward function，对于老师的行为和学生的行为都会去评估他们的奖励，我们希望老师的奖励应该要大于学生（学生的奖励 - 老师的奖励作为损失），并且对于学生而言，<br>它的目标就是学习获得最大的奖励（基于新的 reward function）。</p>
+<p><img src="/2022/12/15/rl/RL_32.jpg"></p>
+<p>整体的框架和思想其实和 GAN 有异曲同工之妙。</p>
+<p><img src="/2022/12/15/rl/RL_33.jpg"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Reinforcement-Learning/" style="color: #00a596">Reinforcement Learning</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/15/rl/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/05/explainable-ai/">
+        <h2 class="post-title">Explainable AI 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/5
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h3 id="Mask"><a href="#Mask" class="headerlink" title="Mask"></a>Mask</h3><p>用一个灰色色块遮盖图像，最后一行的图像展示了不同位置遮盖之后分类的概率，由此我们可以发现模型学习到了什么重要的特征。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_0.png"></p>
+<p>比如上图中的狗，遮住脸之后模型就无法辨别了，所以模型学习到了狗的面部特征。</p>
+<h3 id="Saliency-Map"><a href="#Saliency-Map" class="headerlink" title="Saliency Map"></a>Saliency Map</h3><p>修改某一像素的值 $e$，得到最终输出结果 $x$。计算 $e$ 关于 $x$ 的偏导数，将数值以下方的图像展示。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_1.png"></p>
+<p>一般而言，如果这个偏导数很大，说明这个像素对模型判定结果的影响很大，可以证明这个像素较为重要。 </p>
+<p>但是你不能说一个特征很重要，修改对应的像素就一定会产生很大的判定结果的变化。这是因为，以分类问题为例，假如说模型有充分的信心判定一张图片是狗的图片（判断到了很多特征，比如狗腿，狗头），<br>那么你修改其中一个比较重要的特征，可能还是不影响模型判断它是狗。</p>
+<p>通过这种方式，你还可以判断你的模型是否真的学习到了正确的特征。下图是一个错误的例子，机器学习到只要判定左下角是否有文字，就可以判定是不是马，<br>因为所有的马的训练集都有左下角的文字。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_2.png"></p>
+<h3 id="SmoothGrad"><a href="#SmoothGrad" class="headerlink" title="SmoothGrad"></a>SmoothGrad</h3><p><code>SmoothGrad</code> 是对 <code>Saliency Map</code> 的一种改进。其做法就是将原图加随机噪声生成多份，再获取对应的多份 <code>Saliency Map</code>，最终取平均得到 <code>SmoothGrad</code>。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_3.png"></p>
+<h3 id="用另一个网络来聆听-可视化一个模型的隐藏层输出"><a href="#用另一个网络来聆听-可视化一个模型的隐藏层输出" class="headerlink" title="用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出"></a>用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出</h3><p><img src="/2022/12/05/explainable-ai/Explainable-AI_4.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #ff7d73">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Explainable-AI/" style="color: #00bcd4">Explainable AI</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/05/explainable-ai/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/03/diffusion/">
+        <h2 class="post-title">Diffusion Model 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/3
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <ul>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1re4y1m7gb/?spm_id_from=333.999.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">简单易懂diffusion模型讲解 - 从前置知识深度生成模型 隐变量 VAE开始</a></p>
+<p>  up 主：<a target="_blank" rel="noopener" href="https://space.bilibili.com/10407305">是好梦梦哦</a></p>
+<p>  对应的 PPT：<a href="./doc/%E7%AE%80%E5%8D%95%E6%98%93%E6%87%82diffusion%E6%A8%A1%E5%9E%8B%E8%AE%B2%E8%A7%A3%20-%20%E4%BB%8E%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B%20%E9%9A%90%E5%8F%98%E9%87%8F%20VAE%E5%BC%80%E5%A7%8B.pptx">简单易懂diffusion模型讲解 - 从前置知识深度生成模型 隐变量 VAE开始</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ne411u7J6/?spm_id_from=333.999.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">非常详尽的数学推理</a></p>
+</li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Diffusion-Model/" style="color: #00a596">Diffusion Model</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/03/diffusion/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/02/auto-encoder/">
+        <h2 class="post-title">Auto Encoder 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/2
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p><img src="/2022/12/02/auto-encoder/ae4.png"></p>
+<h2 id="Image"><a href="#Image" class="headerlink" title="Image"></a>Image</h2><p>训练一个 <code>Encoder</code> 和 <code>Decoder</code>：</p>
+<ul>
+<li><code>Encoder</code> 将图像这样高维度的信息压缩为一个低维度的向量（Dimension Reduction）。</li>
+<li><code>Decoder</code> 将这个低维度的向量重新复原为原始图像。</li>
+</ul>
+<p><img src="/2022/12/02/auto-encoder/ae1.png"></p>
+<h3 id="为什么这种方法行之有效？"><a href="#为什么这种方法行之有效？" class="headerlink" title="为什么这种方法行之有效？"></a>为什么这种方法行之有效？</h3><p>为什么我们能够将一个高维度的图像信息压缩为一个很低维度的向量？因为对于图像而言，绝大多数都是无意义的噪声，<br>就像你随机生成一个灰度图的二维矩阵，大概率得到的是一堆噪音。而真正有意义的图像其实只占极少的比例。</p>
+<p>以 3x3 的图像举例，在这么小的图像里，可能只有两种布局是有意义的，那么 <code>Encoder</code> 完全可以输出一个二维的向量，<br>代表这两种情况。</p>
+<p><img src="/2022/12/02/auto-encoder/ae2.png"></p>
+<p>也就是说，在图像这样的极高维空间中，真正有意义的图像只占很小的空间，我们可以用压缩的信息（类似于 Word Embedding）将它们尽可能表示出来 。</p>
+<h2 id="De-noising-Auto-encoder"><a href="#De-noising-Auto-encoder" class="headerlink" title="De-noising Auto-encoder"></a>De-noising Auto-encoder</h2><p><code>BERT</code> 的预训练也用到了去噪自编码器的思想。</p>
+<p><img src="/2022/12/02/auto-encoder/ae3.png"></p>
+<h2 id="Feature-Disentangle"><a href="#Feature-Disentangle" class="headerlink" title="Feature Disentangle"></a>Feature Disentangle</h2><p><img src="/2022/12/02/auto-encoder/ae5.png"></p>
+<p>Encoder 虽然能够将多种特征，信息提取成一个向量，但是我们无法知道向量中哪个维度对应了什么。<code>Feature Disentangle</code> 就是要去解决这个问题。</p>
+<p><img src="/2022/12/02/auto-encoder/ae6.png"></p>
+<h3 id="应用：Voice-Conversion"><a href="#应用：Voice-Conversion" class="headerlink" title="应用：Voice Conversion"></a>应用：Voice Conversion</h3><p>既然我们可以用 <code>Feature Disentangle</code> 来了解哪些维度对应了声音的特征，哪些维度对应了声音的内容，<br>那我们就可以选择对应声音的特征的维度进行声音的替换（保持声音内容的维度不变，将声音特征的部分替换成新垣结衣的）。</p>
+<p><img src="/2022/12/02/auto-encoder/ae7.png"></p>
+<h2 id="Discrete-Latent-Representation"><a href="#Discrete-Latent-Representation" class="headerlink" title="Discrete Latent Representation"></a>Discrete Latent Representation</h2><p><img src="/2022/12/02/auto-encoder/ae8.png"></p>
+<h2 id="Text-as-Representation"><a href="#Text-as-Representation" class="headerlink" title="Text as Representation"></a>Text as Representation</h2><p>尝试让 <code>Encoder</code> 生成摘要（既然 <code>Decoder</code> 能够将其还原，说明 <code>Encoder</code> 生成的东西代表了文章的核心和精华内容）。 </p>
+<p>和 <code>CycleGAN</code> 一样。如果不使用 <code>Discriminator</code> 会导致这个摘要完全不可读（<code>Encoder</code> 和 <code>Decoder</code> 在加密通话）</p>
+<h2 id="Generator-what-VAE-does"><a href="#Generator-what-VAE-does" class="headerlink" title="Generator(what VAE does)"></a>Generator(what VAE does)</h2><p><img src="/2022/12/02/auto-encoder/ae9.png"></p>
+<h2 id="Compression"><a href="#Compression" class="headerlink" title="Compression"></a>Compression</h2><p><img src="/2022/12/02/auto-encoder/ae10.png"></p>
+<h2 id="Anomaly-Detection（异常检测）"><a href="#Anomaly-Detection（异常检测）" class="headerlink" title="Anomaly Detection（异常检测）"></a>Anomaly Detection（异常检测）</h2><p>异常检测是一个 <code>One-class</code> 的分类问题，数据集是极度不对称的：你有大量正常的数据，和极少数不正常的数据，甚至你不知道不正常的数据长什么样，<br>这时候你要怎么训练？这不是一个一般的分类问题，需要用 <code>Auto-encoder</code> 来进行解决。</p>
+<p>判断是否能够重构：</p>
+<p><img src="/2022/12/02/auto-encoder/ae11.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00a596">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Anto-Encoder/" style="color: #ff7d73">Anto Encoder</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/02/auto-encoder/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/01/bert/">
+        <h2 class="post-title">BERT 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/1
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1810.04805v2">https://arxiv.org/abs/1810.04805v2</a></p>
+<p><img src="/2022/12/01/bert/BERT0.jpg"></p>
+<blockquote>
+<p>BERT是2018年10月由Google AI研究院提出的一种预训练模型。BERT的全称是Bidirectional Encoder Representation from Transformers。BERT在机器阅读理解顶级水平测试SQuAD1.1中表现出惊人的成绩: 全部两个衡量指标上全面超越人类，并且在11种不同NLP测试中创出SOTA表现，包括将GLUE基准推高至80.4% (绝对改进7.6%)，MultiNLI准确度达到86.7% (绝对改进5.6%)，成为NLP发展史上的里程碑式的模型成就。</p>
+</blockquote>
+<p>芝麻街大家族。</p>
+<p><img src="/2022/12/01/bert/BERT1.png"></p>
+<h2 id="BERT-的结构"><a href="#BERT-的结构" class="headerlink" title="BERT 的结构"></a>BERT 的结构</h2><p>沿用了 <code>Transformer</code> 的 <code>Encoder</code>。</p>
+<p><img src="/2022/12/01/bert/BERT14.jpg"></p>
+<p><img src="/2022/12/01/bert/BERT15.jpg"></p>
+<h2 id="BERT-是怎么学做填空题的？"><a href="#BERT-是怎么学做填空题的？" class="headerlink" title="BERT 是怎么学做填空题的？"></a>BERT 是怎么学做填空题的？</h2><blockquote>
+<p>BERT 的作者认为：使用两个方向（从左至右和从右至左）的单向编码器拼接而成的双向编码器，在性能、参数规模和效率等方面都不如直接使用双向编码器强大；这是 BERT 模型使用 Transformer Encoder 结构作为特征提取器，而不拼接使用两个方向的 Transformer Decoder 结构作为特征提取器的原因。</p>
+</blockquote>
+<blockquote>
+<p>这也令 BERT 模型不能像 GPT 模型一样，继续使用标准语言模型的训练模式，因此 BERT 模型重新定义了两种模型训练方法（即：预训练任务）：MLM 和 NSP。BERT用MLM（Masked Language Model，掩码语言模型）方法训练词的语义理解能力，用NSP（Next Sentence Prediction，下句预测）方法训练句子之间的理解能力，从而更好地支持下游任务。</p>
+</blockquote>
+<h3 id="Masking-Input"><a href="#Masking-Input" class="headerlink" title="Masking Input"></a>Masking Input</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1810.04805">https://arxiv.org/abs/1810.04805</a></p>
+<p>在给 <code>BERT</code> 数据的时候，将若干字替换成一个特殊的 <code>token</code>，或者随机的值。两种方式随机选择一种。</p>
+<p><img src="/2022/12/01/bert/BERT3.png"></p>
+<p>前面提到过，<code>BERT</code> 即是 <code>Encoder</code>，会输出一个向量的序列。 将这个向量经过一个线性层 + <code>softmax</code> 就可以得到遮住的字的概率分布。<br>我们既然已经知道“台”后面的字是“湾”，也就是说我们有标签，自然就可以用交叉熵作为损失函数训练咯~</p>
+<p>这也就是“自己出题，自己回答”。</p>
+<h3 id="Next-Sentence-Prediction"><a href="#Next-Sentence-Prediction" class="headerlink" title="Next Sentence Prediction"></a>Next Sentence Prediction</h3><p><code>SEP</code> 区分两个句子。</p>
+<p>这边只看 <code>CLS</code> 对应的输出，经过线性变换，做一个二元分类问题（Yes&#x2F;No），即判断两个句子是不是相邻的。</p>
+<h2 id="BERT-学到了什么？"><a href="#BERT-学到了什么？" class="headerlink" title="BERT 学到了什么？"></a>BERT 学到了什么？</h2><p>自监督学习。</p>
+<p><img src="/2022/12/01/bert/BERT2.jpg"></p>
+<p><code>BERT</code> 实际上学到了如何做填空题。</p>
+<p><img src="/2022/12/01/bert/BERT5.png"></p>
+<p>先预训练，然后在微调以适应不同的任务。就像一个干细胞，可以分化成任何人体细胞。</p>
+<p><code>BERT</code> 本身是无监督的（自己出填空题，自己学着做），但是其下游任务（downstream task）可能是监督学习的。比如语句情感分类，利用之前学习填空题 pretrain<br>过的 <code>BERT</code> 模型，将其输出经过另一个网络（这个网络是需要投喂数据集监督学习的），最终输出情感分类。</p>
+<p>pretrain 过的 <code>BERT</code> 会比随机参数的好。All you need is <strong>fine-tuning!</strong></p>
+<p><img src="/2022/12/01/bert/BERT7.png"></p>
+<p>对于词性识别，流程也是类似的。生成的每个向量都通过一个待训练网络，剩下的和上面的例子一样。</p>
+<p><img src="/2022/12/01/bert/BERT8.jpg"></p>
+<p>判断假设和推断是否矛盾：</p>
+<p><img src="/2022/12/01/bert/BERT9.jpg"></p>
+<p>输入文章和问题，返回两个整数（答案的起止位置）：</p>
+<p><img src="/2022/12/01/bert/BERT10.jpg"></p>
+<p>和自注意力机制类似，橙色部分类似于一个 <code>Query</code>，去查询 <code>document</code> 中的每一个 <code>Key</code>，最终经过 <code>softmax</code> 的到最大概率的作为 start。<br>这边 s &#x3D; 2。</p>
+<p><img src="/2022/12/01/bert/BERT11.jpg"></p>
+<p>还有一个蓝色的向量需要学习，对应于 end。和 start 类似，这边求出 e &#x3D; 3。于是我们得出了答案的范围。</p>
+<p><img src="/2022/12/01/bert/BERT12.jpg"></p>
+<p>注意橙色和蓝色向量都是要训练的对象。</p>
+<h3 id="Training-BERT-is-challenging"><a href="#Training-BERT-is-challenging" class="headerlink" title="Training BERT is challenging"></a>Training BERT is challenging</h3><p>训练 <code>BERT</code> 需要极大的数据量和极强的硬件。</p>
+<h3 id="预训练-Seq2Seq"><a href="#预训练-Seq2Seq" class="headerlink" title="预训练 Seq2Seq"></a>预训练 Seq2Seq</h3><p>类似的，也可以预训练 <code>Decoder</code>。将一些句子破坏掉（原始句子作为标签），进行 <code>self-supervise</code></p>
+<p><img src="/2022/12/01/bert/BERT13.jpg"></p>
+<h2 id="为什么-BERT-能够工作？"><a href="#为什么-BERT-能够工作？" class="headerlink" title="为什么 BERT 能够工作？"></a>为什么 BERT 能够工作？</h2><p><img src="/2022/12/01/bert/BERT18.jpg"></p>
+<p>类似于 <code>word2vec</code>，<code>BERT</code> 能够将每个词都对应到一个向量（表征某个词的含义（meaning））。向量两两之间的距离代表了两个词的意思的接近程度。</p>
+<p><img src="/2022/12/01/bert/BERT16.jpg"></p>
+<p>但是不同的是，<code>BERT</code> 在预训练的时候会学习到上下文信息，同一个字在不同的上下文中，其含义不同，<code>BERT</code> 输出的向量也不同。所以 <code>BERT</code> 输出的<br><code>Embedding</code> 是动态的，会根据上下文的不同产生变化。</p>
+<p>以 <code>苹果</code> 为例，“吃苹果”的“苹果”是一种水果，而“苹果手机”的“苹果”则是一个公司品牌名。</p>
+<p>通过计算这两个苹果经过 <code>BERT</code> 输出的 <code>Embedding</code> 的 <code>cosine similarity</code>，可以得到下图：</p>
+<p><img src="/2022/12/01/bert/BERT17.jpg"></p>
+<h2 id="令人震惊的-BERT"><a href="#令人震惊的-BERT" class="headerlink" title="令人震惊的 BERT"></a>令人震惊的 BERT</h2><h3 id="DNA-classification"><a href="#DNA-classification" class="headerlink" title="DNA classification"></a>DNA classification</h3><p>用语言资料预训练的 <code>BERT</code> 甚至可以提升 <code>DNA</code> 分类的准确度！</p>
+<p><img src="/2022/12/01/bert/BERT19.jpg"></p>
+<p>因为预训练用的是英语，所以这边需要将碱基对对应到一个随机词汇上，然后再对 <code>DNA</code> 分类问题进行 <code>Fine-Tune</code>。即使是这样八竿子打不着的映射，<br>居然也能学出更好的效果——难道 <code>DNA</code> 序列结构和某种语言语法结构有关？ </p>
+<p><img src="/2022/12/01/bert/BERT20.jpg"></p>
+<h3 id="Multi-lingual-BERT"><a href="#Multi-lingual-BERT" class="headerlink" title="Multi-lingual BERT"></a>Multi-lingual BERT</h3><p>用多种语言的资料训练的 <code>BERT</code> 能够学习到语言之间的联系，在没有学习中文问答资料的情况下，输入中文问题居然也可以达到惊人的准确率。</p>
+<p><img src="/2022/12/01/bert/BERT22.jpg"></p>
+<p>似乎 <code>BERT</code> 在学到 <code>Rabbit</code> 和 <code>兔</code> 的向量距离很近的同时，也没有忘记语言类型信息。也就是在回答中文问题的时候，它不会将 <code>兔</code> 替换成 <code>Rabbit</code>，<br>而是都用中文来回答。</p>
+<p><img src="/2022/12/01/bert/BERT23.jpg"></p>
+<p>或许是因为，两个词汇虽然很接近，但是在它们所处的极高维空间内，它们根本不在同一个维度，只是距离相近，仅此而已。</p>
+<p>如果将不同语言的所有词汇的 <code>Embedding</code> 求均值，将会发现这些语言在高维空间中散落在不同的区域。假如说你求出 <code>中文</code> 和 <code>English</code> 的这种距离，<br>然后将一个英文 <code>Embedding</code> 加上这个距离，你将会得到中文的 <code>Embedding</code>！</p>
+<p><img src="/2022/12/01/bert/BERT24.jpg"></p>
+<h1 id="GPT"><a href="#GPT" class="headerlink" title="GPT"></a>GPT</h1><p><img src="/GPT2.jpg"></p>
+<h2 id="预训练"><a href="#预训练" class="headerlink" title="预训练"></a>预训练</h2><p>结构类似 <code>Transformer</code> 的 <code>Decoder</code>（使用 <code>Masked self-attention</code>）。</p>
+<p><img src="/GPT1.jpg"></p>
+<p><code>GPT</code> 和 <code>BERT</code> 不一样的地方在于 <code>GPT</code> 是在是太大了，以至于我们难以 <code>Fine-tune</code> 它。 </p>
+<h3 id="In-context-learning"><a href="#In-context-learning" class="headerlink" title="In-context learning"></a>In-context learning</h3><p>这里不会去利用梯度下降更新 <code>GPT</code> 的参数。</p>
+<h3 id="Few-shot-One-shot-Zero-shot-Learning"><a href="#Few-shot-One-shot-Zero-shot-Learning" class="headerlink" title="Few-shot&#x2F;One-shot&#x2F;Zero-shot Learning"></a>Few-shot&#x2F;One-shot&#x2F;Zero-shot Learning</h3><p>提供任务描述和例子，学会举一反三。</p>
+<ul>
+<li><p>Few-shot:</p>
+<p>  <img src="/GPT3.jpg"></p>
+</li>
+<li><p>One-shot:</p>
+<p>  <img src="/GPT4.jpg"></p>
+</li>
+<li><p>Zero-shot:</p>
+<p>  <img src="/GPT5.jpg"></p>
+</li>
+</ul>
+<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p><img src="/GPT6.jpg"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/BERT/" style="color: #ffa2c4">BERT</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Transformer/" style="color: #00bcd4">Transformer</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/NLP/" style="color: #03a9f4">NLP</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/01/bert/" class="go-post">阅读全文</a>
 </div>
 
 
@@ -742,8 +1274,14 @@ mysql-config-5bhm7k67gb   1      6m35s
     
     <span class="current">3</span>
     
+    <a class="page-num" href="/page/4">4</a>
     
     
+    
+    
+    <a class="page-num" href="/page/4/">
+        <i class="fa-solid fa-caret-right fa-fw"></i>
+    </a>
     
 </div>
 

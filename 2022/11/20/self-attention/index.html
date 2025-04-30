@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Self Attention 笔记 | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>Self Attention 笔记</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/11/20
+        </span>
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/AI/" style="color: #00a596">AI</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Self-Attention/" style="color: #00bcd4">Self Attention</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <ul>
+<li><p>自注意力机制的矩阵运算：</p>
+<p> <code>q</code> 即 <code>query</code>，<code>k</code> 即 <code>key</code>，<code>v</code> 即 <code>value</code></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention1.png"></p>
+<p>  <code>α</code> 即为注意力分数，经过 <code>softmax</code> 进行归一化得到 <code>α&#39;</code>，并与 <code>v</code> 相乘得到最终的 <code>b</code></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention2.png"></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention3.png"></p>
+</li>
+<li><p>为什么我们需要多头注意力机制（<code>Multi-head Self-attention</code>）？</p>
+<p>  <code>Self-attention</code> 实际上就是去找和 <code>q</code> 相关的 <code>k</code>，但是相关性是一个比较复杂的东西，我们往往需要多个维度对相关性进行描述，<br>  即使用多个 <code>q</code> 负责不同的相关性。</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention4.png"></p>
+<p>  将多个头获取的 <code>bi</code> 进行 <strong>concat</strong>：</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention5.png"></p>
+</li>
+<li><p>有什么不足？缺少位置信息：</p>
+<p>  解决方案：<code>positional vector</code>，每一个位置都对应一个不同的位置向量 <code>ei</code>，</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention6.png"></p>
+</li>
+<li><p>我们真的需要<strong>读一整句话</strong>吗？</p>
+<p>  对于像语音识别这样的序列而言，我们会把每 10ms 的语音数据作为一个向量，那么一句话就会对应相当可观的序列长度 <code>L</code>。而我们产生的注意力矩阵的规模和 <code>L</code> 的二次成正比，<br>  如果 <code>L</code> 非常大的话，注意力矩阵也会相当大。所以我们实际上不会读一整个句子，而是使用所谓 <code>Truncated Self-attention</code> 去读一个窗口（其大小可以自行指定）</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention7.png"></p>
+</li>
+<li><p><code>Self-attention</code> vs <code>CNN</code>：</p>
+<p>  图片亦可作为 <code>set of vector</code>，所以 <code>Self-attention</code> 亦可用于图像领域。<code>CNN</code> 的卷积核代表了一片感受野，其大小是受限的，而 <code>Self-attention</code> 则关注了整张图片的信息。</p>
+<blockquote>
+<p>CNN is simplified self-attention(self-attention that only attends in a receptive field).</p>
+</blockquote>
+<p>  或者你也可以说：</p>
+<blockquote>
+<p>Self-attention is the complex version of CNN(CNN with learnable receptive field).</p>
+</blockquote>
+<p>  <img src="/2022/11/20/self-attention/self-attention8.png"></p>
+</li>
+<li><p><code>Self-attention</code> vs <code>RNN</code>：</p>
+<p>  <code>RNN</code> 只能获取左边已输入的序列的信息吗？不，可以用双向 <code>RNN</code>，即 <code>Bidirectional RNN</code></p>
+<p>  <code>Self-attention</code> 可以并行处理（矩阵运算，GPU 优化），并且可以轻易获取非常远的上下文信息。</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention9.png"></p>
+</li>
+<li><p>在图中使用自注意力机制：</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention10.png"></p>
+</li>
+</ul>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>

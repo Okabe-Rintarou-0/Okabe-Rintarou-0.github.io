@@ -1,0 +1,612 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+<script src="/js/lib/home.js"></script>
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div id="home-head">
+    <div id="home-background" ref="homeBackground" data-images="/images/background.jpg"></div>
+    <div id="home-info" @click="homeClick">
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="info">
+            <div class="wrap">
+                <h1>Okabe&#39;s LAB</h1>
+                <h3></h3>
+                <h5></h5>
+            </div>
+        </span>
+    </div>
+</div>
+<div id="home-posts-wrap" true ref="homePostsWrap">
+    <div id="home-posts">
+        
+
+<div class="post">
+    <a href="/2022/11/23/gan/">
+        <h2 class="post-title">GAN 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/11/23
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p>物竞天择，万物一同进化，一同内卷。<code>Generator</code> 和 <code>Discriminate</code> 一同训练和进化，此乃 <code>GAN</code> 的核心。</p>
+<p><img src="/2022/11/23/gan/GAN5.png"></p>
+<h2 id="为什么我们需要输出一个分布（distribution）"><a href="#为什么我们需要输出一个分布（distribution）" class="headerlink" title="为什么我们需要输出一个分布（distribution）"></a>为什么我们需要输出一个分布（distribution）</h2><p><img src="/2022/11/23/gan/GAN1.png"></p>
+<p>对于吃豆人这样的游戏，假如说我们要用一帧游戏画面去预测下一帧游戏画面，如果我们使用最传统的网络，接受一个确定的输入，然后输出一个<br>确定的结果，那么可能会出现如下的情况：</p>
+<p><img src="/2022/11/23/gan/GAN2.gif"></p>
+<p>这是因为对于训练集中的不同数据，可能存在一帧画面完全相同，但是下一帧的画面相反（一个怪物向左，一个怪物向右）。模型为了获得最低的损失，<br>会倾向于输出既向左又向右的叠加态。</p>
+<p>本质上这是因为我们输出的是一个固定的值&#x2F;矩阵，而不是一个分布。假设我们输出的是一个分布，那么我们可以在输入的时候也加上一个分布 <code>z</code>（见第一张图），<br>来对应到输出的分布<code>y</code>。这样我们就可以用不同的输入分布来对应各种可能的情况：怪物向左，向右，向上，向下，死亡，存活。</p>
+<p>本质上，这样的 <code>Generator</code> 适用于需要创造力的场景。</p>
+<h2 id="Unconditional-Generation"><a href="#Unconditional-Generation" class="headerlink" title="Unconditional Generation"></a>Unconditional Generation</h2><p><img src="/2022/11/23/gan/GAN3.png"></p>
+<p>这里输入的分布可以是已知的，简单的分布，比如 <code>Normal Distribution</code>，网络会想办法生成一个复杂的分布。这个分布也就是一个高维的向量，<br>经过整理之后就会变成输出的图像。</p>
+<p>我们还需要一个 <code>Discriminator</code>。它会接受 <code>Generator</code> 输出的图片作为输入，并且输出一个数值表示该图片是否是真实的二次元图片。</p>
+<p><img src="/2022/11/23/gan/GAN4.png"></p>
+<h3 id="训练步骤"><a href="#训练步骤" class="headerlink" title="训练步骤"></a>训练步骤</h3><ol>
+<li>初始化 <code>Generator</code> 和 <code>Discriminator</code></li>
+<li>固定 <code>Generator</code> 的网络参数，训练 <code>Discriminator</code>，让它学会 <strong>“打假”</strong>：<br> <img src="/2022/11/23/gan/GAN6.png"><ol>
+<li>根据输入分布随机采样一些向量，经过 <code>Generator</code> 得到一些生成图片，这些图像是 <strong>虚假的二次元图像</strong> 标记为 0</li>
+<li>从二次元图像数据集中采样一些图片，作为 <strong>真实的二次元图片</strong>，标记为 1</li>
+<li>根据这些打好标签的图片，训练 <code>Discriminator</code>，本质上就是一个分类问题，训练一个 <code>classifier</code>。</li>
+</ol>
+</li>
+<li>固定 <code>Discriminator</code> 的网络参数，训练 <code>Generator</code>，让它学会 <strong>“造假”</strong>：<br> <img src="/2022/11/23/gan/GAN7.png"><br> 将 <code>Generator</code> 的网络和 <code>Discriminator</code> 的网络拼接，但是固定后者的参数。两者之间会有一个 <code>hidden layer</code>，将其整理就是生成的图片。<ol>
+<li>根据输入分布生成向量，传入 <code>Generator</code>，生成图片，由 <code>Discriminator</code> 生成一个分数（目标是这个分数越大越好）。</li>
+<li>根据 <code>Discriminator</code> 的打分，训练 <code>Generator</code>。</li>
+</ol>
+</li>
+</ol>
+<h2 id="GAN-的学习目标是什么？"><a href="#GAN-的学习目标是什么？" class="headerlink" title="GAN 的学习目标是什么？"></a>GAN 的学习目标是什么？</h2><p>我们希望 <code>GAN</code> 生成的分布 <code>PG</code>和真实的数据分布 <code>Pdata</code> 越接近越好（divergence 最小，即两种分布之间的某种距离）</p>
+<p><img src="/2022/11/23/gan/GAN8.png"></p>
+<h3 id="如何计算-Divergence？"><a href="#如何计算-Divergence？" class="headerlink" title="如何计算 Divergence？"></a>如何计算 <code>Divergence</code>？</h3><p><img src="/2022/11/23/gan/GAN9.png"></p>
+<blockquote>
+<p>Sampling is good enough.</p>
+</blockquote>
+<ul>
+<li>从数据集 sample 真实的图像，即对 <code>Pdata</code> 的 <strong>sampling</strong></li>
+<li>根据输入的分布 sample 出一些向量，通过 <code>Generator</code> 得到图像，即对 <code>PG</code> 的 <strong>sampling</strong></li>
+</ul>
+<p>在只知道 sample 的情况如何估算 <code>divergence</code>？</p>
+<p>下图是对于 <code>Discriminator</code> 的训练目标，蓝色星星代表真实数据的分布，橙色的星星代表生出数据的分布。我们的目标是让 <code>Discriminator</code> 能够区分两种分布。</p>
+<p><img src="/2022/11/23/gan/GAN10.png"></p>
+<p>目标函数的左半部分代表我们希望由 <code>Discriminator</code> 生成的真实数据的期望分数应该越高越好，而生成数据的分数应该越低越好。损失函数可以是另外的形式，<br>这里是为了和二分类问题扯上关系。目标函数其实就是交叉熵乘上符号，也就是说我们要最大化目标函数，等价于最小化交叉熵。这与二分类问题的损失函数定义是类似的。</p>
+<p>也就是我们在训练一个 <code>Classifier</code>。</p>
+<p><img src="/2022/11/23/gan/GAN11.png"></p>
+<h2 id="JS-divergence-不合适？"><a href="#JS-divergence-不合适？" class="headerlink" title="JS divergence 不合适？"></a>JS divergence 不合适？</h2><p>对于高维空间的两个分布（想象二维情况下两个直线），重叠部分几乎可以忽略不计。即使有重叠，如果采样数量不够，在 <code>Discriminator</code> 看来，两个分布依旧没有重叠。</p>
+<p>JS divergence 不合适的理由在于，对于两个无重叠的分布，JS divergence会变为一个常数：log2，这将导致梯度消失，无法从 JS divergence 中获取两个分布的距离信息。<br>因为无论训练出来的分布和真实分布有多近，如果两者没有重叠的话，JS 散度永远是常数，也就无法由此来更新网络参数了。</p>
+<p>（有关 JS divergence 可以看这篇文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/Invokar/article/details/88917214">GAN：两者分布不重合JS散度为log2的数学证明</a> ）</p>
+<p><img src="/2022/11/23/gan/GAN13.png"></p>
+<h3 id="Wasserstein-distance"><a href="#Wasserstein-distance" class="headerlink" title="Wasserstein distance"></a>Wasserstein distance</h3><p>可以通俗的认为将一个分布变为另一个分布所需要的代价。分布就像是一堆堆土堆，然后用挖土机将一堆土堆变为另一堆土堆的模样的消耗，即为 <code>Wasserstein distance</code>。这本身也是一个优化问题，<br>穷举所有的 <code>moving plan</code>，看哪一个可以获得最短的平均距离，这个最短平均距离作为 <code>Wasserstein distance</code>。</p>
+<p><img src="/2022/11/23/gan/GAN14.png"></p>
+<p>解决了 JS divergence 的缺陷：</p>
+<p><img src="/2022/11/23/gan/GAN15.png"></p>
+<h2 id="WGAN"><a href="#WGAN" class="headerlink" title="WGAN"></a>WGAN</h2><p><img src="/2022/11/23/gan/GAN16.png"></p>
+<p>计算 <code>Wasserstein distance</code>，D 必须是平滑的函数，避免值剧烈变化，导致生成的分布和真实分布轻微偏离就产生无穷大的值。 </p>
+<p><code>WGAN</code> 这篇论文其实也没有找这样的函数（比较困难），而是将 <code>Wasserstein distance</code> 限制在 [-c, c] 之间（c 为常数）。 </p>
+<p><img src="/2022/11/23/gan/GAN17.png"></p>
+<h2 id="GAN-存在的困难之处"><a href="#GAN-存在的困难之处" class="headerlink" title="GAN 存在的困难之处"></a>GAN 存在的困难之处</h2><ul>
+<li><p>难以训练：</p>
+<p>  GAN 是训练两个模型，一旦一个模型的训练出了问题，另一个模型也会出问题。也就是两个人一直在卷，卷到一半对手开摆，你也开摆！</p>
+<p>  各种训练的 tips：</p>
+<ul>
+<li><p>Tips from Soumith</p>
+<p>  <a target="_blank" rel="noopener" href="https://github.com/soumith/ganhacks">https://github.com/soumith/ganhacks</a></p>
+</li>
+<li><p>Tips in DCGAN: Guideline for network architecture design for image generation </p>
+<p>  <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1511.06434">https://arxiv.org/abs/1511.06434</a></p>
+</li>
+<li><p>Improved techniques for training GANs </p>
+<p>  <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1606.03498">https://arxiv.org/abs/1606.03498</a></p>
+</li>
+<li><p>Tips from BigGAN</p>
+<p>  <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1809.11096">https://arxiv.org/abs/1809.11096</a></p>
+</li>
+</ul>
+</li>
+<li><p>难以做序列生成：</p>
+<p>  <img src="/2022/11/23/gan/GAN18.png"></p>
+<p>  Generator 的参数变化会导致输出向量的微小变化，但是由于输出的是一个概率分布，概率分布的微小变化不会显著影响取到最大值的那一维度，也就是微小变化可能不会导致输出词汇的变化。<br>  导致 Discriminator 无法进一步学习（梯度消失！）。</p>
+</li>
+<li><p>Mode Collapse</p>
+<p>  <img src="/2022/11/23/gan/GAN19.png"></p>
+<p>  Generator 发现生成某一个特征的图片可以永远骗过 Discriminator，于是它就倾向于一直输出类似的图片。</p>
+</li>
+<li><p>Mode Dropping </p>
+<p>  <img src="/2022/11/23/gan/GAN20.png"></p>
+<p>  多样性的丧失。</p>
+</li>
+</ul>
+<h2 id="GAN-评估"><a href="#GAN-评估" class="headerlink" title="GAN 评估"></a>GAN 评估</h2><ul>
+<li><p>Inception score</p>
+<p>  <img src="/2022/11/23/gan/GAN21.png"></p>
+<p>  问题在于，对于hw，判定图片质量的方式只是检测识别到了多少张人脸，而非检测红发，黑发，蓝发等多样性特征。</p>
+</li>
+<li><p>FID</p>
+<p>  <img src="/2022/11/23/gan/GAN22.png"></p>
+<p>  取出 hidden layer 的向量而非输出的类别向量，计算分布的 <code>FID</code></p>
+</li>
+</ul>
+<h2 id="Conditional-Generator"><a href="#Conditional-Generator" class="headerlink" title="Conditional Generator"></a>Conditional Generator</h2><p>我们无法使用之前无条件生成的架构，因为 Discriminator 只是在学习如何打假，而没有学习生成的图片是否满足给定的条件。</p>
+<p><img src="/2022/11/23/gan/GAN23.png"></p>
+<p>需要如下图所示的成对训练资料：</p>
+<p><img src="/2022/11/23/gan/GAN24.png"></p>
+<p>不同于之前无条件的情况进行“打假”，将所有训练集的数据都标注为真，生成的都标注为假，这里还需要选中一些训练集的数据（不满足给定条件），标注他们为假。</p>
+<h2 id="CycleGAN：GAN-与无监督学习"><a href="#CycleGAN：GAN-与无监督学习" class="headerlink" title="CycleGAN：GAN 与无监督学习"></a>CycleGAN：GAN 与无监督学习</h2><p><img src="/2022/11/23/gan/GAN25.png"></p>
+<p>对于这种风格变换的类型，我们很难找到成对的训练资料。但是我们可以用 GAN 处理这种类型的问题。</p>
+<p><img src="/2022/11/23/gan/GAN26.png"></p>
+<p>和原先 GAN 训练方式类似，之前是从高斯分布中 sample 一个向量出来，现在则是从 <code>Domain X</code> 中 sample 一张图片。然后将这张图片输入 Generator，<br>然后获得生成的风格变换的图片。这些图片和真实的图片作为训练集来训练 Discriminator，和之前的训练方式也是类似的。</p>
+<p>但是这样可能会产生模型忽略输入而产生不相关图片的现象（反正输出二次元图片就能高分，那我干嘛要管输入的三次元图像）。</p>
+<p>CycleGAN 通过两个 Generator 解决了这样的问题：一个 Generator 生成目标图像（即风格变换后的图像），另一个负责将这个目标图像变回原图。</p>
+<p><img src="/2022/11/23/gan/GAN27.png"></p>
+<p>通俗来讲，就是第一个 Generator 负责将三次元人物变成二次元纸片人；而第二个 Generator 负责将这个生成的二次元纸片人恢复成原来的三次元人物。</p>
+<p>这样就构成了循环，也就是 CycleGAN 名字的由来。这样的循环的好处在于，假如说第一个 Generator 无视输入的原图的特征，而生成一些毫不相关的二次元图像，<br>那么第二个 Generator 就很难将其转变回原来的图像（因为丢失了很多原图的语义信息）。这样就会产生较大的 loss，对这种行为进行惩罚。</p>
+<p>虽然说 Gx-&gt;y 和 Gy-&gt;x可能串通一气，前者和后者都将图片镜像翻转，这样后者依旧能恢复出原始输入图像。但是一般实际训练的时候，第一个 Generator 就会生成和原图比较像的图片了（不会做复杂的变换），<br>所以 CycleGAN 在实际应用中很少会发生上述的情况。</p>
+<p>你也可以训练一个双向的 CycleGAN：</p>
+<p><img src="/2022/11/23/gan/GAN28.png"></p>
+<p><img src="/2022/11/23/gan/GAN29.jpg"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/GAN/" style="color: #00a596">GAN</a>
+        </span>
+        
+    </div>
+    <a href="/2022/11/23/gan/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/11/20/self-attention/">
+        <h2 class="post-title">Self Attention 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/11/20
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <ul>
+<li><p>自注意力机制的矩阵运算：</p>
+<p> <code>q</code> 即 <code>query</code>，<code>k</code> 即 <code>key</code>，<code>v</code> 即 <code>value</code></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention1.png"></p>
+<p>  <code>α</code> 即为注意力分数，经过 <code>softmax</code> 进行归一化得到 <code>α&#39;</code>，并与 <code>v</code> 相乘得到最终的 <code>b</code></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention2.png"></p>
+<p>  <img src="/2022/11/20/self-attention/self-attention3.png"></p>
+</li>
+<li><p>为什么我们需要多头注意力机制（<code>Multi-head Self-attention</code>）？</p>
+<p>  <code>Self-attention</code> 实际上就是去找和 <code>q</code> 相关的 <code>k</code>，但是相关性是一个比较复杂的东西，我们往往需要多个维度对相关性进行描述，<br>  即使用多个 <code>q</code> 负责不同的相关性。</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention4.png"></p>
+<p>  将多个头获取的 <code>bi</code> 进行 <strong>concat</strong>：</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention5.png"></p>
+</li>
+<li><p>有什么不足？缺少位置信息：</p>
+<p>  解决方案：<code>positional vector</code>，每一个位置都对应一个不同的位置向量 <code>ei</code>，</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention6.png"></p>
+</li>
+<li><p>我们真的需要<strong>读一整句话</strong>吗？</p>
+<p>  对于像语音识别这样的序列而言，我们会把每 10ms 的语音数据作为一个向量，那么一句话就会对应相当可观的序列长度 <code>L</code>。而我们产生的注意力矩阵的规模和 <code>L</code> 的二次成正比，<br>  如果 <code>L</code> 非常大的话，注意力矩阵也会相当大。所以我们实际上不会读一整个句子，而是使用所谓 <code>Truncated Self-attention</code> 去读一个窗口（其大小可以自行指定）</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention7.png"></p>
+</li>
+<li><p><code>Self-attention</code> vs <code>CNN</code>：</p>
+<p>  图片亦可作为 <code>set of vector</code>，所以 <code>Self-attention</code> 亦可用于图像领域。<code>CNN</code> 的卷积核代表了一片感受野，其大小是受限的，而 <code>Self-attention</code> 则关注了整张图片的信息。</p>
+<blockquote>
+<p>CNN is simplified self-attention(self-attention that only attends in a receptive field).</p>
+</blockquote>
+<p>  或者你也可以说：</p>
+<blockquote>
+<p>Self-attention is the complex version of CNN(CNN with learnable receptive field).</p>
+</blockquote>
+<p>  <img src="/2022/11/20/self-attention/self-attention8.png"></p>
+</li>
+<li><p><code>Self-attention</code> vs <code>RNN</code>：</p>
+<p>  <code>RNN</code> 只能获取左边已输入的序列的信息吗？不，可以用双向 <code>RNN</code>，即 <code>Bidirectional RNN</code></p>
+<p>  <code>Self-attention</code> 可以并行处理（矩阵运算，GPU 优化），并且可以轻易获取非常远的上下文信息。</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention9.png"></p>
+</li>
+<li><p>在图中使用自注意力机制：</p>
+<p>  <img src="/2022/11/20/self-attention/self-attention10.png"></p>
+</li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00a596">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Self-Attention/" style="color: #ffa2c4">Self Attention</a>
+        </span>
+        
+    </div>
+    <a href="/2022/11/20/self-attention/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/11/20/transformer/">
+        <h2 class="post-title">Transformer 笔记——Attention Is All You Need</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/11/20
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h2 id="Core——注意力计算公式"><a href="#Core——注意力计算公式" class="headerlink" title="Core——注意力计算公式"></a>Core——注意力计算公式</h2><p><img src="/2022/11/20/transformer/attention.png"></p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p><img src="/2022/11/20/transformer/transformer1.png"></p>
+<h2 id="Encoder"><a href="#Encoder" class="headerlink" title="Encoder"></a>Encoder</h2><ul>
+<li><p>Add &amp; Norm</p>
+<p>  利用了 <code>Residual</code> 的思想，于此同时加上一个 <code>Layer Normalization</code>。</p>
+<p>  （关于 <code>Layer Norm</code> 和 <code>Batch Norm</code> 的区别，请看 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/74516930">NLP中 batch normalization与 layer normalization</a> ）</p>
+<p>  <img src="/2022/11/20/transformer/transformer2.png"></p>
+<p>  多头注意力模块 + <code>Add &amp; Norm</code> 构成了图中深蓝色的模块，这个模块将会再被用于图中最右的结构。</p>
+</li>
+</ul>
+<h2 id="Decoder"><a href="#Decoder" class="headerlink" title="Decoder"></a>Decoder</h2><p><code>Decoder</code> 分为两种：<code>AT</code> 和 <code>NAT</code></p>
+<ul>
+<li><p>AT</p>
+<p>  接受 <code>Encoder</code> 的输出，以及自己之前的输出作为输入，反复生成下一个字。</p>
+<p>  以语音识别为例，输出是一段中文，需要有一个特殊 token 代表开始和结束。</p>
+<p>  <img src="/2022/11/20/transformer/transformer3.png"></p>
+</li>
+<li><p>NAT</p>
+<p>  不同于 <code>AT</code> 会一直迭代生成直到输出一个 <code>END</code>，<code>NAT</code> 是给若干个 <code>START</code> 然后并行生成若干个字符。</p>
+<p>  <img src="/2022/11/20/transformer/transformer4.png"></p>
+</li>
+</ul>
+<h2 id="Encoder-和-Decoder-结构对比"><a href="#Encoder-和-Decoder-结构对比" class="headerlink" title="Encoder 和 Decoder 结构对比"></a>Encoder 和 Decoder 结构对比</h2><ul>
+<li><p>Decoder 的多头注意力机制模块是 <code>masked</code> 的：</p>
+<p>  未被掩码的 <code>Self-attention</code> 会观察整个上下文，但是对于 <code>decoder</code> 而言不能观察后文（因为生成一个字的时候，后面的字还未生成，只能获取前文的上下文信息）。<br>  比如已经生成“机器”的时候，即将生成“学”，模型只能从“机器”这一前文观察到上下文信息，因为此时“习”还没有被生成。</p>
+<p>  本质上就是输入到 <code>encoder</code> 的序列是已知的，可以一窥全文，而 <code>decoder</code> 则是循环生成序列，还未生成，何来后文？</p>
+</li>
+</ul>
+<h2 id="Cross-Attention"><a href="#Cross-Attention" class="headerlink" title="Cross Attention"></a>Cross Attention</h2><p>将 <code>decoder</code> 的向量的 <code>q</code> 和 <code>encoder</code> 的向量的 <code>k</code> 和 <code>v</code> 共同计算 <code>attention score</code>，即为 <code>Cross Attention</code>。</p>
+<p><img src="/2022/11/20/transformer/transformer5.png"></p>
+<h2 id="Train"><a href="#Train" class="headerlink" title="Train"></a>Train</h2><ul>
+<li><p>Teacher Forcing</p>
+<p>  在训练 <code>decoder</code> 的时候避免 <code>Error propogation</code>（一步错步步错），投喂 <code>Ground truth</code>。</p>
+<p>  <code>decoder</code> 输出的是一个概率分布，因而使用 <code>cross entropy</code> 作为损失函数。</p>
+<p>  <img src="/2022/11/20/transformer/transformer6.png"></p>
+<p>  存在的问题：训练的时候“偷看”了正确结果，但是测试的时候怎么办呢？存在 mismatch。</p>
+</li>
+<li><p>Tips</p>
+<ul>
+<li><p>Copy Mechanism</p>
+<p>  应对难以生成或者无需凭空生成（比如生成摘要）序列的情况：</p>
+<p>  <img src="/2022/11/20/transformer/transformer7.png"></p>
+</li>
+<li><p>Guided Attention</p>
+<p>  对 Attention 的训练加以限制，比如语音识别的 Attention 必须从左到右：</p>
+<p>  <img src="/2022/11/20/transformer/transformer8.png"></p>
+</li>
+<li><p>Beam Search</p>
+<p>  是对 <code>Greedy Search</code> 的一个改进算法。相对 <code>Greedy Search</code> 扩大了搜索空间，但远远不及穷举搜索指数级的搜索空间，是二者的一个折中方案。</p>
+<p>  <img src="/2022/11/20/transformer/transformer9.png"></p>
+</li>
+<li><p>对于语音生成，在测试的时候添加噪音反而会有好的结果：可能是语音的 <code>ground truth</code> 不是一个绝对的东西，比如”你好“可能对应男生，女生，中性等多种音调的声音。</p>
+</li>
+<li><p>无法 optimize 的函数（不可微分） 可以考虑用 RL 硬 train？</p>
+</li>
+<li><p>上面提到的 mismatch 问题可以用 <code>Schedule Sampling</code> 解决：在 <code>Teacher Forcing</code> 的时候投喂一些错误的 <code>ground truth</code>，比如<code>机气学习</code></p>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Transformer/" style="color: #ffa2c4">Transformer</a>
+        </span>
+        
+    </div>
+    <a href="/2022/11/20/transformer/" class="go-post">阅读全文</a>
+</div>
+
+
+        <div class="page-current">
+    
+    <a class="page-num" href="/page/3/">
+        <i class="fa-solid fa-caret-left fa-fw"></i>
+    </a>
+    <a class="page-num" href="/">1</a>
+    <span class="page-omit">...</span>
+    
+    <span class="current">4</span>
+    
+    
+    
+    
+</div>
+
+    </div>
+    
+    <div id="home-card">
+        <div id="card-style">
+    <div id="card-div">
+        <div class="avatar">
+            <img src="/images/avatar.jpg" alt="avatar" />
+        </div>
+        <div class="name">Zihong Lin</div>
+        <div class="description">
+            <p>What I can’t create, I don’t understand.</p>
+
+        </div>
+        
+        
+    </div>
+</div>
+
+    </div>
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+</body>
+</html>

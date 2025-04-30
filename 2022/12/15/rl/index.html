@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>RL 笔记 | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>RL 笔记</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/15
+        </span>
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="/tags/AI/" style="color: #ff7d73">AI</a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="/tags/Reinforcement-Learning/" style="color: #ffa2c4">Reinforcement Learning</a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <p><img src="/2022/12/15/rl/RL_0.png"></p>
+<p><img src="/2022/12/15/rl/RL_1.png"></p>
+<h2 id="ChatGPT-告诉我们-Trajectory-和-Episode-的区别"><a href="#ChatGPT-告诉我们-Trajectory-和-Episode-的区别" class="headerlink" title="ChatGPT 告诉我们 Trajectory 和 Episode 的区别"></a>ChatGPT 告诉我们 <code>Trajectory</code> 和 <code>Episode</code> 的区别</h2><p><img src="/2022/12/15/rl/RL_15.png"></p>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><p>强化学习的步骤和基本的机器学习的步骤是类似的：</p>
+<ul>
+<li><p>第一步：找一个具有未知参数的函数：</p>
+<p>  在强化学习中对应于 <code>Actor</code> 的 <code>Policy Network</code>，它通过从 <code>Environment</code> 获取 <code>Observation</code>，并基于此预测要执行什么 <code>Action</code>。<br>  如果这里的 <code>Action</code> 是 <code>stochastic</code> 的，那么就会得到一个 <code>Action</code> 的概率分布，类似于分类问题.</p>
+<p>  <img src="/2022/12/15/rl/RL_2.png"></p>
+</li>
+<li><p>第二步：定义 “loss”：</p>
+<p>  我们要使得获取的总体奖励的期望值最大。</p>
+<p>  <code>Total reward</code> &#x3D; <code>Return</code></p>
+<p>  <img src="/2022/12/15/rl/RL_3.png"></p>
+</li>
+<li><p>第三步：如何进行优化：</p>
+<p>  需要定义一个结束条件，然后让模型经历一个 <code>Trajectory</code>，要使得这个 <code>Trajectory</code> 获得的 <code>Reward</code> 最大。</p>
+<p>  <img src="/2022/12/15/rl/RL_4.png"></p>
+<p>  <code>Actor</code> 与 <code>Critic</code> 和 <code>GAN</code> 有异曲同工之妙。<code>Actor</code> 对应于 <code>Generator</code>，生成带有随机性的决策；<code>Critic</code> 对应于 <code>Discriminator</code>，判定决策的分数，<br>  并为 <code>Actor</code> 修改策略提供依据和指正。但是不同点在于，<code>GAN</code> 中的 <code>Discriminator</code> 是一个已知的可训练的 model，而强化学习中的 <code>Environment</code> 和 <code>Reward</code> 更像是一个黑盒子，<br>  它们根本不是模型，无法用一般的梯度下降法来解决。</p>
+</li>
+</ul>
+<h2 id="How-to-control-actor"><a href="#How-to-control-actor" class="headerlink" title="How to control actor"></a>How to control actor</h2><p><img src="/2022/12/15/rl/RL_5.png"></p>
+<p>其中 $A_n$ 代表一个权重（正数代表我们希望这种动作发生），$e_n$ 代表第 $n$ 次动作产生的“误差”。</p>
+<ul>
+<li><p>Version 0</p>
+<p>  <img src="/2022/12/15/rl/RL_6.png"></p>
+<p>  缺点：如果只用一个动作获得的奖励（而不看后续获得的奖励的话），那么 <code>actor</code> 就会偏向于只追求短期利益，<br>  只追求会获得奖励的动作。这显然是错误的，本质上就是一种贪心策略。</p>
+</li>
+<li><p>Version 1</p>
+<p>  <img src="/2022/12/15/rl/RL_7.png"></p>
+<p>  改进之后会考虑后续的奖励了，但是在很久之后获得的奖励 $r_N$ 真的可以归功于动作 $a_1$ 吗？显然不能！<br>  我们希望奖励前面有个系数，且这个系数是衰减的，越遥远的奖励和当前执行动作的相关性往往越弱。</p>
+</li>
+<li><p>Version 2</p>
+<p>  <img src="/2022/12/15/rl/RL_8.png"></p>
+<p>  引入折扣因子 $\gamma$ 解决上述问题。</p>
+</li>
+<li><p>Version 3</p>
+<p>  奖励是相对的，有些环境只会产生正的反馈，那么如果不对奖励进行修正，那么一些低奖励的动作也会被鼓励。<br>  因此，可以对奖励减去基准 $b$，以对奖励进行标准化。</p>
+<p>  <img src="/2022/12/15/rl/RL_9.png"></p>
+</li>
+<li><p>Version 3.5</p>
+<p>  如何更好地确定系数 $A_n$？使用下面讲到的 <code>Critic</code> 的 <code>Value function</code>：</p>
+<p>  <img src="/2022/12/15/rl/RL_24.png"></p>
+<p>  $V^\theta(s_t)$ 是一个期望值，也就是一个均值（相当于你随机做一串动作获得的奖励差不多就是这个值），作为被减去的 <code>baseline</code>。</p>
+<p>  $G^\prime_t$ 则是 <code>actor</code> 获取的实际收益。如果说这个收益大于均值，我们就认为这个动作是好的，是值得鼓励的。</p>
+<p>  <img src="/2022/12/15/rl/RL_25.png"></p>
+</li>
+<li><p>Version 4</p>
+<p>  $V^\theta(s_t)$ 是多条路径取平均的结果（因为你在训练 <code>Critic</code> 网络并且让其趋向于期望值），<br>  而 $G^\prime_t$ 则是某一个 <code>sample</code> 的结果，假如说这个 <code>sample</code> 碰巧特别好或者碰巧特别坏，<br>  那么这样计算出来的差值真的能用来评估这个在状态 $s_t$ 下的动作 $a_t$ 的好坏吗？</p>
+<p>  举个例子，假如说极端一点， $a_t$ 其实是一个极好的决策，但是后面的决策都做的烂的惨不忍睹，导致 $G^\prime_t \rightarrow -\infty$，这会导致 $A_t &#x3D; G^\prime_t - V^\theta(s_t) \rightarrow -\infty$。<br>  这样就说明我们非常不鼓励 <code>actor</code> 去做 $a_t$，这不就事与愿违了吗？</p>
+<p>  所以正确的做法应该是用平均减去平均，以评估 $a_t$ 这一动作的优劣，这也就是大名鼎鼎的 <code>A2C(Advantage Actor-Critic)</code>：</p>
+<p>  <img src="/2022/12/15/rl/RL_26.png"></p>
+<p>  注意到，我们上面说了 $V^\theta(s_t)$ 会趋向于累计奖励的期望值（乘上折扣因子），也就是说：</p>
+<p>  $$<br>  E(G^\prime_t) &#x3D; V^\theta(s_t)\<br>  E(G^\prime_{t+1}) &#x3D; V^\theta(s_{t+1})\<br>  E(r_t) &#x3D; E(G^\prime_{t} - \gamma G^\prime_{t+1})<br>  &#x3D; E(G^\prime_{t}) - \gamma E(G^\prime_{t+1})<br>  &#x3D; V^\theta(s_t) - \gamma V^\theta(s_{t+1})<br>  $$</p>
+<p>  故而有：<br>  $$<br>  A_n &#x3D; r_t - E(r_t) &#x3D; r_t + \gamma V^\theta(s_{t+1}) + V^\theta(s_t)<br>  $$</p>
+<p>  这里 ppt 上因为之前假设 $\gamma &#x3D; 1$，所以上面省略了 $\gamma$ 这一因子。</p>
+</li>
+</ul>
+<h2 id="Policy-based-Value-based"><a href="#Policy-based-Value-based" class="headerlink" title="Policy-based &amp; Value-based"></a>Policy-based &amp; Value-based</h2><p><img src="/2022/12/15/rl/RL_12.png"></p>
+<h2 id="On-policy-vs-Off-policy"><a href="#On-policy-vs-Off-policy" class="headerlink" title="On-policy vs Off-policy"></a>On-policy vs Off-policy</h2><p><img src="/2022/12/15/rl/RL_11.png"></p>
+<h2 id="Policy-Gradient"><a href="#Policy-Gradient" class="headerlink" title="Policy Gradient"></a>Policy Gradient</h2><p><img src="/2022/12/15/rl/RL_10.png"></p>
+<p>$R_\theta$ 代表了一个 <code>Episode</code> 获得的奖励的总和，$\pi_\theta$ 则代表我们的网络（<code>policy network</code>），其输入是环境的 <code>state</code> ，输出是执行各个动作的概率分布。我们希望 $R_\theta$ 的期望值 $\overline{R_\theta}$ 越大越好。</p>
+<p><img src="/2022/12/15/rl/RL_13.png"></p>
+<p>$P(\tau|\theta)$ 可以由下面的式子计算，其中 $\tau$ 代表了一个 <code>Trajectory</code>。</p>
+<p><img src="/2022/12/15/rl/RL_14.png"></p>
+<p>$R_\theta$ 的期望可以通过穷举获得（但是显然不可能，所以可以用尽可能多的次数来近似）</p>
+<p><img src="/2022/12/15/rl/RL_16.png"></p>
+<p>接下来就可以用 <code>Gradient Discent</code> 来解决这一问题：</p>
+<p><img src="/2022/12/15/rl/RL_17.png"></p>
+<p>这里认为 $R(\tau)$ 和 $\theta$ 无关，所以即使 $R(\tau)$ 不可微分也无妨。<br>由右边的导数公式就能算出最后的结果。</p>
+<p><img src="/2022/12/15/rl/RL_18.png"></p>
+<p><img src="/2022/12/15/rl/RL_19.png"></p>
+<h2 id="Actor-Critic"><a href="#Actor-Critic" class="headerlink" title="Actor-Critic"></a>Actor-Critic</h2><h3 id="Critic"><a href="#Critic" class="headerlink" title="Critic"></a>Critic</h3><p><code>Critic</code> 会有一个 <code>Value function</code> $V^\theta(s)$，它的值代表了 <code>actor</code> 看到状态 $s$ 之后所能获得的打过折扣的累计奖励的期望值。</p>
+<p><img src="/2022/12/15/rl/RL_20.png"></p>
+<h3 id="如何训练-Value-function"><a href="#如何训练-Value-function" class="headerlink" title="如何训练 Value function"></a>如何训练 <code>Value function</code></h3><ul>
+<li><p>蒙特卡罗方法</p>
+<p>  让 <code>actor</code> 与环境交互若干次。每次都会获取奖励 $G$，我们期望 $V^\theta(s)$ 的值和 $G$ 越接近越好，可以用 <code>MSE</code> 作为损失函数。</p>
+<p>  比如下面的例子，我们就希望 $V^\theta(s_a)$ 与 $G^\prime_a$ 越接近越好。</p>
+<p>  <img src="/2022/12/15/rl/RL_21.png"></p>
+</li>
+<li><p>Temporal-Difference（简称 TD）</p>
+<p>  与蒙特卡罗方法不同，<code>TD</code> 是每一步都进行参数更新。</p>
+<p>  由：</p>
+<p>  $$V^\theta(s_t)&#x3D;\gamma V^\theta(s_{t+1})+r_t$$，</p>
+<p>  可知：</p>
+<p>  $$V^\theta(s_t)-\gamma V^\theta(s_{t+1})&#x3D;r_t$$</p>
+<p>  所以此时我们只要让 $V^\theta(s_t)-\gamma V^\theta(s_{t+1})$ 和 $r_t$ 尽可能接近就行。因为在 $t$ 时刻获得的奖励 $r_t$ 是已知的。</p>
+<p>  <img src="/2022/12/15/rl/RL_22.png"></p>
+</li>
+<li><p>蒙特卡罗方法和 TD 可能会计算出不同的 $V^\theta(s)$</p>
+<p>  <img src="/2022/12/15/rl/RL_23.png"></p>
+</li>
+</ul>
+<h3 id="整体训练技巧"><a href="#整体训练技巧" class="headerlink" title="整体训练技巧"></a>整体训练技巧</h3><p>Actor 网络和 Critic 网络可以共享。</p>
+<p><img src="/2022/12/15/rl/RL_27.png"></p>
+<h2 id="Reward-Shaping"><a href="#Reward-Shaping" class="headerlink" title="Reward Shaping"></a>Reward Shaping</h2><p>在有些环境中，大多数 action 都无法获得或者无法获得较多的 reward，而只有极少数 action 或者只有在最后才能获得较多的 reward（比如围棋）。</p>
+<p>我们需要设计额外的 reward 帮助 agent 学习，也就是 <code>reward shaping</code>。</p>
+<p><img src="/2022/12/15/rl/RL_28.png"></p>
+<p>为 agent 赋予 curiosity，在探索环境中获取 reward，但是必须要避免一直读无意义的新内容以获取 reward。</p>
+<h2 id="No-reward-Learning-from-demonstration"><a href="#No-reward-Learning-from-demonstration" class="headerlink" title="No reward: Learning from demonstration"></a>No reward: Learning from demonstration</h2><p>在有些情况下，我们甚至连 reward 都没有，或者说我们难以设计一个好的 reward。<br>这时候，我们可以用一组 export 的 demonstration 来为 agent 提供“动作指导”。</p>
+<p><img src="/2022/12/15/rl/RL_29.jpg"></p>
+<p>这种方式有点类似于监督学习，但是我们不能只用监督学习的方式来训练 agent。使用监督学习，实际上就是让 agent 学会模仿 export 的动作，本质上是一种 cloning 的行为。<br>但是，我们往往无法知道 export 的 demonstration 里面哪些是不该学习的“个性化”的 action。而且，如果只学习 export 的 demonstration，那么 agent 就会无法学习到一些突发情况的解决方式，<br>因为 export 实在太厉害了，往往都是顺利地解决问题。</p>
+<p><img src="/2022/12/15/rl/RL_30.jpg"></p>
+<h3 id="Inverse-Reinforcement-Learning"><a href="#Inverse-Reinforcement-Learning" class="headerlink" title="Inverse Reinforcement Learning"></a>Inverse Reinforcement Learning</h3><p>我们可以通过 export 的 demonstration 来学习一个 <code>Reward Function</code>，然后再利用这个 <code>Reward Function</code> 进行普通的强化学习。</p>
+<p><img src="/2022/12/15/rl/RL_31.jpg"></p>
+<p>我们需要定义一个 reward function，对于老师的行为和学生的行为都会去评估他们的奖励，我们希望老师的奖励应该要大于学生（学生的奖励 - 老师的奖励作为损失），并且对于学生而言，<br>它的目标就是学习获得最大的奖励（基于新的 reward function）。</p>
+<p><img src="/2022/12/15/rl/RL_32.jpg"></p>
+<p>整体的框架和思想其实和 GAN 有异曲同工之妙。</p>
+<p><img src="/2022/12/15/rl/RL_33.jpg"></p>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>
