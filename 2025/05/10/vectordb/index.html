@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Self Attention 笔记 | Okabe&#39;s LAB</title>
+    <title>Vector DB | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -154,14 +154,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Self Attention 笔记</h1>
+        <h1>Vector DB</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2022/11/20
+            2025/5/10
         </span>
         
         <span class="category">
@@ -182,12 +182,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/AI/" style="color: #00a596">AI</a>
-            </span>
-            
-            <span class="tag">
-                
-                <a href="/tags/Self-Attention/" style="color: #ffa2c4">Self Attention</a>
+                <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
             </span>
             
         </span>
@@ -195,48 +190,32 @@
     </div>
     
     <div class="content" v-pre>
-        <ul>
-<li><p>自注意力机制的矩阵运算：</p>
-<p> <code>q</code> 即 <code>query</code>，<code>k</code> 即 <code>key</code>，<code>v</code> 即 <code>value</code></p>
-<p>  <img src="/2022/11/20/self-attention/self-attention1.png"></p>
-<p>  <code>α</code> 即为注意力分数，经过 <code>softmax</code> 进行归一化得到 <code>α&#39;</code>，并与 <code>v</code> 相乘得到最终的 <code>b</code></p>
-<p>  <img src="/2022/11/20/self-attention/self-attention2.png"></p>
-<p>  <img src="/2022/11/20/self-attention/self-attention3.png"></p>
-</li>
-<li><p>为什么我们需要多头注意力机制（<code>Multi-head Self-attention</code>）？</p>
-<p>  <code>Self-attention</code> 实际上就是去找和 <code>q</code> 相关的 <code>k</code>，但是相关性是一个比较复杂的东西，我们往往需要多个维度对相关性进行描述，<br>  即使用多个 <code>q</code> 负责不同的相关性。</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention4.png"></p>
-<p>  将多个头获取的 <code>bi</code> 进行 <strong>concat</strong>：</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention5.png"></p>
-</li>
-<li><p>有什么不足？缺少位置信息：</p>
-<p>  解决方案：<code>positional vector</code>，每一个位置都对应一个不同的位置向量 <code>ei</code>，</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention6.png"></p>
-</li>
-<li><p>我们真的需要<strong>读一整句话</strong>吗？</p>
-<p>  对于像语音识别这样的序列而言，我们会把每 10ms 的语音数据作为一个向量，那么一句话就会对应相当可观的序列长度 <code>L</code>。而我们产生的注意力矩阵的规模和 <code>L</code> 的二次成正比，<br>  如果 <code>L</code> 非常大的话，注意力矩阵也会相当大。所以我们实际上不会读一整个句子，而是使用所谓 <code>Truncated Self-attention</code> 去读一个窗口（其大小可以自行指定）</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention7.png"></p>
-</li>
-<li><p><code>Self-attention</code> vs <code>CNN</code>：</p>
-<p>  图片亦可作为 <code>set of vector</code>，所以 <code>Self-attention</code> 亦可用于图像领域。<code>CNN</code> 的卷积核代表了一片感受野，其大小是受限的，而 <code>Self-attention</code> 则关注了整张图片的信息。</p>
-<blockquote>
-<p>CNN is simplified self-attention(self-attention that only attends in a receptive field).</p>
-</blockquote>
-<p>  或者你也可以说：</p>
-<blockquote>
-<p>Self-attention is the complex version of CNN(CNN with learnable receptive field).</p>
-</blockquote>
-<p>  <img src="/2022/11/20/self-attention/self-attention8.png"></p>
-</li>
-<li><p><code>Self-attention</code> vs <code>RNN</code>：</p>
-<p>  <code>RNN</code> 只能获取左边已输入的序列的信息吗？不，可以用双向 <code>RNN</code>，即 <code>Bidirectional RNN</code></p>
-<p>  <code>Self-attention</code> 可以并行处理（矩阵运算，GPU 优化），并且可以轻易获取非常远的上下文信息。</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention9.png"></p>
-</li>
-<li><p>在图中使用自注意力机制：</p>
-<p>  <img src="/2022/11/20/self-attention/self-attention10.png"></p>
-</li>
+        <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=YpulM5HdSr8">[FIXME][EP09] 向量数据库和出海创业</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/">Locality Sensitive Hashing (LSH): The Illustrated Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://skyzh.github.io/write-you-a-vector-db/">Write You a Vector Database</a></li>
 </ul>
+<h3 id="常用的向量检索算法"><a href="#常用的向量检索算法" class="headerlink" title="常用的向量检索算法"></a>常用的向量检索算法</h3><ol>
+<li><p>量化（以一定的模型性能换取查询效率），<a target="_blank" rel="noopener" href="https://github.com/gaoj0017/RaBitQ">RabitQ</a>。</p>
+</li>
+<li><p>Locality Sensitive Hashing (LSH)：传统的 hash 函数一般都希望减少碰撞，将一个 key 映射到尽可能分散的空间，而 <code>LSH</code> 则恰恰相反，通过将比较近的 <code>embedding</code> 映射到尽可能相同的 <code>bucket</code> 中，这样就能快速找到相邻的节点。</p>
+<p> <img src="/2025/05/10/vectordb/lsh.png"></p>
+</li>
+<li><p>NSW(Navigate Small World)</p>
+<p> <img src="/2025/05/10/vectordb/nsw.png"></p>
+<p> 选择若干个 <code>entry</code>，然后维护一个有固定大小上限的队列，以类似 BFS 的方式，将距离目标向量最近的向量入队。需要多个 <code>entry</code> 的原因是，如果只采用一个，很容易陷入局部最优解。</p>
+<p> 为了加速查询，我们会限制图中点之间的边的数量为 <code>max_m</code>。当我们插入一个节点的时候，其邻居节点的边可能会超过 <code>max_m</code>，所以我们需要重新计算这些节点的最近邻。</p>
+</li>
+<li><p>HNSW(Hierarchical Navigate Small World)</p>
+<p> 将图以类似跳表的形式组织，但是无论是 NSW 还是 HNSW 都会涉及大量磁盘随机 I&#x2F;O，性能受限。</p>
+</li>
+<li><p>IVF(Inverted File)</p>
+<p> <img src="/2025/05/10/vectordb/ivf.png"></p>
+<p> 使用 <code>Kmeans</code> 将向量分为多个 <code>cluster</code>。并根据 <code>cluster</code> 的标识建立对向量的<code>倒排索引</code>。由于索引存储在一起，可以被顺序读写。</p>
+<p> 在查询的时候，除了判断距离查询向量最近的质心对应的集群，还需要判断临近的集群。因为集群的质心可能距离查询向量比较远，但是边缘的点可能比较近。</p>
+<p> <img src="/2025/05/10/vectordb/ivf_search.png"></p>
+</li>
+</ol>
 
     </div>
     
