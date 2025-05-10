@@ -332,7 +332,7 @@ def recv_kv_caches_and_hidden_states(
     return self.connector.recv_kv_caches_and_hidden_states(
         model_executable, model_input, kv_caches)
 </code></pre>
-<p>  可以先看 <code>vllm\distributed\kv_transfer\kv_connector\simple_connector.py</code>。</p>
+<p>  可以先看 <code>vllm/distributed/kv_transfer/kv_connector/simple_connector.py</code>。</p>
 </li>
 </ul>
 <h3 id="Speculative-Decoding"><a href="#Speculative-Decoding" class="headerlink" title="Speculative Decoding"></a>Speculative Decoding</h3><p>前文提到 Prefill 是 <code>gpu-bound</code>，计算密集型（把 request 的 tokens 全部输入 llm，生成第一个 token，并构建 KVCache）；而 Decode 是 <code>memory-bound</code>，依赖 Prefill 阶段生成的 KVCache，访存的时间往往大于计算的时间。那么有没有一种方法可以在不怎么增加 memory access 的前提下，提升计算的吞吐呢？<strong>有的，兄弟，有的</strong>，<code>Speculative Decoding</code>。</p>
@@ -378,7 +378,7 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #00a596">LLM</a>
+            <a href="/tags/LLM/" style="color: #03a9f4">LLM</a>
         </span>
         
         <span class="tag">
@@ -388,7 +388,7 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #03a9f4">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #ff7d73">AI Infra</a>
         </span>
         
     </div>
@@ -537,7 +537,7 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #00bcd4">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
     </div>
@@ -663,12 +663,12 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #ffa2c4">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #03a9f4">Key-Value Store</a>
         </span>
         
     </div>
@@ -791,7 +791,7 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #00a596">C++</a>
         </span>
         
     </div>
@@ -1011,7 +1011,7 @@ const std::string &amp;s3 = r2;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #00a596">C++</a>
         </span>
         
     </div>
@@ -1128,7 +1128,7 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #ff7d73">C++</a>
         </span>
         
     </div>
@@ -1324,7 +1324,7 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/Algorithm/" style="color: #03a9f4">Algorithm</a>
+            <a href="/tags/Algorithm/" style="color: #00bcd4">Algorithm</a>
         </span>
         
     </div>
@@ -1645,12 +1645,12 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #ffa2c4">Istio</a>
+            <a href="/tags/Istio/" style="color: #00a596">Istio</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Kmesh/" style="color: #ff7d73">Kmesh</a>
+            <a href="/tags/Kmesh/" style="color: #ffa2c4">Kmesh</a>
         </span>
         
     </div>
@@ -1700,17 +1700,17 @@ istioctl install --set profile=ambient --skip-confirmation
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Istio/" style="color: #03a9f4">Istio</a>
+            <a href="/tags/Istio/" style="color: #00bcd4">Istio</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Metallb/" style="color: #00a596">Metallb</a>
+            <a href="/tags/Metallb/" style="color: #03a9f4">Metallb</a>
         </span>
         
     </div>
