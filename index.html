@@ -171,6 +171,142 @@
         
 
 <div class="post">
+    <a href="/2025/05/13/days-in-bytedance/">
+        <h2 class="post-title">道阻且长——记我的字节实习的九个月</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Essay/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Essay
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/5/13
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p>TODO</p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        
+        
+    </div>
+    <a href="/2025/05/13/days-in-bytedance/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2025/05/13/rocksdb-source/">
+        <h2 class="post-title">RocksDB 源码阅读——SkipList</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Database/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Database
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/5/13
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/facebook/rocksdb/blob/ef67339175c1aebe039c0671560b608e22656612/memtable/inlineskiplist.h">RocksDB 源码 inlineskiplist.h</a></li>
+</ul>
+<h3 id="SkipList-Node-的实现"><a href="#SkipList-Node-的实现" class="headerlink" title="SkipList::Node 的实现"></a>SkipList::Node 的实现</h3><p>RocksDB 分配了一块连续的空间来存储节点在不同 level 的 <code>next</code> 指针。同时，使用 <code>std::atomic</code> 保证可以在无锁的情况下更新链表。其伪代码如下所示，可以说是把内存空间利用得严严实实。</p>
+<pre><code class="c++">#include &lt;atomic&gt;
+#include &lt;cstring&gt;
+#include &lt;memory&gt;
+
+// https://github.com/facebook/rocksdb/blob/ef67339175c1aebe039c0671560b608e22656612/memtable/inlineskiplist.h
+class SkipList &#123;
+public:
+  struct Node &#123;
+  private:
+    std::atomic&lt;Node *&gt; next_[1];
+
+  public:
+    void StashHeight(size_t h) &#123; memcpy(&amp;next_[0], &amp;h, sizeof(h)); &#125;
+
+    size_t UnstashHeight() &#123;
+      size_t rv;
+      memcpy(&amp;rv, &amp;next_[0], sizeof(rv));
+      return rv;
+    &#125;
+
+    Node *Next(size_t level) &#123;
+      return (&amp;next_[0] - level)-&gt;load(std::memory_order_acquire);
+    &#125;
+  &#125;;
+
+  Node *AllocateNode(size_t height, size_t key_size) &#123;
+    size_t prefix = sizeof(std::atomic&lt;Node *&gt;) * height - 1;
+    char *raw = new char[prefix + sizeof(Node) + key_size];
+    Node *node = reinterpret_cast&lt;Node *&gt;(raw + prefix);
+
+    node-&gt;StashHeight(height);
+
+    return node;
+  &#125;
+&#125;;
+</code></pre>
+<p>此处有个很有意思的点，在 <code>AllocateNode</code> 生成一个随机高度的节点的时候，会把他的高度通过 <code>StashHeight</code> 的方式暂时存储在 <code>next_[0]</code> 中。在后续的操作中，可以通过 <code>UnstashHeight</code> 读取存储的高度，并进行后续的 <code>next</code> 指针的更新（毕竟这些更新需要知道高度），可以说是不浪费任何内存空间。 </p>
+<p>其内存布局大概如下图所示（此处我做了简化，<code>&amp;next_[0] - n</code> 其实就是相当于 <code>next_[-n]</code>，但是数组不支持负数）：</p>
+<p><img src="/2025/05/13/rocksdb-source/memory.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/RocksDB/" style="color: #00bcd4">RocksDB</a>
+        </span>
+        
+    </div>
+    <a href="/2025/05/13/rocksdb-source/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2025/05/10/vectordb/">
         <h2 class="post-title">Vector DB</h2>
     </a>
@@ -237,7 +373,7 @@
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ff7d73">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
         </span>
         
     </div>
@@ -452,17 +588,17 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #ff7d73">LLM</a>
+            <a href="/tags/LLM/" style="color: #00bcd4">LLM</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/vllm/" style="color: #00bcd4">vllm</a>
+            <a href="/tags/vllm/" style="color: #03a9f4">vllm</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ff7d73">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
         </span>
         
     </div>
@@ -737,12 +873,12 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #ffa2c4">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #00bcd4">Key-Value Store</a>
         </span>
         
     </div>
@@ -865,7 +1001,7 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
+            <a href="/tags/C/" style="color: #ff7d73">C++</a>
         </span>
         
     </div>
@@ -1085,7 +1221,7 @@ const std::string &amp;s3 = r2;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
     </div>
@@ -1393,342 +1529,16 @@ void heapSort(vector&lt;int&gt; &amp;v) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Algorithm/" style="color: #00a596">Algorithm</a>
+            <a href="/tags/Algorithm/" style="color: #03a9f4">Algorithm</a>
         </span>
         
     </div>
     <a href="/2025/03/11/interview-algo/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2025/03/02/cpp-template/">
-        <h2 class="post-title">C++ Template 阅读笔记（1）</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/Language/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Language
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/3/2
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>最近在学习 <a target="_blank" rel="noopener" href="https://github.com/Walton1128/CPP-Templates-2nd--/blob/master/C%2B%2B%E6%A8%A1%E6%9D%BF_%E7%AC%AC%E4%BA%8C%E7%89%88.pdf">C++ Template</a> 这本书，补齐了一些模板元编程相关的信息，后续会持续更新。</p>
-<h2 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h2><h3 id="推断函数模板的返回值"><a href="#推断函数模板的返回值" class="headerlink" title="推断函数模板的返回值"></a>推断函数模板的返回值</h3><p>假设我们希望计算两个<strong>两个类型不相同</strong>的变量中的<strong>最大值</strong>（如 1u 和 2.0f），我们要如何定义函数模板？</p>
-<pre><code class="c++">// since c++ 14
-template &lt;typename T1, typename T2&gt; auto max(T1 x, T2 y) &#123;
-  return x &gt; y ? x : y;
-&#125;
-
-// here x&#39;s type is float
-auto x = ::max(1u, 2.0f);
-</code></pre>
-<p>从 c++ 14 开始，我们可以使用 <code>auto</code> 让编译器帮我们自动计算返回值的类型，然而在此之前，我们必须使用 <code>decltype</code> 或 <code>common_type</code> 这样的工具来告诉编译器，我们需要返回什么类型：</p>
-<pre><code class="cpp">// c++ 11
-template &lt;typename T1, typename T2&gt;
-auto max(T1 x, T2 y) -&gt; decltype(x &gt; y ? x : y) &#123;
-  return x &gt; y ? x : y;
-&#125;
-
-// equal to
-template &lt;typename T1, typename T2&gt;
-auto max(T1 x, T2 y) -&gt; decltype(true ? x : y) &#123;
-  return x &gt; y ? x : y;
-&#125;
-</code></pre>
-<p>然而，上述的代码可能面临一些严重的问题。在一些特殊场景下，返回值可能为引用，这时候需要使用类型萃取（type trait）std::decay<T>来将引用“退化”。</p>
-<pre><code class="cpp">// c++ 11
-#include &lt;type_traits&gt;
-template &lt;typename T1, typename T2&gt;
-auto max(T1 a, T2 b) -&gt; typename std::decay&lt;decltype(true ? a : b)&gt;::type &#123;
-  return b &lt; a ? a : b;
-&#125;
-
-// since c++ 14, simplified
-template &lt;typename T1, typename T2&gt;
-auto max(T1 a, T2 b) -&gt; std::decay_t&lt;decltype(true ? a : b)&gt; &#123;
-  return b &lt; a ? a : b;
-&#125;
-</code></pre>
-<p>注意到 c++ 14 对 <code>typename std::decay&lt;decltype(true ? a : b)&gt;::type</code> 这样的写法进行了简化。</p>
-<p>这边顺便回顾一下 <code>auto</code> 和 <code>decltype</code> 的区别：</p>
-<p><code>auto</code> 在大部分场景下和模板类型 <code>T</code> 的行为是一致的，会对推导的类型进行退化（decay）。此处的退化是指：</p>
-<ul>
-<li>去除 <code>const</code>，<code>volatile</code> 等关键字；</li>
-<li>去除引用</li>
-<li>将数组退化成指针</li>
-</ul>
-<p><code>decltype</code> 则是老老实实地获取类型，不会进行退化操作。有一个比较有意思的特殊场景：</p>
-<pre><code class="c++">// will return int &amp;
-auto f(int a) -&gt; decltype((a)) &#123; return a; &#125;
-</code></pre>
-<p>虽然上述的用法是不正确的（返回了垂悬引用，dangling reference），但是能表明 <code>decltype</code> 会把 <code>()</code> 括起来的变量视作引用。</p>
-<p>言归正传，之前的写法用 <code>decltype</code> 虽然能解决问题，但是未免太麻烦了点，我们可以用 <code>std::common_type_t&lt;T1, T2, ...&gt;</code> 来解决这个问题：</p>
-<pre><code class="c++">// since c++ 14
-template &lt;typename T1, typename T2&gt;
-auto max(T1 a, T2 b) -&gt; std::common_type_t&lt;T1, T2&gt; &#123;
-  return b &lt; a ? a : b;
-&#125;
-</code></pre>
-<p>还有一种写法，实际上 c++ 在实例化模板时，只要能保证能推断出所有的类型即可，我们可以定义一个返回类型 <code>RT</code>:</p>
-<pre><code class="c++">template &lt;typename RT, typename T1, typename T2&gt; 
-RT max(T1 a, T2 b) &#123;
-  return b &lt; a ? a : b;
-&#125;
-auto x = ::max&lt;float&gt;(1u, 2.0f);
-</code></pre>
-<p>这样只需要指定 <code>RT</code> 即可，因为 <code>T1</code> 和 <code>T2</code> 的类型对于编译器而言是已知的。但是下面的写法就会出错：</p>
-<pre><code class="c++">template &lt;typename T1, typename T2, typename RT&gt;
-RT max(T1 a, T2 b) &#123;
-  return b &lt; a ? a : b;
-&#125;
-auto x = ::max&lt;unsigned int, float&gt;(1u, 2.0f);
-</code></pre>
-<p>报错信息为：</p>
-<blockquote>
-<p>Candidate template ignored: couldn’t infer template argument ‘RT’</p>
-</blockquote>
-<p>编译器无法自动推断 <code>RT</code> 的类型，除非使用上述的 <code>auto</code>。</p>
-<p>c++ 还支持模板类型的默认值，比如常用的 <code>std::priority_queue</code> 实际上有 3 个模板类型。</p>
-<h2 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h2><p>c++ 支持使用基础的数值类型（double 除外）作为模板参数：</p>
-<pre><code class="c++">template &lt;typename T, size_t MaxSize&gt; class Stack &#123;
-  array&lt;T, MaxSize&gt; elements;
-  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
-&#125;;
-</code></pre>
-<p>虽然不支持直接使用字符串常量，但是可以通过定义一个变量来解决</p>
-<pre><code class="c++">template &lt;char const *name&gt; class MyClass &#123;
-  ...
-&#125;;
-MyClass&lt;&quot;hello&quot;&gt; x; // ERROR: string literal &quot;hello&quot; not allowed
-extern char const s03[] = &quot;hi&quot;; // external linkage 
-char const s11[] = &quot;hi&quot;; // internal linkage
-int main() &#123;
-  MyClass&lt;s03&gt; m03;               // OK (all versions)
-  MyClass&lt;s11&gt; m11;               // OK since C++11
-  static char const s17[] = &quot;hi&quot;; // no linkage
-  MyClass&lt;s17&gt; m17;               // OK since C++17
-&#125;
-</code></pre>
-<h2 id="推断指引（Deduction-Guides）"><a href="#推断指引（Deduction-Guides）" class="headerlink" title="推断指引（Deduction Guides）"></a>推断指引（Deduction Guides）</h2><pre><code class="c++">template &lt;typename T&gt; class Stack &#123;
-  vector&lt;T&gt; elements;
-
-public:
-  Stack() = default;
-  Stack(T first) : elements(&#123;first&#125;) &#123;&#125;
-&#125;;
-
-Stack(char const *)-&gt;Stack&lt;std::string&gt;;
-
-Stack s(&quot;123&quot;);
-</code></pre>
-<p>如果没有 <code>Stack(char const *)-&gt;Stack&lt;std::string&gt;;</code>，s 将被推导为 <code>Stack&lt;const char *&gt;</code>。</p>
-<h2 id="Concept"><a href="#Concept" class="headerlink" title="Concept"></a>Concept</h2><pre><code class="c++">template &lt;typename T&gt; struct AccumulationTraits;
-template &lt;&gt; struct AccumulationTraits&lt;int&gt; &#123;
-  using AccT = int;
-  static AccT constexpr zero = 0;
-&#125;;
-
-template &lt;&gt; struct AccumulationTraits&lt;string&gt; &#123;
-  using AccT = string;
-  // support since c++ 17
-  inline static AccT const zero = &quot;&quot;;
-&#125;;
-
-template &lt;typename T&gt; auto accum(T begin, T end) &#123;
-  using AccT = AccumulationTraits&lt;T&gt;::AccT;
-  AccT total = AccumulationTraits&lt;T&gt;::zero;
-
-  for (T i = begin; i &lt;= end; i++) &#123;
-    total += i;
-  &#125;
-  return total;
-&#125;
-
-int main(int, char **) &#123;
-  auto total = accum(1, 100);
-  cout &lt;&lt; total &lt;&lt; endl;
-&#125;
-</code></pre>
-<pre><code class="c++">template &lt;typename T&gt;
-concept Addable = requires(T a, T b) &#123;
-                    &#123; a + b &#125; -&gt; std::same_as&lt;T&gt;;
-                  &#125;;
-
-template &lt;typename T&gt;
-  requires Addable&lt;T&gt; &amp;&amp; std::is_arithmetic_v&lt;T&gt;
-T accum(T begin, T end) &#123;
-  T total&#123;&#125;;
-  for (T i = begin; i &lt;= end; i++) &#123;
-    total += i;
-  &#125;
-  return total;
-&#125;
-</code></pre>
-<p>此处也可以把 <code>typename</code> 替换成 <code>Addable</code> 之类的 <code>concept</code>。和 <code>rust</code> 的 <code>trait</code> 语法非常类似。</p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/C/" style="color: #ff7d73">C++</a>
-        </span>
-        
-    </div>
-    <a href="/2025/03/02/cpp-template/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2024/07/09/kmesh-env/">
-        <h2 class="post-title">Kmesh 环境配置</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/Cloud-Native/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Cloud Native
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2024/7/9
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <ul>
-<li><p>下载 <a target="_blank" rel="noopener" href="https://repo.openeuler.org/openEuler-23.03/">openEuler 23.03</a></p>
-</li>
-<li><p>安装 kernel headers:</p>
-<pre><code class="shell">yum install kernel-headers
-</code></pre>
-</li>
-<li><p>安装 docker：</p>
-<p>  参考：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2383890">https://cloud.tencent.com/developer/article/2383890</a></p>
-<pre><code class="shell">curl -fsSL https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/centos/docker-ce.repo -o /etc/yum.repos.d/docker-ce.repo
-sed -i &#39;s#https://download.docker.com#https://mirrors.tuna.tsinghua.edu.cn/docker-ce#&#39; /etc/yum.repos.d/docker-ce.repo
-sed -i &#39;s#$releasever#7#g&#39; /etc/yum.repos.d/docker-ce.repo
-yum install docker-ce-24.0.7
-</code></pre>
-</li>
-<li><p>修改 docker proxy:</p>
-<p>  修改 <code>/etc/docker/daemon.json</code> 为如下格式：</p>
-<pre><code class="json">&#123;
-    &quot;proxies&quot;: &#123;
-        &quot;http-proxy&quot;: &quot;http://ip:7890&quot;,
-        &quot;https-proxy&quot;: &quot;http://ip:7890&quot;,
-        &quot;no-proxy&quot;: &quot;127.0.0.1,localhost&quot;
-    &#125;
-&#125;
-</code></pre>
-<p>  重启 docker:</p>
-<pre><code class="shell">systemctl restart docker
-systemctl status docker
-</code></pre>
-</li>
-<li><p>安装 kind </p>
-<pre><code class="shell">wget https://github.com/kubernetes-sigs/kind/releases/download/v0.23.0/kind-linux-amd64
-chmod +x kind-linux-amd64
-mv kind-linux-amd64 /usr/bin/kind
-</code></pre>
-</li>
-<li><p>安装 istioctl</p>
-<pre><code class="shell">curl -L https://istio.io/downloadIstio | sh -
-cd istio-1.22.2/bin
-chmod +x istioctl
-mv istioctl /usr/bin/
-</code></pre>
-</li>
-<li><p>创建 ambient 模式集群</p>
-<pre><code class="shell">kind create cluster --image=kindest/node:v1.23.17 --config=- &lt;&lt;EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: ambient
-nodes:
-- role: control-plane
-- role: worker
-- role: worker
-EOF
-
-istioctl install --set profile=ambient --skip-confirmation
-</code></pre>
-</li>
-<li><p>安装 go</p>
-<p>  <a target="_blank" rel="noopener" href="https://golang.google.cn/doc/install">https://golang.google.cn/doc/install</a></p>
-</li>
-<li><p>安装 kubectl</p>
-<p>  <a target="_blank" rel="noopener" href="https://kubernetes.io/zh-cn/docs/tasks/tools/install-kubectl-linux/">https://kubernetes.io/zh-cn/docs/tasks/tools/install-kubectl-linux/</a></p>
-</li>
-<li><p>安装 kmesh</p>
-<p>  参考 <a target="_blank" rel="noopener" href="https://kmesh.net/en/docs/setup/quickstart/">https://kmesh.net/en/docs/setup/quickstart/</a> 即可。</p>
-</li>
-</ul>
-<p>参考：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://istio.io/latest/docs/ambient/getting-started/">https://istio.io/latest/docs/ambient/getting-started/</a></li>
-<li><a target="_blank" rel="noopener" href="https://istio.io/latest/zh/blog/2022/get-started-ambient/">https://istio.io/latest/zh/blog/2022/get-started-ambient/</a></li>
-</ul>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/Istio/" style="color: #ff7d73">Istio</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Kmesh/" style="color: #00bcd4">Kmesh</a>
-        </span>
-        
-    </div>
-    <a href="/2024/07/09/kmesh-env/" class="go-post">阅读全文</a>
 </div>
 
 

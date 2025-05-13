@@ -171,6 +171,146 @@
         
 
 <div class="post">
+    <a href="/2022/12/03/diffusion/">
+        <h2 class="post-title">Diffusion Model 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/3
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <ul>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1re4y1m7gb/?spm_id_from=333.999.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">简单易懂diffusion模型讲解 - 从前置知识深度生成模型 隐变量 VAE开始</a></p>
+<p>  up 主：<a target="_blank" rel="noopener" href="https://space.bilibili.com/10407305">是好梦梦哦</a></p>
+<p>  对应的 PPT：<a href="./doc/%E7%AE%80%E5%8D%95%E6%98%93%E6%87%82diffusion%E6%A8%A1%E5%9E%8B%E8%AE%B2%E8%A7%A3%20-%20%E4%BB%8E%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E6%B7%B1%E5%BA%A6%E7%94%9F%E6%88%90%E6%A8%A1%E5%9E%8B%20%E9%9A%90%E5%8F%98%E9%87%8F%20VAE%E5%BC%80%E5%A7%8B.pptx">简单易懂diffusion模型讲解 - 从前置知识深度生成模型 隐变量 VAE开始</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ne411u7J6/?spm_id_from=333.999.0.0&vd_source=f7e4c2acec163bdcd3e200e3623cc3e3">非常详尽的数学推理</a></p>
+</li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Diffusion-Model/" style="color: #03a9f4">Diffusion Model</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/03/diffusion/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
+    <a href="/2022/12/02/auto-encoder/">
+        <h2 class="post-title">Auto Encoder 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/2
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <p><img src="/2022/12/02/auto-encoder/ae4.png"></p>
+<h2 id="Image"><a href="#Image" class="headerlink" title="Image"></a>Image</h2><p>训练一个 <code>Encoder</code> 和 <code>Decoder</code>：</p>
+<ul>
+<li><code>Encoder</code> 将图像这样高维度的信息压缩为一个低维度的向量（Dimension Reduction）。</li>
+<li><code>Decoder</code> 将这个低维度的向量重新复原为原始图像。</li>
+</ul>
+<p><img src="/2022/12/02/auto-encoder/ae1.png"></p>
+<h3 id="为什么这种方法行之有效？"><a href="#为什么这种方法行之有效？" class="headerlink" title="为什么这种方法行之有效？"></a>为什么这种方法行之有效？</h3><p>为什么我们能够将一个高维度的图像信息压缩为一个很低维度的向量？因为对于图像而言，绝大多数都是无意义的噪声，<br>就像你随机生成一个灰度图的二维矩阵，大概率得到的是一堆噪音。而真正有意义的图像其实只占极少的比例。</p>
+<p>以 3x3 的图像举例，在这么小的图像里，可能只有两种布局是有意义的，那么 <code>Encoder</code> 完全可以输出一个二维的向量，<br>代表这两种情况。</p>
+<p><img src="/2022/12/02/auto-encoder/ae2.png"></p>
+<p>也就是说，在图像这样的极高维空间中，真正有意义的图像只占很小的空间，我们可以用压缩的信息（类似于 Word Embedding）将它们尽可能表示出来 。</p>
+<h2 id="De-noising-Auto-encoder"><a href="#De-noising-Auto-encoder" class="headerlink" title="De-noising Auto-encoder"></a>De-noising Auto-encoder</h2><p><code>BERT</code> 的预训练也用到了去噪自编码器的思想。</p>
+<p><img src="/2022/12/02/auto-encoder/ae3.png"></p>
+<h2 id="Feature-Disentangle"><a href="#Feature-Disentangle" class="headerlink" title="Feature Disentangle"></a>Feature Disentangle</h2><p><img src="/2022/12/02/auto-encoder/ae5.png"></p>
+<p>Encoder 虽然能够将多种特征，信息提取成一个向量，但是我们无法知道向量中哪个维度对应了什么。<code>Feature Disentangle</code> 就是要去解决这个问题。</p>
+<p><img src="/2022/12/02/auto-encoder/ae6.png"></p>
+<h3 id="应用：Voice-Conversion"><a href="#应用：Voice-Conversion" class="headerlink" title="应用：Voice Conversion"></a>应用：Voice Conversion</h3><p>既然我们可以用 <code>Feature Disentangle</code> 来了解哪些维度对应了声音的特征，哪些维度对应了声音的内容，<br>那我们就可以选择对应声音的特征的维度进行声音的替换（保持声音内容的维度不变，将声音特征的部分替换成新垣结衣的）。</p>
+<p><img src="/2022/12/02/auto-encoder/ae7.png"></p>
+<h2 id="Discrete-Latent-Representation"><a href="#Discrete-Latent-Representation" class="headerlink" title="Discrete Latent Representation"></a>Discrete Latent Representation</h2><p><img src="/2022/12/02/auto-encoder/ae8.png"></p>
+<h2 id="Text-as-Representation"><a href="#Text-as-Representation" class="headerlink" title="Text as Representation"></a>Text as Representation</h2><p>尝试让 <code>Encoder</code> 生成摘要（既然 <code>Decoder</code> 能够将其还原，说明 <code>Encoder</code> 生成的东西代表了文章的核心和精华内容）。 </p>
+<p>和 <code>CycleGAN</code> 一样。如果不使用 <code>Discriminator</code> 会导致这个摘要完全不可读（<code>Encoder</code> 和 <code>Decoder</code> 在加密通话）</p>
+<h2 id="Generator-what-VAE-does"><a href="#Generator-what-VAE-does" class="headerlink" title="Generator(what VAE does)"></a>Generator(what VAE does)</h2><p><img src="/2022/12/02/auto-encoder/ae9.png"></p>
+<h2 id="Compression"><a href="#Compression" class="headerlink" title="Compression"></a>Compression</h2><p><img src="/2022/12/02/auto-encoder/ae10.png"></p>
+<h2 id="Anomaly-Detection（异常检测）"><a href="#Anomaly-Detection（异常检测）" class="headerlink" title="Anomaly Detection（异常检测）"></a>Anomaly Detection（异常检测）</h2><p>异常检测是一个 <code>One-class</code> 的分类问题，数据集是极度不对称的：你有大量正常的数据，和极少数不正常的数据，甚至你不知道不正常的数据长什么样，<br>这时候你要怎么训练？这不是一个一般的分类问题，需要用 <code>Auto-encoder</code> 来进行解决。</p>
+<p>判断是否能够重构：</p>
+<p><img src="/2022/12/02/auto-encoder/ae11.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #03a9f4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Anto-Encoder/" style="color: #00bcd4">Anto Encoder</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/02/auto-encoder/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2022/12/01/bert/">
         <h2 class="post-title">BERT 笔记</h2>
     </a>
@@ -292,7 +432,7 @@
         
         <span class="tag">
             
-            <a href="/tags/BERT/" style="color: #ff7d73">BERT</a>
+            <a href="/tags/BERT/" style="color: #ffa2c4">BERT</a>
         </span>
         
         <span class="tag">
@@ -302,7 +442,7 @@
         
         <span class="tag">
             
-            <a href="/tags/NLP/" style="color: #ff7d73">NLP</a>
+            <a href="/tags/NLP/" style="color: #00bcd4">NLP</a>
         </span>
         
     </div>
@@ -464,12 +604,12 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+            <a href="/tags/AI/" style="color: #ff7d73">AI</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/GAN/" style="color: #03a9f4">GAN</a>
+            <a href="/tags/GAN/" style="color: #00a596">GAN</a>
         </span>
         
     </div>
@@ -559,7 +699,7 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
+            <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
         </span>
         
         <span class="tag">
@@ -672,12 +812,12 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #03a9f4">AI</a>
+            <a href="/tags/AI/" style="color: #00a596">AI</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Transformer/" style="color: #00bcd4">Transformer</a>
+            <a href="/tags/Transformer/" style="color: #03a9f4">Transformer</a>
         </span>
         
     </div>
