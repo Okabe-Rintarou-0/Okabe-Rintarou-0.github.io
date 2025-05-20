@@ -171,6 +171,144 @@
         
 
 <div class="post">
+    <a href="/2024/03/25/bustub-2/">
+        <h2 class="post-title">CMU-DB 15-445 学习笔记（2）</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/Database/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                Database
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2024/3/25
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h1 id="对应课程"><a href="#对应课程" class="headerlink" title="对应课程"></a>对应课程</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/schedule.html">Schedule</a></li>
+<li><a target="_blank" rel="noopener" href="https://15445.courses.cs.cmu.edu/spring2023/slides/05-storage3.pdf">Lecture 5: Storage Models &amp; Compression</a></li>
+</ul>
+<h2 id="三种数据处理模式"><a href="#三种数据处理模式" class="headerlink" title="三种数据处理模式"></a>三种数据处理模式</h2><ul>
+<li>OLTP: On-Line Transaction Processing</li>
+<li>OLAP: On-Line Analytical Processing</li>
+<li>HTAP: Hybrid Transaction + Analytical Processing</li>
+</ul>
+<h2 id="三种存储模型"><a href="#三种存储模型" class="headerlink" title="三种存储模型"></a>三种存储模型</h2><h3 id="N-ary-Storage-Modal-NSM-行存储"><a href="#N-ary-Storage-Modal-NSM-行存储" class="headerlink" title="N-ary Storage Modal(NSM) 行存储"></a>N-ary Storage Modal(NSM) 行存储</h3><p>适合 OLTP，一般 Page 大小都是 Hardware Page 的整数倍。</p>
+<p>优点：</p>
+<ul>
+<li>快速增删改查；</li>
+<li>适合 OLTP；</li>
+<li>可以基于 index-oriented 实现存储。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>不适用于扫描表的大范围内容；</li>
+<li>如果是想获取其中一列的值，会有很多随机写，内存 locality 很差；</li>
+<li>不适合压缩，因为单个页面里面有多种 value domains，重复的值出现的概率低。</li>
+</ul>
+<h3 id="Decomposition-Storage-Model-DSM-列存储"><a href="#Decomposition-Storage-Model-DSM-列存储" class="headerlink" title="Decomposition Storage Model(DSM) 列存储"></a>Decomposition Storage Model(DSM) 列存储</h3><ul>
+<li>适合 OLAP。</li>
+<li>一些系统可能会有一个 Buffer Pool，通常是日志结构，缓存行修改，并且定期转换为列存储。</li>
+<li>Oracle 保存以行格式存储的主表，但是同步按列存储的副本。</li>
+</ul>
+<p>两种存储方式：</p>
+<ul>
+<li>定长存储，这样做的好处就是不用额外的表示符确定某个数据（index &#x3D; offset &#x2F; value size）。但是对于不定长的数据，则需要通过字典压缩之类的方式，将变长内容映射到固定大小（32 bit）。</li>
+<li>用额外的列记录</li>
+</ul>
+<p>我们在做 OLAP 的时候，往往并不是只看其中一列，我们可能要在多列上获取值并且计算。基于此，我们需要 PAX。</p>
+<h3 id="Hybrid-Storage-Mode（PAX）混合存储"><a href="#Hybrid-Storage-Mode（PAX）混合存储" class="headerlink" title="Hybrid Storage Mode（PAX）混合存储"></a>Hybrid Storage Mode（PAX）混合存储</h3><ul>
+<li>PAX 即 Partition Attributes Across</li>
+<li><code>Paruqet</code> 和 <code>Orc</code> 格式使用的就是 PAX</li>
+<li>既要获得列存储快速处理的优点，又要获得行存储的优良空间 locality。</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/orc.png"></p>
+<h2 id="数据库压缩"><a href="#数据库压缩" class="headerlink" title="数据库压缩"></a>数据库压缩</h2><h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><ul>
+<li>必须产生定长的值</li>
+<li>解压缩应尽可能被延迟，需要的时候再进行（late materialization）</li>
+<li>必须是无损压缩</li>
+</ul>
+<h3 id="压缩粒度"><a href="#压缩粒度" class="headerlink" title="压缩粒度"></a>压缩粒度</h3><h4 id="Block-Level-Naive-Compression"><a href="#Block-Level-Naive-Compression" class="headerlink" title="Block Level(Naive Compression)"></a>Block Level(Naive Compression)</h4><ul>
+<li>使用通用压缩算法，Snappy, Zstd 等</li>
+<li>MySQL 使用的是通用的压缩，因为它是行存储，没法针对数据进行很好的压缩。 </li>
+<li>使用通用算法的弊端在于，虽然他们都是基于字典压缩算法的变形，但是由于 MYSQL 无法知道字典数据结构，所以 MYSQL 不得不做整体解压（无法根据字典拿到某个局部值）。</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/mysql_innodb_compression.png"></p>
+<p>我们真正想要获得的效果应该如下图所示。我们希望能够对某些局部值进行解压缩，而不用解压缩整个页。</p>
+<p><img src="/2024/03/25/bustub-2/database_ideal_compression.png"></p>
+<p>我们可以在列式存储中实现这一点。</p>
+<h4 id="Column-Level"><a href="#Column-Level" class="headerlink" title="Column Level"></a>Column Level</h4><h5 id="RLE-Run-Length-Encoding"><a href="#RLE-Run-Length-Encoding" class="headerlink" title="RLE(Run-Length Encoding)"></a>RLE(Run-Length Encoding)</h5><p>(value, index, number) 三元组，即（数据，索引，数量）。</p>
+<p><img src="/2024/03/25/bustub-2/RLE.png"></p>
+<h5 id="Bit-Packing"><a href="#Bit-Packing" class="headerlink" title="Bit Packing"></a>Bit Packing</h5><p><img src="/2024/03/25/bustub-2/bit_packing.png"></p>
+<p>通常数据都不会撑满设定的数值上限，例如 32 字节，我可能最大的数值只有 4 字节不到，那么我们就可以用 4 字节存储一个页中的任一数据（而不是原先的 32 字节）。</p>
+<h5 id="Mostly-Encoding"><a href="#Mostly-Encoding" class="headerlink" title="Mostly Encoding"></a>Mostly Encoding</h5><p><img src="/2024/03/25/bustub-2/mostly_encoding.png"></p>
+<p>对于 9999… 这么大的数，可以维护一个查询表来存储，其他的数保持 Bit Packing。</p>
+<h5 id="Bitmap-Encoding"><a href="#Bitmap-Encoding" class="headerlink" title="Bitmap Encoding"></a>Bitmap Encoding</h5><p><img src="/2024/03/25/bustub-2/bitmap.png"></p>
+<p>适用于有限值域，这里 M，F 两种值占两个字节 2 * 8 &#x3D; 16 bits。</p>
+<h5 id="Incremental-Encoding"><a href="#Incremental-Encoding" class="headerlink" title="Incremental Encoding"></a>Incremental Encoding</h5><p><img src="/2024/03/25/bustub-2/incremental_encoding.png"></p>
+<h5 id="Delta-Encoding"><a href="#Delta-Encoding" class="headerlink" title="Delta Encoding"></a>Delta Encoding</h5><p><img src="/2024/03/25/bustub-2/delta_encoding.png"></p>
+<p>利用差值进行压，甚至可以基于 RLE 进一步压缩。</p>
+<h5 id="Dictionary-Compression"><a href="#Dictionary-Compression" class="headerlink" title="Dictionary Compression"></a>Dictionary Compression</h5><p><img src="/2024/03/25/bustub-2/dictionary_compression.png"></p>
+<ul>
+<li><p>将原始值映射到一个新值，同时维护一个字典记录这种映射关系。</p>
+</li>
+<li><p>这里查询的时候也需要将查询值进行压缩，不然的话每一行查询都需要将压缩值进行解压，这样就失去了压缩带来的好处。</p>
+</li>
+<li><p>有时候我们希望对压缩值进行范围查询，所以我们也会希望映射值也能满足顺序。</p>
+</li>
+<li><p>如果满足字典顺序没有发生变化，那么 DBMS 就可以把 LIKE ‘And%’ 重写成 BETWEEN min AND max 这样的语句（因为满足顺序）。</p>
+<pre><code class="sql">SELECT name FROM users
+WHERE name LIKE &#39;And%&#39;;
+</code></pre>
+</li>
+<li><p>对于 DISTINCT 这样的语句，甚至可以直接在字典上查询（DISTINCT -&gt; 无重复值 -&gt; 字典无重复值）。</p>
+<pre><code class="sql">SELECT DISTINCT name
+    FROM users
+WHERE name LIKE &#39;And%&#39;;
+</code></pre>
+</li>
+</ul>
+<p><img src="/2024/03/25/bustub-2/order_preserving_encoding.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
+        </span>
+        
+    </div>
+    <a href="/2024/03/25/bustub-2/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2024/03/24/bustub-1/">
         <h2 class="post-title">CMU-DB 15-445 学习笔记（1）</h2>
     </a>
@@ -372,12 +510,12 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CMU-DB/" style="color: #00a596">CMU-DB</a>
+            <a href="/tags/CMU-DB/" style="color: #00bcd4">CMU-DB</a>
         </span>
         
     </div>
@@ -431,17 +569,17 @@ WHERE student.sid = cteSource.maxId
         
         <span class="tag">
             
-            <a href="/tags/Kubeflow/" style="color: #00a596">Kubeflow</a>
+            <a href="/tags/Kubeflow/" style="color: #03a9f4">Kubeflow</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Kubenetes/" style="color: #00bcd4">Kubenetes</a>
+            <a href="/tags/Kubenetes/" style="color: #00a596">Kubenetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/ML-Sys/" style="color: #00a596">ML Sys</a>
+            <a href="/tags/ML-Sys/" style="color: #ff7d73">ML Sys</a>
         </span>
         
     </div>
@@ -672,7 +810,7 @@ dataset.coalesce(1).write().mode(SaveMode.Overwrite).option(&quot;header&quot;, 
         
         <span class="tag">
             
-            <a href="/tags/Java/" style="color: #03a9f4">Java</a>
+            <a href="/tags/Java/" style="color: #00bcd4">Java</a>
         </span>
         
     </div>
@@ -828,12 +966,12 @@ impl Manager &#123;
         
         <span class="tag">
             
-            <a href="/tags/Rust/" style="color: #00bcd4">Rust</a>
+            <a href="/tags/Rust/" style="color: #ff7d73">Rust</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Tokio/" style="color: #ffa2c4">Tokio</a>
+            <a href="/tags/Tokio/" style="color: #03a9f4">Tokio</a>
         </span>
         
     </div>
@@ -1111,7 +1249,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
     </div>
@@ -1208,7 +1346,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #00bcd4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
         </span>
         
     </div>
@@ -1264,7 +1402,7 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
     </div>
@@ -1425,81 +1563,16 @@ mysql-config-5bhm7k67gb   1      6m35s
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #ff7d73">AI</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Reinforcement-Learning/" style="color: #00a596">Reinforcement Learning</a>
-        </span>
-        
-    </div>
-    <a href="/2022/12/15/rl/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2022/12/05/explainable-ai/">
-        <h2 class="post-title">Explainable AI 笔记</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/AI/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                AI
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2022/12/5
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <h3 id="Mask"><a href="#Mask" class="headerlink" title="Mask"></a>Mask</h3><p>用一个灰色色块遮盖图像，最后一行的图像展示了不同位置遮盖之后分类的概率，由此我们可以发现模型学习到了什么重要的特征。</p>
-<p><img src="/2022/12/05/explainable-ai/Explainable-AI_0.png"></p>
-<p>比如上图中的狗，遮住脸之后模型就无法辨别了，所以模型学习到了狗的面部特征。</p>
-<h3 id="Saliency-Map"><a href="#Saliency-Map" class="headerlink" title="Saliency Map"></a>Saliency Map</h3><p>修改某一像素的值 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.054ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 466 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D452" xlink:href="#MJX-2-TEX-I-1D452"></use></g></g></g></svg></mjx-container>，得到最终输出结果 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.294ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 572 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D465" xlink:href="#MJX-2-TEX-I-1D465"></use></g></g></g></svg></mjx-container>。计算 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.054ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 466 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D452" xlink:href="#MJX-2-TEX-I-1D452"></use></g></g></g></svg></mjx-container> 关于 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.294ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 572 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D465" xlink:href="#MJX-1-TEX-I-1D465"></use></g></g></g></svg></mjx-container> 的偏导数，将数值以下方的图像展示。</p>
-<p><img src="/2022/12/05/explainable-ai/Explainable-AI_1.png"></p>
-<p>一般而言，如果这个偏导数很大，说明这个像素对模型判定结果的影响很大，可以证明这个像素较为重要。 </p>
-<p>但是你不能说一个特征很重要，修改对应的像素就一定会产生很大的判定结果的变化。这是因为，以分类问题为例，假如说模型有充分的信心判定一张图片是狗的图片（判断到了很多特征，比如狗腿，狗头），<br>那么你修改其中一个比较重要的特征，可能还是不影响模型判断它是狗。</p>
-<p>通过这种方式，你还可以判断你的模型是否真的学习到了正确的特征。下图是一个错误的例子，机器学习到只要判定左下角是否有文字，就可以判定是不是马，<br>因为所有的马的训练集都有左下角的文字。</p>
-<p><img src="/2022/12/05/explainable-ai/Explainable-AI_2.png"></p>
-<h3 id="SmoothGrad"><a href="#SmoothGrad" class="headerlink" title="SmoothGrad"></a>SmoothGrad</h3><p><code>SmoothGrad</code> 是对 <code>Saliency Map</code> 的一种改进。其做法就是将原图加随机噪声生成多份，再获取对应的多份 <code>Saliency Map</code>，最终取平均得到 <code>SmoothGrad</code>。</p>
-<p><img src="/2022/12/05/explainable-ai/Explainable-AI_3.png"></p>
-<h3 id="用另一个网络来聆听-可视化一个模型的隐藏层输出"><a href="#用另一个网络来聆听-可视化一个模型的隐藏层输出" class="headerlink" title="用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出"></a>用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出</h3><p><img src="/2022/12/05/explainable-ai/Explainable-AI_4.png"></p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
             <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Explainable-AI/" style="color: #00a596">Explainable AI</a>
+            <a href="/tags/Reinforcement-Learning/" style="color: #03a9f4">Reinforcement Learning</a>
         </span>
         
     </div>
-    <a href="/2022/12/05/explainable-ai/" class="go-post">阅读全文</a>
+    <a href="/2022/12/15/rl/" class="go-post">阅读全文</a>
 </div>
 
 

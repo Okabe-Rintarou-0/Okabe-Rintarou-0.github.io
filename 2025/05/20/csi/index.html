@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>RocksDB 源码阅读——SkipList | Okabe&#39;s LAB</title>
+    <title>Kubernetes CSI | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -154,23 +154,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>RocksDB 源码阅读——SkipList</h1>
+        <h1>Kubernetes CSI</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2025/5/13
-        </span>
-        
-        <span class="category">
-            <a href="/categories/Database/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Database
-            </a>
+            2025/5/20
         </span>
         
         
@@ -182,12 +173,12 @@
             
             <span class="tag">
                 
-                <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+                <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/RocksDB/" style="color: #00bcd4">RocksDB</a>
+                <a href="/tags/CSI/" style="color: #00bcd4">CSI</a>
             </span>
             
         </span>
@@ -195,49 +186,61 @@
     </div>
     
     <div class="content" v-pre>
-        <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/facebook/rocksdb/blob/ef67339175c1aebe039c0671560b608e22656612/memtable/inlineskiplist.h">RocksDB 源码 inlineskiplist.h</a></li>
-</ul>
-<h3 id="SkipList-Node-的实现"><a href="#SkipList-Node-的实现" class="headerlink" title="SkipList::Node 的实现"></a>SkipList::Node 的实现</h3><p>RocksDB 分配了一块连续的空间来存储节点在不同 level 的 <code>next</code> 指针。同时，使用 <code>std::atomic</code> 保证可以在无锁的情况下更新链表。其伪代码如下所示，可以说是把内存空间利用得严严实实。</p>
-<pre><code class="c++">#include &lt;atomic&gt;
-#include &lt;cstring&gt;
-#include &lt;memory&gt;
-
-// https://github.com/facebook/rocksdb/blob/ef67339175c1aebe039c0671560b608e22656612/memtable/inlineskiplist.h
-class SkipList &#123;
-public:
-  struct Node &#123;
-  private:
-    std::atomic&lt;Node *&gt; next_[1];
-
-  public:
-    void StashHeight(size_t h) &#123; memcpy(&amp;next_[0], &amp;h, sizeof(h)); &#125;
-
-    size_t UnstashHeight() &#123;
-      size_t rv;
-      memcpy(&amp;rv, &amp;next_[0], sizeof(rv));
-      return rv;
-    &#125;
-
-    Node *Next(size_t level) &#123;
-      return (&amp;next_[0] - level)-&gt;load(std::memory_order_acquire);
-    &#125;
-  &#125;;
-
-  Node *AllocateNode(size_t height, size_t key_size) &#123;
-    size_t prefix = sizeof(std::atomic&lt;Node *&gt;) * height - 1;
-    char *raw = new char[prefix + sizeof(Node) + key_size];
-    Node *node = reinterpret_cast&lt;Node *&gt;(raw + prefix);
-
-    node-&gt;StashHeight(height);
-
-    return node;
-  &#125;
-&#125;;
+        <ol>
+<li>PVC（Persistent Volume Claim，持久卷声明）：是用户对存储资源的请求，用于向 Kubernetes 申请存储，抽象化存储的使用细节，方便应用获取和使用持久化存储。</li>
+<li>PV（Persistent Volume，持久卷）：是 Kubernetes 中底层存储的抽象，代表具体的存储资源（如 NFS、云硬盘等），通过定义存储的类型、容量、访问模式等参数，供 PVC 动态绑定调用。</li>
+<li>StorageClass：用于定义存储资源的配置模板，可动态创建 PV，支持按需提供存储服务，通过参数配置存储的类型（如 SSD、HDD）、备份策略等，实现存储资源的自动化管理和动态供给。</li>
+</ol>
+<h3 id="静态绑定"><a href="#静态绑定" class="headerlink" title="静态绑定"></a>静态绑定</h3><p>以<a target="_blank" rel="noopener" href="https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-statically-provisioned-nas-volumes?spm=a2c4g.11186623.help-menu-85222.d_2_4_4_0.74ed6a35zKrD6X&scm=20140722.H_134884._.OR_help-T_cn~zh-V_1">使用NAS静态存储卷</a>为例：</p>
+<ul>
+<li><p>PV</p>
+<p>  静态绑定的方式需要手动配置 <code>PV</code>，并设定 <code>labels</code>：</p>
+<pre><code class="yaml">apiVersion: v1
+kind: PersistentVolume
+metadata:
+name: pv-nas
+labels:
+    alicloud-pvname: pv-nas
+spec:
+capacity:
+    storage: 5Gi
+accessModes:
+    - ReadWriteMany
+csi:
+    driver: nasplugin.csi.alibabacloud.com
+    volumeHandle: pv-nas   # 必须与PV Name保持一致。
+    volumeAttributes:
+    server: &quot;0c47****-mpk25.cn-shenzhen.nas.aliyuncs.com&quot;  # NAS挂载点，与集群VPC一致。
+    path: &quot;/csi&quot;  # 挂载子目录。
+mountOptions:
+- nolock,tcp,noresvport
+- vers=3
 </code></pre>
-<p>此处有个很有意思的点，在 <code>AllocateNode</code> 生成一个随机高度的节点的时候，会把他的高度通过 <code>StashHeight</code> 的方式暂时存储在 <code>next_[0]</code> 中。在后续的操作中，可以通过 <code>UnstashHeight</code> 读取存储的高度，并进行后续的 <code>next</code> 指针的更新（毕竟这些更新需要知道高度），可以说是不浪费任何内存空间。 </p>
-<p>其内存布局大概如下图所示（此处我做了简化，<code>&amp;next_[0] - n</code> 其实就是相当于 <code>next_[-n]</code>，但是数组不支持负数）：</p>
-<p><img src="/2025/05/13/rocksdb-source/memory.png"></p>
+</li>
+<li><p>PVC</p>
+<p>  <code>PVC</code> 通过 <code>label selector</code> 绑定上面手动配置的 <code>PV</code>。</p>
+</li>
+</ul>
+<h3 id="动态绑定"><a href="#动态绑定" class="headerlink" title="动态绑定"></a>动态绑定</h3><ol>
+<li>用户创建 PVC：用户通过 PVC 声明存储需求（如容量、访问模式、存储类型等），但此时无对应的 PV 绑定。</li>
+<li>StorageClass 匹配与创建：PVC 会根据指定的 StorageClass （或默认类），触发存储插件（如云厂商存储插件、NFS 插件等）动态创建符合要求的 PV，并将两者绑定。</li>
+<li>应用使用存储：绑定完成后，Pod 可通过 PVC 挂载自动创建的 PV，实现按需获取存储资源，无需手动预先创建 PV。</li>
+</ol>
+<p><img src="/2025/05/20/csi/dynamic_1.png"></p>
+<p><img src="/2025/05/20/csi/dynamic_2.png"></p>
+<p><code>PVC</code> 和 <code>PV</code> 以 <code>storageClassName</code> 为桥梁，以 <code>StorageClass</code> 为中介动态绑定。若 <code>storageClassName</code> 为空，则 <code>PVC</code> 将会和默认的 <code>PV</code> 绑定。</p>
+<p><code>StorageClass</code> 的 <code>allowVolumeExpansion</code> 属性用于表明该存储是否允许扩容卷，以<a target="_blank" rel="noopener" href="https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-dynamically-provisioned-nas-volume?spm=a2c4g.11186623.help-menu-85222.d_2_4_4_1.44fd7a53svJPOn&scm=20140722.H_144398._.OR_help-T_cn~zh-V_1">阿里云 NAS</a>为例，若该属性为 <strong>true</strong>，则可以通过 patch <code>PVC</code>，修改其声明的卷大小来动态扩缩容。</p>
+<h3 id="CSI-Driver"><a href="#CSI-Driver" class="headerlink" title="CSI Driver"></a>CSI Driver</h3><p><a target="_blank" rel="noopener" href="https://discuss.kubernetes.io/t/understanding-csi-architecture-and-communication/9404/2">Understanding CSI architecture and communication</a></p>
+<p><img src="/2025/05/20/csi/csi.png"></p>
+<ul>
+<li>Daemonset Pod 应用可在所有节点上运行。  </li>
+<li>StatefulSet &#x2F; Deployment Pod 应用作为 Kubernetes controller 运行。  </li>
+<li>在 Daemonset Pod中，CSI Driver 通过 gRPC 和 socket 与 Kubelet 通信。  </li>
+<li><code>node-driver-registrar</code> 将 CSI Driver 作为插件注册到 Kubelet。<br><a target="_blank" rel="noopener" href="https://speakerdeck.com/bells17/kubernetes-and-csi?slide=44">https://speakerdeck.com/bells17/kubernetes-and-csi?slide=44</a>  </li>
+<li>在 StatefulSet &#x2F; Deployment Pod 中，CSI Driver 通过 gRPC 和 socket 与 CSI sidecar 应用通信。  </li>
+<li>CSI sidecar 应用作为 Kubernetes controller 运行。  </li>
+<li>例如，创建 PVC 资源时，<code>external-provisioner</code> 会监听该事件，并调用 CSI Driver 的 <code>CreateVolume</code> rpc。<br><a target="_blank" rel="noopener" href="https://speakerdeck.com/bells17/kubernetes-and-csi?slide=47">https://speakerdeck.com/bells17/kubernetes-and-csi?slide=47</a></li>
+</ul>
 
     </div>
     

@@ -171,6 +171,105 @@
         
 
 <div class="post">
+    <a href="/2025/05/20/csi/">
+        <h2 class="post-title">Kubernetes CSI</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/5/20
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <ol>
+<li>PVC（Persistent Volume Claim，持久卷声明）：是用户对存储资源的请求，用于向 Kubernetes 申请存储，抽象化存储的使用细节，方便应用获取和使用持久化存储。</li>
+<li>PV（Persistent Volume，持久卷）：是 Kubernetes 中底层存储的抽象，代表具体的存储资源（如 NFS、云硬盘等），通过定义存储的类型、容量、访问模式等参数，供 PVC 动态绑定调用。</li>
+<li>StorageClass：用于定义存储资源的配置模板，可动态创建 PV，支持按需提供存储服务，通过参数配置存储的类型（如 SSD、HDD）、备份策略等，实现存储资源的自动化管理和动态供给。</li>
+</ol>
+<h3 id="静态绑定"><a href="#静态绑定" class="headerlink" title="静态绑定"></a>静态绑定</h3><p>以<a target="_blank" rel="noopener" href="https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-statically-provisioned-nas-volumes?spm=a2c4g.11186623.help-menu-85222.d_2_4_4_0.74ed6a35zKrD6X&scm=20140722.H_134884._.OR_help-T_cn~zh-V_1">使用NAS静态存储卷</a>为例：</p>
+<ul>
+<li><p>PV</p>
+<p>  静态绑定的方式需要手动配置 <code>PV</code>，并设定 <code>labels</code>：</p>
+<pre><code class="yaml">apiVersion: v1
+kind: PersistentVolume
+metadata:
+name: pv-nas
+labels:
+    alicloud-pvname: pv-nas
+spec:
+capacity:
+    storage: 5Gi
+accessModes:
+    - ReadWriteMany
+csi:
+    driver: nasplugin.csi.alibabacloud.com
+    volumeHandle: pv-nas   # 必须与PV Name保持一致。
+    volumeAttributes:
+    server: &quot;0c47****-mpk25.cn-shenzhen.nas.aliyuncs.com&quot;  # NAS挂载点，与集群VPC一致。
+    path: &quot;/csi&quot;  # 挂载子目录。
+mountOptions:
+- nolock,tcp,noresvport
+- vers=3
+</code></pre>
+</li>
+<li><p>PVC</p>
+<p>  <code>PVC</code> 通过 <code>label selector</code> 绑定上面手动配置的 <code>PV</code>。</p>
+</li>
+</ul>
+<h3 id="动态绑定"><a href="#动态绑定" class="headerlink" title="动态绑定"></a>动态绑定</h3><ol>
+<li>用户创建 PVC：用户通过 PVC 声明存储需求（如容量、访问模式、存储类型等），但此时无对应的 PV 绑定。</li>
+<li>StorageClass 匹配与创建：PVC 会根据指定的 StorageClass （或默认类），触发存储插件（如云厂商存储插件、NFS 插件等）动态创建符合要求的 PV，并将两者绑定。</li>
+<li>应用使用存储：绑定完成后，Pod 可通过 PVC 挂载自动创建的 PV，实现按需获取存储资源，无需手动预先创建 PV。</li>
+</ol>
+<p><img src="/2025/05/20/csi/dynamic_1.png"></p>
+<p><img src="/2025/05/20/csi/dynamic_2.png"></p>
+<p><code>PVC</code> 和 <code>PV</code> 以 <code>storageClassName</code> 为桥梁，以 <code>StorageClass</code> 为中介动态绑定。若 <code>storageClassName</code> 为空，则 <code>PVC</code> 将会和默认的 <code>PV</code> 绑定。</p>
+<p><code>StorageClass</code> 的 <code>allowVolumeExpansion</code> 属性用于表明该存储是否允许扩容卷，以<a target="_blank" rel="noopener" href="https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/mount-a-dynamically-provisioned-nas-volume?spm=a2c4g.11186623.help-menu-85222.d_2_4_4_1.44fd7a53svJPOn&scm=20140722.H_144398._.OR_help-T_cn~zh-V_1">阿里云 NAS</a>为例，若该属性为 <strong>true</strong>，则可以通过 patch <code>PVC</code>，修改其声明的卷大小来动态扩缩容。</p>
+<h3 id="CSI-Driver"><a href="#CSI-Driver" class="headerlink" title="CSI Driver"></a>CSI Driver</h3><p><a target="_blank" rel="noopener" href="https://discuss.kubernetes.io/t/understanding-csi-architecture-and-communication/9404/2">Understanding CSI architecture and communication</a></p>
+<p><img src="/2025/05/20/csi/csi.png"></p>
+<ul>
+<li>Daemonset Pod 应用可在所有节点上运行。  </li>
+<li>StatefulSet &#x2F; Deployment Pod 应用作为 Kubernetes controller 运行。  </li>
+<li>在 Daemonset Pod中，CSI Driver 通过 gRPC 和 socket 与 Kubelet 通信。  </li>
+<li><code>node-driver-registrar</code> 将 CSI Driver 作为插件注册到 Kubelet。<br><a target="_blank" rel="noopener" href="https://speakerdeck.com/bells17/kubernetes-and-csi?slide=44">https://speakerdeck.com/bells17/kubernetes-and-csi?slide=44</a>  </li>
+<li>在 StatefulSet &#x2F; Deployment Pod 中，CSI Driver 通过 gRPC 和 socket 与 CSI sidecar 应用通信。  </li>
+<li>CSI sidecar 应用作为 Kubernetes controller 运行。  </li>
+<li>例如，创建 PVC 资源时，<code>external-provisioner</code> 会监听该事件，并调用 CSI Driver 的 <code>CreateVolume</code> rpc。<br><a target="_blank" rel="noopener" href="https://speakerdeck.com/bells17/kubernetes-and-csi?slide=47">https://speakerdeck.com/bells17/kubernetes-and-csi?slide=47</a></li>
+</ul>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/Kubernetes/" style="color: #ff7d73">Kubernetes</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/CSI/" style="color: #00bcd4">CSI</a>
+        </span>
+        
+    </div>
+    <a href="/2025/05/20/csi/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2025/05/14/quantization/">
         <h2 class="post-title">几种模型量化的方式</h2>
     </a>
@@ -222,7 +321,7 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #00a596">AI</a>
+            <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
         </span>
         
     </div>
@@ -313,7 +412,7 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
+            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
         </span>
         
         <span class="tag">
@@ -392,7 +491,7 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ffa2c4">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #03a9f4">AI Infra</a>
         </span>
         
     </div>
@@ -607,17 +706,17 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #00a596">LLM</a>
+            <a href="/tags/LLM/" style="color: #ffa2c4">LLM</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/vllm/" style="color: #03a9f4">vllm</a>
+            <a href="/tags/vllm/" style="color: #00a596">vllm</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00bcd4">AI Infra</a>
         </span>
         
     </div>
@@ -766,7 +865,7 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
     </div>
@@ -897,7 +996,7 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #ff7d73">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #ffa2c4">Key-Value Store</a>
         </span>
         
     </div>
@@ -1020,7 +1119,7 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ff7d73">C++</a>
+            <a href="/tags/C/" style="color: #00bcd4">C++</a>
         </span>
         
     </div>
@@ -1240,7 +1339,7 @@ const std::string &amp;s3 = r2;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ff7d73">C++</a>
+            <a href="/tags/C/" style="color: #00a596">C++</a>
         </span>
         
     </div>
@@ -1357,207 +1456,11 @@ void printTuple(const T &amp;tuple, std::index_sequence&lt;Is...&gt;) &#123;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
     </div>
     <a href="/2025/03/20/interview-note/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2025/03/11/interview-algo/">
-        <h2 class="post-title">面试常用算法复习</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/Interview/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Interview
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/3/11
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <h3 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h3><pre><code class="c++">void quicksort(vector&lt;int&gt; &amp;v, int l, int r) &#123;
-  if (l &gt;= r) &#123;
-    return;
-  &#125;
-  int target = v[l];
-  int start = l;
-  int end = r;
-  while (true) &#123;
-    while (l &lt; r &amp;&amp; v[r] &gt;= target) &#123;
-      r--;
-    &#125;
-    while (l &lt; r &amp;&amp; v[l] &lt;= target) &#123;
-      l++;
-    &#125;
-    if (l == r) &#123;
-      break;
-    &#125;
-    swap(v[l], v[r]);
-  &#125;
-  swap(v[start], v[l]);
-  quicksort(v, start, l - 1);
-  quicksort(v, l + 1, end);
-&#125;
-</code></pre>
-<h3 id="快速幂"><a href="#快速幂" class="headerlink" title="快速幂"></a>快速幂</h3><pre><code class="c++">int fastPower(int x, int n) &#123;
-  int base = x;
-  int ans = 1;
-  while (n) &#123;
-    if (n &amp; 1) &#123;
-      ans *= base;
-    &#125;
-    base *= base;
-    n &gt;&gt;= 1;
-  &#125;
-  return ans;
-&#125;
-
-int fastPowerWithMod(int x, int n, int mod) &#123;
-  int base = x;
-  int ans = 1;
-  while (n) &#123;
-    if (n &amp; 1) &#123;
-      ans = ((ans % mod) * (base % mod)) % mod;
-    &#125;
-    base = ((base % mod) * (base % mod)) % mod;
-    n &gt;&gt;= 1;
-  &#125;
-  return ans;
-&#125;
-</code></pre>
-<h2 id="并查集"><a href="#并查集" class="headerlink" title="并查集"></a>并查集</h2><pre><code class="c++">int find(vector&lt;int&gt; &amp;fa, int x) &#123;
-  return (fa[x] == x) ? x : (fa[x] = find(fa, fa[x]));
-&#125;
-
-void merge(vector&lt;int&gt; &amp;fa, int x, int y) &#123; 
-    fa[find(fa, x)] = find(fa, y); 
-&#125;
-</code></pre>
-<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3><pre><code class="c++">#define left_child(x) ((x + 1) * 2 - 1)
-#define right_child(x) ((x + 1) * 2)
-#define parent(x) ((x + 1) / 2 - 1)
-
-void makeHeap(vector&lt;int&gt; &amp;v) &#123;
-  int n = v.size();
-  for (int i = 0; i &lt; n; i++) &#123;
-    int leftIdx = left_child(i);
-    int rightIdx = right_child(i);
-    if (leftIdx &gt;= n) &#123;
-      break;
-    &#125;
-    if (leftIdx &lt; n &amp;&amp; v[leftIdx] &gt; v[i]) &#123;
-      swap(v[leftIdx], v[i]);
-    &#125;
-    if (rightIdx &lt; n &amp;&amp; v[rightIdx] &gt; v[i]) &#123;
-      swap(v[rightIdx], v[i]);
-    &#125;
-  &#125;
-&#125;
-
-void push(vector&lt;int&gt; &amp;v, int ele) &#123;
-  v.push_back(ele);
-  int idx = v.size() - 1;
-  while (idx != 0) &#123;
-    int parentIdx = parent(idx);
-    if (v[parentIdx] &lt; v[idx]) &#123;
-      swap(v[parentIdx], v[idx]);
-      idx = parentIdx;
-    &#125; else &#123;
-      break;
-    &#125;
-  &#125;
-&#125;
-
-void siftDown(vector&lt;int&gt; &amp;v) &#123;
-  int n = v.size();
-  if (n == 0) &#123;
-    return;
-  &#125;
-  int idx = 0;
-  while (idx &lt; n) &#123;
-    int leftIdx = left_child(idx);
-    int rightIdx = right_child(idx);
-    int maxIdx = -1;
-    int maxV = v[idx];
-    if (leftIdx &lt; n &amp;&amp; v[leftIdx] &gt; maxV) &#123;
-      maxV = v[leftIdx];
-      maxIdx = leftIdx;
-    &#125;
-    if (rightIdx &lt; n &amp;&amp; v[rightIdx] &gt; maxV) &#123;
-      maxV = v[rightIdx];
-      maxIdx = rightIdx;
-    &#125;
-
-    if (maxIdx == -1) &#123;
-      break;
-    &#125;
-    swap(v[idx], v[maxIdx]);
-    idx = maxIdx;
-  &#125;
-&#125;
-
-int pop(vector&lt;int&gt; &amp;v) &#123;
-  int n = v.size();
-  if (n == 0) &#123;
-    return 0;
-  &#125;
-
-  int ret = v[0];
-  swap(v[n - 1], v[0]);
-  v.pop_back();
-  siftDown(v);
-  return ret;
-&#125;
-
-void heapSort(vector&lt;int&gt; &amp;v) &#123;
-  vector&lt;int&gt; h(v);
-  makeHeap(h);
-  int n = v.size();
-  for (int i = 0; i &lt; n; i++) &#123;
-    v[i] = pop(h);
-  &#125;
-&#125;
-</code></pre>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/C/" style="color: #03a9f4">C++</a>
-        </span>
-        
-        <span class="tag">
-            
-            <a href="/tags/Algorithm/" style="color: #ffa2c4">Algorithm</a>
-        </span>
-        
-    </div>
-    <a href="/2025/03/11/interview-algo/" class="go-post">阅读全文</a>
 </div>
 
 

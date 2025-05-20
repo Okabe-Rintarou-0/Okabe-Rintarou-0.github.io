@@ -171,6 +171,71 @@
         
 
 <div class="post">
+    <a href="/2022/12/05/explainable-ai/">
+        <h2 class="post-title">Explainable AI 笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="category">
+            <a href="/categories/AI/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI
+            </a>
+        </span>
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2022/12/5
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h3 id="Mask"><a href="#Mask" class="headerlink" title="Mask"></a>Mask</h3><p>用一个灰色色块遮盖图像，最后一行的图像展示了不同位置遮盖之后分类的概率，由此我们可以发现模型学习到了什么重要的特征。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_0.png"></p>
+<p>比如上图中的狗，遮住脸之后模型就无法辨别了，所以模型学习到了狗的面部特征。</p>
+<h3 id="Saliency-Map"><a href="#Saliency-Map" class="headerlink" title="Saliency Map"></a>Saliency Map</h3><p>修改某一像素的值 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.054ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 466 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D452" xlink:href="#MJX-2-TEX-I-1D452"></use></g></g></g></svg></mjx-container>，得到最终输出结果 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.294ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 572 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D465" xlink:href="#MJX-2-TEX-I-1D465"></use></g></g></g></svg></mjx-container>。计算 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.054ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 466 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D452" xlink:href="#MJX-2-TEX-I-1D452"></use></g></g></g></svg></mjx-container> 关于 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.294ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 572 453" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-I-1D465" d="M52 289Q59 331 106 386T222 442Q257 442 286 424T329 379Q371 442 430 442Q467 442 494 420T522 361Q522 332 508 314T481 292T458 288Q439 288 427 299T415 328Q415 374 465 391Q454 404 425 404Q412 404 406 402Q368 386 350 336Q290 115 290 78Q290 50 306 38T341 26Q378 26 414 59T463 140Q466 150 469 151T485 153H489Q504 153 504 145Q504 144 502 134Q486 77 440 33T333 -11Q263 -11 227 52Q186 -10 133 -10H127Q78 -10 57 16T35 71Q35 103 54 123T99 143Q142 143 142 101Q142 81 130 66T107 46T94 41L91 40Q91 39 97 36T113 29T132 26Q168 26 194 71Q203 87 217 139T245 247T261 313Q266 340 266 352Q266 380 251 392T217 404Q177 404 142 372T93 290Q91 281 88 280T72 278H58Q52 284 52 289Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="1D465" xlink:href="#MJX-1-TEX-I-1D465"></use></g></g></g></svg></mjx-container> 的偏导数，将数值以下方的图像展示。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_1.png"></p>
+<p>一般而言，如果这个偏导数很大，说明这个像素对模型判定结果的影响很大，可以证明这个像素较为重要。 </p>
+<p>但是你不能说一个特征很重要，修改对应的像素就一定会产生很大的判定结果的变化。这是因为，以分类问题为例，假如说模型有充分的信心判定一张图片是狗的图片（判断到了很多特征，比如狗腿，狗头），<br>那么你修改其中一个比较重要的特征，可能还是不影响模型判断它是狗。</p>
+<p>通过这种方式，你还可以判断你的模型是否真的学习到了正确的特征。下图是一个错误的例子，机器学习到只要判定左下角是否有文字，就可以判定是不是马，<br>因为所有的马的训练集都有左下角的文字。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_2.png"></p>
+<h3 id="SmoothGrad"><a href="#SmoothGrad" class="headerlink" title="SmoothGrad"></a>SmoothGrad</h3><p><code>SmoothGrad</code> 是对 <code>Saliency Map</code> 的一种改进。其做法就是将原图加随机噪声生成多份，再获取对应的多份 <code>Saliency Map</code>，最终取平均得到 <code>SmoothGrad</code>。</p>
+<p><img src="/2022/12/05/explainable-ai/Explainable-AI_3.png"></p>
+<h3 id="用另一个网络来聆听-可视化一个模型的隐藏层输出"><a href="#用另一个网络来聆听-可视化一个模型的隐藏层输出" class="headerlink" title="用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出"></a>用另一个网络来聆听&#x2F;可视化一个模型的隐藏层输出</h3><p><img src="/2022/12/05/explainable-ai/Explainable-AI_4.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/Explainable-AI/" style="color: #00bcd4">Explainable AI</a>
+        </span>
+        
+    </div>
+    <a href="/2022/12/05/explainable-ai/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2022/12/03/diffusion/">
         <h2 class="post-title">Diffusion Model 笔记</h2>
     </a>
@@ -219,12 +284,12 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #00a596">AI</a>
+            <a href="/tags/AI/" style="color: #ff7d73">AI</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Diffusion-Model/" style="color: #ffa2c4">Diffusion Model</a>
+            <a href="/tags/Diffusion-Model/" style="color: #00bcd4">Diffusion Model</a>
         </span>
         
     </div>
@@ -303,7 +368,7 @@
         
         <span class="tag">
             
-            <a href="/tags/Anto-Encoder/" style="color: #ff7d73">Anto Encoder</a>
+            <a href="/tags/Anto-Encoder/" style="color: #03a9f4">Anto Encoder</a>
         </span>
         
     </div>
@@ -432,7 +497,7 @@
         
         <span class="tag">
             
-            <a href="/tags/BERT/" style="color: #03a9f4">BERT</a>
+            <a href="/tags/BERT/" style="color: #00a596">BERT</a>
         </span>
         
         <span class="tag">
@@ -609,7 +674,7 @@
         
         <span class="tag">
             
-            <a href="/tags/GAN/" style="color: #00bcd4">GAN</a>
+            <a href="/tags/GAN/" style="color: #ff7d73">GAN</a>
         </span>
         
     </div>
@@ -704,7 +769,7 @@
         
         <span class="tag">
             
-            <a href="/tags/Self-Attention/" style="color: #ffa2c4">Self Attention</a>
+            <a href="/tags/Self-Attention/" style="color: #ff7d73">Self Attention</a>
         </span>
         
     </div>
@@ -812,12 +877,12 @@
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #ff7d73">AI</a>
+            <a href="/tags/AI/" style="color: #00bcd4">AI</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Transformer/" style="color: #03a9f4">Transformer</a>
+            <a href="/tags/Transformer/" style="color: #ff7d73">Transformer</a>
         </span>
         
     </div>
