@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Vector DB | Okabe&#39;s LAB</title>
+    <title>C++ 知识查漏补缺 | Okabe&#39;s LAB</title>
     <meta name="author" content="Zihong Lin" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -154,23 +154,14 @@
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
             <div class="article">
     <div>
-        <h1>Vector DB</h1>
+        <h1>C++ 知识查漏补缺</h1>
     </div>
     <div class="info">
         <span class="date">
             <span class="icon">
                 <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
-            2025/5/10
-        </span>
-        
-        <span class="category">
-            <a href="/categories/AI/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                AI
-            </a>
+            2025/5/25
         </span>
         
         
@@ -182,7 +173,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
+                <a href="/tags/C/" style="color: #03a9f4">C++</a>
             </span>
             
         </span>
@@ -190,32 +181,185 @@
     </div>
     
     <div class="content" v-pre>
-        <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=YpulM5HdSr8">[FIXME][EP09] 向量数据库和出海创业</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/">Locality Sensitive Hashing (LSH): The Illustrated Guide</a></li>
-<li><a target="_blank" rel="noopener" href="https://skyzh.github.io/write-you-a-vector-db/">Write You a Vector Database</a></li>
-</ul>
-<h3 id="常用的向量检索算法"><a href="#常用的向量检索算法" class="headerlink" title="常用的向量检索算法"></a>常用的向量检索算法</h3><ol>
-<li><p>量化（以一定的模型性能换取查询效率），<a target="_blank" rel="noopener" href="https://github.com/gaoj0017/RaBitQ">RabitQ</a>。</p>
-</li>
-<li><p>Locality Sensitive Hashing (LSH)：传统的 hash 函数一般都希望减少碰撞，将一个 key 映射到尽可能分散的空间，而 <code>LSH</code> 则恰恰相反，通过将比较近的 <code>embedding</code> 映射到尽可能相同的 <code>bucket</code> 中，这样就能快速找到相邻的节点。</p>
-<p> <img src="/2025/05/10/vectordb/lsh.png"></p>
-</li>
-<li><p>NSW(Navigate Small World)</p>
-<p> <img src="/2025/05/10/vectordb/nsw.png"></p>
-<p> 选择若干个 <code>entry</code>，然后维护一个有固定大小上限的队列，以类似 BFS 的方式，将距离目标向量最近的向量入队。需要多个 <code>entry</code> 的原因是，如果只采用一个，很容易陷入局部最优解。</p>
-<p> 为了加速查询，我们会限制图中点之间的边的数量为 <code>max_m</code>。当我们插入一个节点的时候，其邻居节点的边可能会超过 <code>max_m</code>，所以我们需要重新计算这些节点的最近邻。</p>
-</li>
-<li><p>HNSW(Hierarchical Navigate Small World)</p>
-<p> 将图以类似跳表的形式组织，但是无论是 NSW 还是 HNSW 都会涉及大量磁盘随机 I&#x2F;O，性能受限。</p>
-</li>
-<li><p>IVF(Inverted File)</p>
-<p> <img src="/2025/05/10/vectordb/ivf.png"></p>
-<p> 使用 <code>Kmeans</code> 将向量分为多个 <code>cluster</code>。并根据 <code>cluster</code> 的标识建立对向量的<code>倒排索引</code>。由于索引存储在一起，可以被顺序读写。</p>
-<p> 在查询的时候，除了判断距离查询向量最近的质心对应的集群，还需要判断临近的集群。因为集群的质心可能距离查询向量比较远，但是边缘的点可能比较近。</p>
-<p> <img src="/2025/05/10/vectordb/ivf_search.png"></p>
-</li>
+        <h3 id="使用-std-tie-读取-std-pair"><a href="#使用-std-tie-读取-std-pair" class="headerlink" title="使用 std::tie 读取 std::pair"></a>使用 std::tie 读取 std::pair</h3><pre><code class="c++">std::pair&lt;int, double&gt; p&#123;1, 2.0&#125;;
+int i;
+double d;
+std::tie(i, d) = p;
+</code></pre>
+<h3 id="std-span"><a href="#std-span" class="headerlink" title="std::span"></a>std::span</h3><p><code>std::span</code> 就是一个连续对象存储的观察者。类似<code>std::string_view</code> 是 <code>std::string</code> 的观察者。</p>
+<pre><code class="c++">int printSize(std::span&lt;int&gt; s) &#123; std::cout &lt;&lt; s.size() &lt;&lt; std::endl; &#125;
+
+int main() &#123;
+  std::vector&lt;int&gt; v&#123;1, 2, 3&#125;;
+  int a[10];
+  std::array&lt;int, 30&gt; arr;
+  printSize(v); // 3
+  printSize(a); // 10
+  printSize(arr); // 30
+&#125;
+</code></pre>
+<h3 id="std-vector-释放内存"><a href="#std-vector-释放内存" class="headerlink" title="std::vector 释放内存"></a>std::vector 释放内存</h3><p><code>std::vector::clear</code> 并不会释放 <code>capacity</code>，需要使用 <code>std::vector::shrink_to_fit</code> 或：</p>
+<pre><code class="c++">std::vector&lt;int&gt; v&#123;1, 2, 3&#125;;
+std::vector&lt;int&gt;().swap(v);
+std::cout &lt;&lt; v.capacity() &lt;&lt; std::endl; // 0
+</code></pre>
+<h3 id="虚函数表占的空间"><a href="#虚函数表占的空间" class="headerlink" title="虚函数表占的空间"></a>虚函数表占的空间</h3><pre><code class="c++">class A &#123;
+public:
+    virtual void vfunc1();
+    virtual void vfunc2();
+    void func1();
+    void func2();
+private:
+    int m_data1, m_data2;
+&#125;;
+</code></pre>
+<p><img src="/2025/05/25/cpp-fix/vtable1.png"></p>
+<p><img src="/2025/05/25/cpp-fix/vtable2.png"></p>
+<h3 id="手写一个-std-function"><a href="#手写一个-std-function" class="headerlink" title="手写一个 std::function"></a>手写一个 std::function</h3><pre><code class="c++">#include &lt;iostream&gt;
+
+template &lt;typename R, typename... Args&gt; struct ICallable &#123;
+  virtual R invoke(Args &amp;&amp;...args) = 0;
+  virtual ~ICallable() &#123;&#125;
+&#125;;
+
+template &lt;typename T, typename R, typename... Args&gt;
+class CallableImpl : public ICallable&lt;R, Args...&gt; &#123;
+private:
+  T callable;
+
+public:
+  explicit CallableImpl(T callable) : callable(callable) &#123;&#125;
+
+  R invoke(Args &amp;&amp;...args) override &#123;
+    return callable(std::forward&lt;Args&gt;(args)...);
+  &#125;
+&#125;;
+
+template &lt;typename Signature&gt; class Function;
+
+template &lt;typename R, typename... Args&gt; class Function&lt;R(Args...)&gt; &#123;
+private:
+  std::unique_ptr&lt;ICallable&lt;R, Args...&gt;&gt; callable;
+
+public:
+  template &lt;typename T&gt;
+  Function&lt;R(Args...)&gt;(T &amp;&amp;callable)
+      : callable(std::make_unique&lt;CallableImpl&lt;T, R, Args...&gt;&gt;(
+            std::forward&lt;T&gt;(callable))) &#123;&#125;
+
+  Function(const Function&lt;R(Args...)&gt; &amp;other) = delete;
+  Function &amp;operator=(const Function&lt;R(Args...)&gt; &amp;other) = delete;
+
+  R operator()(Args &amp;&amp;...args) &#123;
+    return callable-&gt;invoke(std::forward&lt;Args&gt;(args)...);
+  &#125;
+&#125;;
+
+int mmax(int a, int b) &#123; return a &gt; b ? a : b; &#125;
+
+int main() &#123;
+  Function&lt;int(int, int)&gt; f1 = mmax;
+  std::cout &lt;&lt; f1(3, 4) &lt;&lt; std::endl;
+
+  Function&lt;int(int, int)&gt; f2 = std::function&lt;int(int, int)&gt;(mmax);
+  std::cout &lt;&lt; f2(3, 4) &lt;&lt; std::endl;
+
+  Function&lt;int(int, int)&gt; f3([](int a, int b) &#123; return a &gt; b ? a : b; &#125;);
+  std::cout &lt;&lt; f3(3, 4) &lt;&lt; std::endl;
+
+  class Callable &#123;
+  public:
+    int operator()(int x, int y) &#123; return x &gt; y ? x : y; &#125;
+  &#125; c;
+  Function&lt;int(int, int)&gt; f4(c);
+  std::cout &lt;&lt; f4(3, 4) &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<h3 id="智能指针"><a href="#智能指针" class="headerlink" title="智能指针"></a>智能指针</h3><p><code>std::make_shared</code> 优于 <code>std::shared_ptr&lt;T&gt;(new T)</code> 的原因是：</p>
+<ol>
+<li>更简洁</li>
+<li><code>std::make_shared</code> 会分配一块连续的空间（控制块 + 数据块），locality 更好。而后者的内存空间是分散的。</li>
 </ol>
+<p>手写 <code>std::shared_ptr</code>:</p>
+<pre><code class="c++">template &lt;typename T&gt; class ReferenceCount &#123;
+private:
+  std::atomic&lt;size_t&gt; mRefCount;
+  T *data;
+
+public:
+  ReferenceCount(T *data) : data(data), mRefCount(1) &#123;&#125;
+  void increase() &#123; mRefCount.fetch_add(1); &#125;
+  void decrease() &#123;
+    if (mRefCount.fetch_sub(1) == 1) &#123;
+      delete this;
+    &#125;
+  &#125;
+  size_t count() const &#123; return mRefCount.load(); &#125;
+&#125;;
+
+template &lt;typename T&gt; class SharedPtr &#123;
+private:
+  T *data;
+  ReferenceCount&lt;T&gt; *mRefCount;
+
+public:
+  SharedPtr(T *data) : data(data), mRefCount(new ReferenceCount&lt;T&gt;(data)) &#123;&#125;
+
+  SharedPtr(const SharedPtr&lt;T&gt; &amp;other)
+      : data(other.data), mRefCount(other.mRefCount) &#123;
+    mRefCount-&gt;increase();
+  &#125;
+
+  SharedPtr&lt;T&gt; &amp;operator=(const SharedPtr&lt;T&gt; &amp;other) &#123;
+    if (mRefCount != other.mRefCount) &#123;
+      mRefCount-&gt;decrease();
+      mRefCount = other.mRefCount;
+      data = other.data;
+    &#125;
+    mRefCount-&gt;increase();
+    return *this;
+  &#125;
+
+  size_t useCount() const &#123; return mRefCount-&gt;count(); &#125;
+
+  T *operator-&gt;() &#123; return data; &#125;
+&#125;;
+
+template &lt;typename T, typename... Args&gt; SharedPtr&lt;T&gt; makeShared(Args... args) &#123;
+  return SharedPtr&lt;T&gt;(new T(std::forward&lt;Args&gt;(args)...));
+&#125;
+
+int main() &#123;
+  SharedPtr&lt;int&gt; a = makeShared&lt;int&gt;(4);
+  SharedPtr&lt;int&gt; e = makeShared&lt;int&gt;(5);
+  std::cout &lt;&lt; a.useCount() &lt;&lt; std::endl;
+  SharedPtr&lt;int&gt; b = a;
+  std::cout &lt;&lt; a.useCount() &lt;&lt; std::endl;
+  SharedPtr&lt;int&gt; c(a);
+  std::cout &lt;&lt; a.useCount() &lt;&lt; std::endl;
+
+  b = e;
+  std::cout &lt;&lt; a.useCount() &lt;&lt; std::endl;
+  std::cout &lt;&lt; e.useCount() &lt;&lt; std::endl;
+
+  struct Person &#123;
+    Person(std::string name, int age) : name(name), age(age) &#123;&#125;
+    std::string name;
+    int age;
+  &#125;;
+
+  SharedPtr&lt;Person&gt; p = makeShared&lt;Person&gt;(&quot;Alice&quot;, 32);
+  std::cout &lt;&lt; p-&gt;name &lt;&lt; &quot;, &quot; &lt;&lt; p-&gt;age &lt;&lt; std::endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code class="plaintext">1
+2
+3
+2
+2
+Alice, 32
+</code></pre>
 
     </div>
     
