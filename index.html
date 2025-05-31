@@ -367,6 +367,157 @@ int main() &#123;
 2
 Alice, 32
 </code></pre>
+<h3 id="手写-std-any"><a href="#手写-std-any" class="headerlink" title="手写 std::any"></a>手写 <code>std::any</code></h3><p>老样子，使用类型擦除技术（基于特化）。这里的思路我总结下来是这样：<br><code>std::any</code> 他是不需要指定类型的，比如：</p>
+<pre><code class="c++">std::any a = 123;
+</code></pre>
+<p>这里实际上只有在构造的时候才会用到类型，对应一个特化的构造函数：</p>
+<pre><code class="c++">template&lt;typename T&gt;
+Any(T val);
+</code></pre>
+<p>例如：</p>
+<pre><code class="c++">std::any a = 123;
+std::any a = std::string(&quot;Hello&quot;);
+</code></pre>
+<p>将对应两个特化的构造函数。</p>
+<p>既然 <code>std::any</code> 不需要指明其存储的类型 <code>T</code>，那么他的所有成员变量一定是和类型 <code>T</code> 无关的，但是我们总要有个地方存这个 <code>T</code> 类型的 value。</p>
+<p>所以可以想到，我们定义一个接口，该接口和 <code>T</code> 类型无关，其实现类可以与 <code>T</code> 有关，该实现类是真正存储 <code>T</code> 类型 value 的地方。而 <code>std::any</code> 则可以存储这个接口。</p>
+<pre><code class="c++">struct IValueHolder &#123;
+  virtual const std::type_info &amp;type() const = 0;
+&#125;;
+
+template &lt;typename T&gt; class ValueHolder : public IValueHolder &#123;
+private:
+  T val;
+
+public:
+  explicit ValueHolder(T val) : val(val) &#123;&#125;
+
+  const std::type_info &amp;type() const override &#123; return typeid(val); &#125;
+
+  inline const T &amp;value() const &#123; return val; &#125;
+&#125;;
+
+class Any &#123;
+private:
+  std::unique_ptr&lt;IValueHolder&gt; holder;
+
+public:
+  template &lt;typename T&gt;
+  Any(T val) : holder(std::make_unique&lt;ValueHolder&lt;T&gt;&gt;(val)) &#123;&#125;
+
+  template &lt;typename T&gt; T AnyCast() &#123;
+    if (typeid(T) != holder-&gt;type()) &#123;
+      throw std::bad_cast();
+    &#125;
+    return static_cast&lt;ValueHolder&lt;T&gt; *&gt;(holder.get())-&gt;value();
+  &#125;
+&#125;;
+
+int main() &#123;
+  Any a = 123;
+  std::cout &lt;&lt; a.AnyCast&lt;int&gt;() &lt;&lt; endl;
+  std::cout &lt;&lt; a.AnyCast&lt;double&gt;() &lt;&lt; endl;
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code class="plaintext">123
+libc++abi: terminating due to uncaught exception of type std::bad_cast: std::bad_cast
+[1]    25963 abort      /Users/lucas/projects/c++/bin/my_test
+</code></pre>
+<h3 id="enum-class"><a href="#enum-class" class="headerlink" title="enum class"></a>enum class</h3><ol>
+<li>避免命名空间冲突。</li>
+<li>可以指定底层存储的类型，<code>int</code> or <code>long long</code>…</li>
+<li>可以前置声明。</li>
+</ol>
+<h3 id="std-atomic"><a href="#std-atomic" class="headerlink" title="std::atomic"></a><code>std::atomic</code></h3><blockquote>
+<p>std::atomic 背后的缓存行锁定（Cache Line Locking）是实现原子操作的关键机制，它依赖于现代 CPU 的缓存一致性协议（如 MESI）和总线锁定（Bus Locking）。当线程对 std::atomic 变量执行原子操作时，CPU 首先尝试通过缓存行锁定实现高效并发：如果该变量所在的缓存行被当前 CPU 独占（Modified 状态），则直接修改并标记为脏；若被其他 CPU 共享（Shared 状态），则通过总线发送 invalidate 信号，迫使其他 CPU 放弃缓存行的所有权，从而获取独占权后执行操作。若缓存行锁定失败（如跨缓存行的操作），CPU 会退化为总线锁定，临时阻塞整个内存总线，确保操作的原子性。这种分级机制平衡了性能与正确性，使 std::atomic 在大多数场景下仅需短暂的缓存行竞争，避免了昂贵的总线锁定开销。</p>
+</blockquote>
+<pre><code class="c++">std::atomic&lt;int&gt; flag&#123;0&#125;;
+int data = 0;
+
+// 线程 A（写端）
+data = 42;                          // 非原子写入
+flag.store(1, std::memory_order_release); // release 保证 data 的写入不会重排到之后
+
+// 线程 B（读端）
+if (flag.load(std::memory_order_acquire) == 1) &#123; // acquire 保证读到 release 的写入
+    assert(data == 42); // 一定成功！data 的写入对线程 B 可见
+&#125;
+</code></pre>
+<p><code>std::memory_order_release</code> 保证它之前的所有读写都不会重排到它后面，而 <code>std::memory_order_acquire</code> 又保证了它之后的所有读写不会重排到它前面，这样就形成了 <code>release-acquire</code> 模式，前者保证 <code>flag.Store</code> 之前 <code>data = 42</code> 已经写入；后者保证 <code>flag.load</code> 之后，<code>data = 42</code> 才被读取。 </p>
+<h3 id="noexcept"><a href="#noexcept" class="headerlink" title="noexcept"></a><code>noexcept</code></h3><p><code>std::vector</code> 扩缩容的时候，如果元素的移动构造函数被标记为 <code>noexcept</code>，那它就会大胆地调用移动构造函数，否则就会使用相对更安全的拷贝构造函数。<code>std::sort</code> 的优化类似。</p>
+<pre><code class="c++">class A &#123;
+public:
+  A() = default;
+  A(const A &amp;) &#123; std::cout &lt;&lt; &quot;copy&quot; &lt;&lt; std::endl; &#125;
+
+  A(A &amp;&amp;) &#123; std::cout &lt;&lt; &quot;move&quot; &lt;&lt; std::endl; &#125;
+&#125;;
+
+int main() &#123;
+  std::vector&lt;A&gt; aVec;
+  aVec.emplace_back();
+  aVec.emplace_back();
+&#125;
+</code></pre>
+<p>输出：</p>
+<pre><code class="plaintext">copy
+</code></pre>
+<p>将移动构造函数标记为 <code>noexcept</code>，输出：</p>
+<pre><code class="plaintext">move
+</code></pre>
+<h3 id="std-enable-shared-from-this"><a href="#std-enable-shared-from-this" class="headerlink" title="std::enable_shared_from_this"></a><code>std::enable_shared_from_this</code></h3><p>有些时候，我们需要在一个 <code>std::shared_ptr</code> 托管的类的成员函数中，创建它的一个 <code>shared_ptr</code> 新实例，传给某些函数，例如：</p>
+<pre><code class="c++">class Manager;
+class Component &#123;
+private:
+  int *value = new int(3);
+  Manager *mgr;
+
+public:
+  Component(Manager *mgr) : mgr(mgr) &#123;&#125;
+  ~Component() &#123;
+    std::cout &lt;&lt; &quot;Deconstruct&quot; &lt;&lt; std::endl;
+    delete value;
+  &#125;
+  void DoSomething();
+  friend class Manager;
+&#125;;
+
+class Manager &#123;
+public:
+  void Modify(std::shared_ptr&lt;Component&gt; c) &#123; *c-&gt;value = 3; &#125;
+&#125;;
+
+void Component::DoSomething() &#123; mgr-&gt;Modify(std::shared_ptr&lt;Component&gt;(this)); &#125;
+
+int main() &#123;
+  Manager mgr;
+  auto c = std::make_shared&lt;Component&gt;(&amp;mgr);
+  c-&gt;DoSomething();
+&#125;
+</code></pre>
+<p>上述的代码会导致 <code>double free</code> 的问题，正确做法如下：</p>
+<pre><code class="c++">class Component : public std::enable_shared_from_this&lt;Component&gt; &#123;
+  ...
+&#125;
+void Component::DoSomething() &#123; mgr-&gt;Modify(shared_from_this()); &#125;
+</code></pre>
+<p><img src="/2025/05/25/cpp-fix/enable_shared_from_this.png"></p>
+<p>其原理是：构造 <code>Component</code> 的 <code>shared_ptr</code> 的时候，会同时定义一个 <code>weak_ptr</code> 指向 <code>shared_ptr</code>。在调用 <code>shared_from_this</code> 的时候，会由该 <code>weak_ptr</code> 创建对应的 <code>shared_ptr</code>。</p>
+<p>注意，此处的 <code>std::enable_shared_from_this&lt;Component&gt;</code> 必须是 <code>public</code> 继承，不然创建 <code>std::shared_ptr</code> 的时候无法正确访问 <code>enable_shared_from_this</code> 中的 <code>weak_ptr</code>。</p>
+<h3 id="std-deque-实现原理"><a href="#std-deque-实现原理" class="headerlink" title="std::deque 实现原理"></a><code>std::deque</code> 实现原理</h3><p><code>std::deque</code> 通常采用 分块存储（Chunked Storage） 的方式实现，即：<br>由多个固定大小的 “块（Chunks）” 组成，每个块是一个连续的内存数组（称为 “缓冲区” 或 “页”）。</p>
+<p>使用一个中央控制结构（如指针数组或动态数组）管理这些块，记录每个块的地址。<br>这种设计使得：<br>头尾插入&#x2F;删除高效（不需要像 <code>vector</code> 那样整体移动元素）。<br>随机访问（<code>operator[]</code>）比 <code>list</code> 快（计算块索引 + 块内偏移）。</p>
+<p>典型的 std::deque 实现（如 GCC 的 libstdc++）采用 “Map + Chunks” 结构：</p>
+<pre><code class="plaintext">+-------------------+     +-------------------+     +-------------------+
+| Chunk 0 (front)   | --&gt; | Chunk 1           | --&gt; | Chunk N (back)    |
++-------------------+     +-------------------+     +-------------------+
+| [0] | [1] | ...   |     | [0] | [1] | ...   |     | [0] | [1] | ...   |
++-------------------+     +-------------------+     +-------------------+
+</code></pre>
+<ul>
+<li>Map（控制中心）：一个动态数组（如 T**），存储指向各个块的指针。</li>
+<li>Chunk（块）：每个块是一个固定大小的数组（如 512B 或 4KB），存储实际数据。</li>
+</ul>
 
             
         </div>
@@ -475,12 +626,12 @@ mountOptions:
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #03a9f4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CSI/" style="color: #00bcd4">CSI</a>
+            <a href="/tags/CSI/" style="color: #03a9f4">CSI</a>
         </span>
         
     </div>
@@ -630,12 +781,12 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #00bcd4">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/RocksDB/" style="color: #ffa2c4">RocksDB</a>
+            <a href="/tags/RocksDB/" style="color: #ff7d73">RocksDB</a>
         </span>
         
     </div>
@@ -709,7 +860,7 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #03a9f4">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #ffa2c4">AI Infra</a>
         </span>
         
     </div>
@@ -924,17 +1075,17 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ff7d73">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #ffa2c4">LLM</a>
+            <a href="/tags/LLM/" style="color: #03a9f4">LLM</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/vllm/" style="color: #00a596">vllm</a>
+            <a href="/tags/vllm/" style="color: #ffa2c4">vllm</a>
         </span>
         
     </div>
@@ -1083,7 +1234,7 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
     </div>
@@ -1209,12 +1360,12 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+            <a href="/tags/Database/" style="color: #00a596">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #00a596">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #ffa2c4">Key-Value Store</a>
         </span>
         
     </div>
@@ -1337,7 +1488,7 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #00a596">C++</a>
         </span>
         
     </div>
