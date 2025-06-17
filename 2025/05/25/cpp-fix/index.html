@@ -173,7 +173,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/C/" style="color: #ff7d73">C++</a>
+                <a href="/tags/C/" style="color: #00bcd4">C++</a>
             </span>
             
         </span>
@@ -186,6 +186,7 @@ int i;
 double d;
 std::tie(i, d) = p;
 </code></pre>
+<h3 id="std-atomic-is-always-lock-free"><a href="#std-atomic-is-always-lock-free" class="headerlink" title="std::atomic::is_always_lock_free"></a>std::atomic<T>::is_always_lock_free</h3><p>判断是否当前类型可以使用无锁原子实现。</p>
 <h3 id="std-span"><a href="#std-span" class="headerlink" title="std::span"></a>std::span</h3><p><code>std::span</code> 就是一个连续对象存储的观察者。类似<code>std::string_view</code> 是 <code>std::string</code> 的观察者。</p>
 <pre><code class="c++">int printSize(std::span&lt;int&gt; s) &#123; std::cout &lt;&lt; s.size() &lt;&lt; std::endl; &#125;
 
