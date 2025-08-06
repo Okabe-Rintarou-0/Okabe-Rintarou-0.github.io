@@ -173,7 +173,7 @@
             
             <span class="tag">
                 
-                <a href="/tags/TLA/" style="color: #00bcd4">TLA+</a>
+                <a href="/tags/TLA/" style="color: #ffa2c4">TLA+</a>
             </span>
             
         </span>
@@ -231,7 +231,7 @@ Spec == Init /\ [][Next]_&lt;&lt;locks, locksA, locksB&gt;&gt;
 \* Last modified Wed Aug 06 12:14:05 CST 2025 by lucas
 \* Created Wed Aug 06 12:05:08 CST 2025 by lucas
 </code></pre>
-<p>本质上就是用 latex 的语法去写状态机的状态转移表达式，包括状态转移条件，以及下一个状态。注意每个状态都需要在状态转移表达式中声明（即便没有发生变化，如 <code>locksA&#39; locksA</code>）</p>
+<p>本质上就是用 latex 的语法去写状态机的状态转移表达式，包括状态转移条件，以及下一个状态。注意每个状态都需要在状态转移表达式中声明（即便没有发生变化，如 <code>locksA&#39; = locksA</code>）</p>
 <p><img src="/2025/08/06/tla/image.png"></p>
 <p><img src="/2025/08/06/tla/image-1.png"></p>
 <p><img src="/2025/08/06/tla/image-2.png"></p>
