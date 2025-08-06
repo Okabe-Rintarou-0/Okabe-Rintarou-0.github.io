@@ -171,6 +171,101 @@
         
 
 <div class="post">
+    <a href="/2025/08/06/tla/">
+        <h2 class="post-title">形式化验证之 TLA+ 入门</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/8/6
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
+            
+            <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code class="bash">brew install --cask tla+-toolbox
+</code></pre>
+<h2 id="案例——判断死锁"><a href="#案例——判断死锁" class="headerlink" title="案例——判断死锁"></a>案例——判断死锁</h2><pre><code class="plaintext">------------------------------ MODULE deadlock ------------------------------
+
+EXTENDS Integers
+VARIABLES locks, locksA, locksB
+
+Init == 
+    /\ locks = &#123;&#125;
+    /\ locksA = &#123;&#125;
+    /\ locksB = &#123;&#125;
+
+A_REQUIRE_LOCK_1 ==
+    /\ ~(1 \in locks)
+    /\ locks&#39; = locks \cup &#123;1&#125;
+    /\ locksA&#39; = locksA \cup &#123;1&#125;
+    /\ locksB&#39; = locksB
+
+A_REQUIRE_LOCK_2 ==
+    /\ 1 \in locksA
+    /\ ~(2 \in locks)
+    /\ locks&#39; = locks \cup &#123;2&#125;
+    /\ locksA&#39; = locksA \cup &#123;2&#125;
+    /\ locksB&#39; = locksB
+    
+B_REQUIRE_LOCK_1 ==
+    /\ 2 \in locksB
+    /\ ~(1 \in locks)
+    /\ locks&#39; = locks \cup &#123;1&#125;
+    /\ locksB&#39; = locksB \cup &#123;1&#125;
+    /\ locksA&#39; = locksA
+
+B_REQUIRE_LOCK_2 ==
+    /\ ~(2 \in locks)
+    /\ locks&#39; = locks \cup &#123;2&#125;
+    /\ locksB&#39; = locksB \cup &#123;2&#125;
+    /\ locksA&#39; = locksA
+
+Next == A_REQUIRE_LOCK_1
+    \/ A_REQUIRE_LOCK_2
+    \/ A_REQUIRE_LOCK_1
+    \/ A_REQUIRE_LOCK_2
+    
+Spec == Init /\ [][Next]_&lt;&lt;locks, locksA, locksB&gt;&gt;
+
+=============================================================================
+\* Modification History
+\* Last modified Wed Aug 06 12:14:05 CST 2025 by lucas
+\* Created Wed Aug 06 12:05:08 CST 2025 by lucas
+</code></pre>
+<p>本质上就是用 latex 的语法去写状态机的状态转移表达式，包括状态转移条件，以及下一个状态。注意每个状态都需要在状态转移表达式中声明（即便没有发生变化，如 <code>locksA&#39; locksA</code>）</p>
+<p><img src="/2025/08/06/tla/image.png"></p>
+<p><img src="/2025/08/06/tla/image-1.png"></p>
+<p><img src="/2025/08/06/tla/image-2.png"></p>
+<p><img src="/2025/08/06/tla/image-3.png"></p>
+<p>成功检测到了死锁：<br><img src="/2025/08/06/tla/image-4.png"></p>
+
+            
+        </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/TLA/" style="color: #ffa2c4">TLA+</a>
+        </span>
+        
+    </div>
+    <a href="/2025/08/06/tla/" class="go-post">阅读全文</a>
+</div>
+
+<div class="post">
     <a href="/2025/05/25/cpp-fix/">
         <h2 class="post-title">C++ 知识查漏补缺</h2>
     </a>
@@ -533,7 +628,7 @@ void Component::DoSomething() &#123; mgr-&gt;Modify(shared_from_this()); &#125;
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #ffa2c4">C++</a>
+            <a href="/tags/C/" style="color: #03a9f4">C++</a>
         </span>
         
     </div>
@@ -627,12 +722,12 @@ mountOptions:
         
         <span class="tag">
             
-            <a href="/tags/Kubernetes/" style="color: #ffa2c4">Kubernetes</a>
+            <a href="/tags/Kubernetes/" style="color: #00a596">Kubernetes</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/CSI/" style="color: #00a596">CSI</a>
+            <a href="/tags/CSI/" style="color: #ffa2c4">CSI</a>
         </span>
         
     </div>
@@ -691,7 +786,7 @@ mountOptions:
         
         <span class="tag">
             
-            <a href="/tags/AI/" style="color: #00a596">AI</a>
+            <a href="/tags/AI/" style="color: #ffa2c4">AI</a>
         </span>
         
     </div>
@@ -782,7 +877,7 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
         <span class="tag">
@@ -861,7 +956,7 @@ public:
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ffa2c4">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00a596">AI Infra</a>
         </span>
         
     </div>
@@ -1076,17 +1171,17 @@ def recv_kv_caches_and_hidden_states(
         
         <span class="tag">
             
-            <a href="/tags/AI-Infra/" style="color: #ff7d73">AI Infra</a>
+            <a href="/tags/AI-Infra/" style="color: #00bcd4">AI Infra</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/LLM/" style="color: #ffa2c4">LLM</a>
+            <a href="/tags/LLM/" style="color: #00a596">LLM</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/vllm/" style="color: #03a9f4">vllm</a>
+            <a href="/tags/vllm/" style="color: #ff7d73">vllm</a>
         </span>
         
     </div>
@@ -1235,7 +1330,7 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #00a596">Database</a>
+            <a href="/tags/Database/" style="color: #03a9f4">Database</a>
         </span>
         
     </div>
@@ -1361,12 +1456,12 @@ mtx.emplace();
         
         <span class="tag">
             
-            <a href="/tags/Database/" style="color: #ff7d73">Database</a>
+            <a href="/tags/Database/" style="color: #ffa2c4">Database</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/Key-Value-Store/" style="color: #03a9f4">Key-Value Store</a>
+            <a href="/tags/Key-Value-Store/" style="color: #ff7d73">Key-Value Store</a>
         </span>
         
     </div>
@@ -1489,231 +1584,11 @@ false
         
         <span class="tag">
             
-            <a href="/tags/C/" style="color: #00bcd4">C++</a>
+            <a href="/tags/C/" style="color: #ff7d73">C++</a>
         </span>
         
     </div>
     <a href="/2025/03/24/sfinae/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2025/03/21/cpp-template2/">
-        <h2 class="post-title">C++ Template 阅读笔记（2）</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="category">
-            <a href="/categories/Language/">
-                <span class="icon">
-                    <i class="fa-solid fa-bookmark fa-fw"></i>
-                </span>
-                Language
-            </a>
-        </span>
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/3/21
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>接上文，继续记录学习 C++ Template 这本书的心得。</p>
-<h3 id="变参模板"><a href="#变参模板" class="headerlink" title="变参模板"></a>变参模板</h3><p>以下是一个例子：</p>
-<pre><code class="c++">void print() &#123;&#125;
-
-template &lt;typename T, typename... Types&gt;
-void print(T firstArg, Types... args) &#123;
-    std::cout &lt;&lt; firstArg &lt;&lt; std::endl;
-    print(args...);
-&#125;
-</code></pre>
-<p>上述的代码必须要定义 <code>print()</code> 这个重载函数，否则编译会不通过。因为 <code>Types... args</code> 的参数数量最后会变成 0，这样就找不到对应的函数了，也可以采用如下的版本。</p>
-<pre><code class="c++">template &lt;typename T&gt;
-void print(T arg) &#123;
-    std::cout &lt;&lt; arg &lt;&lt; std::endl;
-&#125;
-
-template &lt;typename T, typename... Types&gt;
-void print(T firstArg, Types... args) &#123;
-    print(firstArg);
-    print(args...);
-&#125;
-</code></pre>
-<p>当传入的参数为 1 个的时候，会优先匹配第一个函数。</p>
-<h3 id="折叠表达式"><a href="#折叠表达式" class="headerlink" title="折叠表达式"></a>折叠表达式</h3><pre><code class="c++">template &lt;typename... T&gt; 
-auto foldSum(T... args) &#123; return (... + args); &#125;
-</code></pre>
-<h3 id="变参下标（Variadic-Indices）"><a href="#变参下标（Variadic-Indices）" class="headerlink" title="变参下标（Variadic Indices）"></a>变参下标（Variadic Indices）</h3><pre><code class="c++">template &lt;typename T, typename... Idx&gt;
-void printElements(const T &amp;v, Idx... idx) &#123;
-  print(v[idx]...);
-&#125;
-const char *names[]&#123;&quot;Alice&quot;, &quot;Bob&quot;, &quot;Peter&quot;&#125;;
-// print &quot;Alice&quot; and &quot;Bob&quot;
-printElements(names, 0, 1);
-
-template &lt;size_t... Idx, typename C&gt; void printElements(const C &amp;v) &#123;
-  print(v[Idx]...);
-&#125;
-const char *names[]&#123;&quot;Alice&quot;, &quot;Bob&quot;, &quot;Peter&quot;&#125;;
-// print &quot;Bob&quot; and &quot;Peter&quot;
-printElements&lt;1, 2&gt;(names);
-</code></pre>
-<h3 id="模板成员变量"><a href="#模板成员变量" class="headerlink" title="模板成员变量"></a>模板成员变量</h3><pre><code class="c++">template&lt;typename T&gt;
-class MyClass &#123;
-public:
-  static constexpr int size = sizeof(T);
-&#125;;
-
-template&lt;typename T&gt;
-constexpr int Size = MyClass&lt;T&gt;::size;
-
-std::cout &lt;&lt; Size&lt;char&gt; &lt;&lt; std::endl; // 1
-std::cout &lt;&lt; Size&lt;double&gt; &lt;&lt; std::endl; // 8
-</code></pre>
-<p>各种 <code>type trait</code>，如 <code>std::is_const_v</code> 就是基于此。</p>
-<h3 id="从-static-assert-到-std-enable-if-t-再到-concept"><a href="#从-static-assert-到-std-enable-if-t-再到-concept" class="headerlink" title="从 static_assert 到 std::enable_if_t 再到 concept"></a>从 static_assert 到 std::enable_if_t 再到 concept</h3><h4 id="static-assert"><a href="#static-assert" class="headerlink" title="static_assert"></a>static_assert</h4><pre><code class="c++">template &lt;typename T&gt; void foo(T t) &#123;
-  static_assert(sizeof(T) &gt; 4,
-                &quot;size of given type should be greater than 4 bytes&quot;);
-  std::cout &lt;&lt; t &lt;&lt; std::endl;
-&#125;
-foo(1);
-</code></pre>
-<p>上述代码会报错：</p>
-<blockquote>
-<p>Static assertion failed due to requirement ‘sizeof(int) &gt; 4’: size of given type should be greater than 4 bytesclang(static_assert_requirement_failed)</p>
-</blockquote>
-<h4 id="std-enable-if-t"><a href="#std-enable-if-t" class="headerlink" title="std::enable_if_t"></a>std::enable_if_t</h4><pre><code class="c++">template &lt;typename T&gt; 
-std::enable_if_t&lt;(sizeof(T) &gt; 4)&gt; foo(T t) &#123;
-  std::cout &lt;&lt; t &lt;&lt; std::endl;
-&#125;
-</code></pre>
-<p><code>std::enable_if_t</code> 等价于 <code>std::enable_if::type</code>。其中第一个模板类型是 <code>bool</code> 编译期常量，若为 <code>true</code>，则函数返回第二个模板类型（若没有第二个模板类型，则为 <code>void</code>），否则函数未定义。</p>
-<p>上述代码会报未定义错误：</p>
-<blockquote>
-<p>No matching function for call to ‘foo’</p>
-</blockquote>
-<h4 id="concept"><a href="#concept" class="headerlink" title="concept"></a>concept</h4><pre><code class="c++">template &lt;typename T&gt;
-  requires(sizeof(T) &gt; 4)
-void foo(T t) &#123;
-  std::cout &lt;&lt; t &lt;&lt; std::endl;
-&#125;
-</code></pre>
-<p>类似的报错：</p>
-<pre><code>No matching function for call to &#39;foo&#39;clang(ovl_no_viable_function_in_call)
-main.cpp(18, 6): Candidate template ignored: constraints not satisfied [with T = int]
-main.cpp(17, 12): Because &#39;sizeof(int) &gt; 4&#39; (4 &gt; 4) evaluated to false
-</code></pre>
-<h3 id="模板中按值传递-按引用传递"><a href="#模板中按值传递-按引用传递" class="headerlink" title="模板中按值传递 &amp; 按引用传递"></a>模板中按值传递 &amp; 按引用传递</h3><p>引用传递会保留类型的修饰，而值传递则会对类型进行退化。</p>
-<pre><code class="c++">template&lt;typename T&gt;
-void foo(T &amp;t) &#123;
-  if constexpr(std::is_array_v&lt;T&gt;) &#123;
-    std::cout &lt;&lt; &quot;is array&quot; &lt;&lt; std::endl;
-  &#125;
-  if constexpr(std::is_const_v&lt;T&gt;) &#123;
-    std::cout &lt;&lt; &quot;is const&quot; &lt;&lt; std::endl;
-  &#125;
-&#125;
-
-const char a[] = &quot;Hello, World&quot;;
-foo(a);
-// 输出
-// is array
-// is const
-</code></pre>
-<p>而将上述代码修改为值传递：</p>
-<pre><code class="c++">template &lt;typename T&gt; void foo(T t) &#123;
-  if constexpr (std::is_array_v&lt;T&gt;) &#123;
-    std::cout &lt;&lt; &quot;is array&quot; &lt;&lt; std::endl;
-  &#125;
-  if constexpr (std::is_const_v&lt;T&gt;) &#123;
-    std::cout &lt;&lt; &quot;is const&quot; &lt;&lt; std::endl;
-  &#125;
-&#125;
-</code></pre>
-<p>则不会产生任何输出，因为 <code>const char[13]</code> 被退化为了 <code>char *</code>，<br>既不是 <code>array</code> 也不是 <code>const</code>。</p>
-<p>下面的函数有时候会产生问题：</p>
-<pre><code class="c++">template&lt;typename T&gt;
-T foo(T t) &#123;
-  return t;
-&#125;
-</code></pre>
-<p>虽然会对类型进行退化，但是仍然可以通过显式的方式将 <code>T</code> 声明为引用。</p>
-<pre><code class="c++">int i;
-foo&lt;int &amp;&gt;(i);
-</code></pre>
-<p>这样可能会导致垂悬引用（dangling reference），所以此处可以通过三种方式保证返回值是退化的。</p>
-<pre><code class="c++">// 使用 auto 自动退化
-template&lt;typename T&gt;
-auto foo(T t) &#123;
-  return t;
-&#125;
-
-// 使用 std::decay 显式退化
-template&lt;typename T&gt;
-std::decay_t&lt;T&gt; foo(T t) &#123;
-  return t;
-&#125;
-
-// 去除引用
-template&lt;typename T&gt;
-std::remove_reference_t&lt;T&gt; foo(T t) &#123;
-  return t;
-&#125;
-</code></pre>
-<h3 id="std-is-convertible"><a href="#std-is-convertible" class="headerlink" title="std::is_convertible"></a>std::is_convertible</h3><p><code>std::is_convertible</code> 可以用于限制一个使用万能引用的构造函数的模板类型，例如：</p>
-<pre><code class="c++">class MyClass &#123;
-public:
-  template &lt;typename T&gt;
-  MyClass(T &amp;&amp;data)
-    requires(std::is_convertible_v&lt;T, std::string&gt;)
-      : data(data) &#123;&#125;
-
-private:
-  std::string data;
-&#125;;
-
-MyClass a(1); // error
-</code></pre>
-<p>报错信息：</p>
-<pre><code>No matching constructor for initialization of &#39;MyClass&#39;clang(ovl_no_viable_function_in_init)
-main.cpp(19, 7): Candidate constructor (the implicit copy constructor) not viable: no known conversion from &#39;int&#39; to &#39;const MyClass&#39; for 1st argument
-main.cpp(19, 7): Candidate constructor (the implicit move constructor) not viable: no known conversion from &#39;int&#39; to &#39;MyClass&#39; for 1st argument
-main.cpp(22, 3): Candidate template ignored: constraints not satisfied [with T = int]
-main.cpp(23, 14): Because &#39;std::is_convertible_v&lt;int, std::string&gt;&#39; evaluated to false
-</code></pre>
-<h3 id="std-reference-wrapper"><a href="#std-reference-wrapper" class="headerlink" title="std::reference_wrapper"></a>std::reference_wrapper</h3><pre><code class="c++">std::string str = &quot;123&quot;;
-auto r1 = std::ref(str); // std::reference_wrapper&lt;string&gt;
-auto r2 = std::cref(str); // std::reference_wrapper&lt;const string&gt;
-</code></pre>
-<p><code>std::reference_wrapper</code> 相当于在引用外包了一层，这样就可以在保证性能的前提下进行值传递（有些模板采用值传递）。<code>std::reference_wrapper</code> 可以隐式地转换成包裹的引用本身。</p>
-<pre><code class="c++">std::string &amp;s2 = r1;
-const std::string &amp;s3 = r2;
-</code></pre>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        <span class="icon">
-            <i class="fa-solid fa-tags fa-fw"></i>
-        </span>
-        
-        
-        
-        <span class="tag">
-            
-            <a href="/tags/C/" style="color: #00a596">C++</a>
-        </span>
-        
-    </div>
-    <a href="/2025/03/21/cpp-template2/" class="go-post">阅读全文</a>
 </div>
 
 
