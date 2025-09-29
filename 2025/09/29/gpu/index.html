@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>gpu | Okabe&#39;s LAB</title>
+    <meta name="author" content="Zihong Lin" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://cdn.staticfile.org" />
+<script src="https://cdn.staticfile.org/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.loli.net" />
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin />
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" />
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://cdn.staticfile.org/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.staticfile.org/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.staticfile.org/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.1.1"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>OKABE&#39;S LAB</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;OKABE&#39;S LAB</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>gpu</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/9/29
+        </span>
+        
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <h1 id="矩阵乘法与Flash-Attention优化笔记"><a href="#矩阵乘法与Flash-Attention优化笔记" class="headerlink" title="矩阵乘法与Flash Attention优化笔记"></a>矩阵乘法与Flash Attention优化笔记</h1><h2 id="一、分块矩阵乘法（Tiled-Matrix-Multiplication）"><a href="#一、分块矩阵乘法（Tiled-Matrix-Multiplication）" class="headerlink" title="一、分块矩阵乘法（Tiled Matrix Multiplication）"></a>一、分块矩阵乘法（Tiled Matrix Multiplication）</h2><p><img src="/image.png"></p>
+<h3 id="1-核心原理"><a href="#1-核心原理" class="headerlink" title="1. 核心原理"></a>1. 核心原理</h3><p>矩阵乘法基本式为( C &#x3D; A \times B )（( A )为( m \times k )矩阵，( B )为( k \times n )矩阵，( C )为( m \times n )矩阵）。常规计算中输入元素需从全局内存重复读取多次，分块矩阵乘法将大矩阵( A )、( B )划分成大小为( T )的小“块（Tile）”，计算时：</p>
+<ul>
+<li>外层循环：遍历这些块（紫色部分为外层循环的块，深蓝色是当前外层循环处理的块）。</li>
+<li>内层循环：在每个块内部，遍历块里的元素（绿色部分为内层循环的元素，亮绿色是当前内层循环处理的元素）。</li>
+<li>结果计算：通过分块计算逐步得到结果矩阵( C )的临时块（橙色部分），最终整合为完整的( C )。</li>
+</ul>
+<h3 id="2-内存访问优化"><a href="#2-内存访问优化" class="headerlink" title="2. 内存访问优化"></a>2. 内存访问优化</h3><table>
+<thead>
+<tr>
+<th>计算方式</th>
+<th>内存读取次数</th>
+<th>优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>非分块矩阵乘法</td>
+<td>每个输入元素从全局内存读( N )次（( N )是矩阵规模）</td>
+<td>无</td>
+</tr>
+<tr>
+<td>分块矩阵乘法</td>
+<td>每个输入元素从全局内存读( \frac{N}{T} )次</td>
+<td>内存访问次数减少为原来的( \frac{1}{T} )，极大提升效率</td>
+</tr>
+</tbody></table>
+<h2 id="二、burst-section相关"><a href="#二、burst-section相关" class="headerlink" title="二、burst section相关"></a>二、burst section相关</h2><p><img src="/image-1.png" alt="Alt text"></p>
+<h3 id="1-所属硬件"><a href="#1-所属硬件" class="headerlink" title="1. 所属硬件"></a>1. 所属硬件</h3><p>“burst section”通常指GPU（图形处理器）中的概念，代表内存突发传输中的一个数据段。GPU为提高内存访问效率，采用成块（burst）读取数据的方式，而非逐个字节读取。虽CPU在缓存读取等操作中也有成批读取数据的概念，但在矩阵分块优化及相关术语使用语境中，尤其涉及大规模并行计算和内存访问优化时，更多在GPU计算加速场景下讨论。</p>
+<h3 id="2-内存对齐与数据加载"><a href="#2-内存对齐与数据加载" class="headerlink" title="2. 内存对齐与数据加载"></a>2. 内存对齐与数据加载</h3><ul>
+<li>内存对齐（Aligned Layout）：当矩阵分块（tile）和内存突发传输段对齐时，GPU可高效加载数据，能一次性读取整个分块的数据，减少读取次数，提升性能（如“Aligned Layout”示例展示，快速加载“One Nice Tile”）。</li>
+<li>内存未对齐（Unaligned Layout）：若矩阵分块和内存突发传输段不对齐，一个分块的数据可能分散在多个突发传输段中，GPU需多次读取不同突发传输段获取完整分块数据，导致性能下降（如“Unaligned Layout”示例，产生“Two Bad Tiles”，数据加载效率低）。</li>
+</ul>
+<h2 id="三、方阵矩阵乘法性能图表（Matrix-mystery）"><a href="#三、方阵矩阵乘法性能图表（Matrix-mystery）" class="headerlink" title="三、方阵矩阵乘法性能图表（Matrix mystery）"></a>三、方阵矩阵乘法性能图表（Matrix mystery）</h2><p><img src="/image-2.png" alt="Alt text"></p>
+<h3 id="1-坐标轴与核心指标"><a href="#1-坐标轴与核心指标" class="headerlink" title="1. 坐标轴与核心指标"></a>1. 坐标轴与核心指标</h3><ul>
+<li>横轴：矩阵相关规模参数（如矩阵维度等）。</li>
+<li>纵轴：( TF&#x2F;s )（每秒万亿次浮点运算），衡量矩阵乘法计算性能。</li>
+</ul>
+<h3 id="2-关键技术与趋势"><a href="#2-关键技术与趋势" class="headerlink" title="2. 关键技术与趋势"></a>2. 关键技术与趋势</h3><ul>
+<li>Compute Intensity（计算强度，粉色标注）：随矩阵规模等因素变化，计算强度提升推动性能（FLOPs）上升。计算强度为“计算操作与内存访问的比例”，比例越高，计算越“密集”，能更充分利用硬件计算能力。</li>
+<li>Tiling（分块，黄色标注）：经典优化手段，通过把大矩阵拆成小“块（Tile）”计算，减少内存访问开销、提升数据复用率，显著提高性能（黄色箭头指向区域性能因分块优化明显提升）。</li>
+<li>Wave Quantization（波量化，绿色标注）：优化思路（可能涉及数据量化、压缩等，减少计算或内存传输开销），绿色圈出区域性能在该优化下有特定变化趋势。</li>
+</ul>
+<h3 id="3-整体意图"><a href="#3-整体意图" class="headerlink" title="3. 整体意图"></a>3. 整体意图</h3><p>标题“Matrix mystery”（矩阵之谜）及文字“We understand some of this (compute intensity, tiling)… let’s take a closer look…”体现：虽已理解“计算强度”“分块”等部分优化作用，但仍需深入分析这些技术（及“波量化”这类技术）如何共同影响矩阵乘法性能，探索其中“奥秘”。</p>
+<h2 id="四、不同k值与内存对齐关系"><a href="#四、不同k值与内存对齐关系" class="headerlink" title="四、不同k值与内存对齐关系"></a>四、不同k值与内存对齐关系</h2><p><img src="/image-3.png" alt="Alt text"></p>
+<h3 id="1-基础关系"><a href="#1-基础关系" class="headerlink" title="1. 基础关系"></a>1. 基础关系</h3><p>矩阵乘法分块优化（Tiling）中，内存对齐是关键因素。矩阵分块与内存突发传输段（burst section）对齐时，数据加载效率高；不对齐时，数据加载效率低。</p>
+<h3 id="2-不同k值影响"><a href="#2-不同k值影响" class="headerlink" title="2. 不同k值影响"></a>2. 不同k值影响</h3><p>( K )通常代表矩阵分块的某个维度参数（如分块大小或划分粒度），不同( K )值改变矩阵分块尺寸和形状，影响其与内存突发传输段匹配关系：</p>
+<ul>
+<li>合适的( K )值（利于对齐）：( K )取值使分块边界与内存突发传输段边界匹配（如分块尺寸是内存突发传输段大小的整数倍），加载分块数据时实现内存对齐，一次突发传输完整加载一个分块，数据加载高效。</li>
+<li>不合适的( K )值（导致未对齐）：( K )取值不合适，分块边界与内存突发传输段边界不匹配，一个矩阵分块数据可能跨越多个内存突发传输段，加载一个分块需多次突发传输，内存未对齐，严重降低数据加载效率。</li>
+</ul>
+<h3 id="3-图表体现"><a href="#3-图表体现" class="headerlink" title="3. 图表体现"></a>3. 图表体现</h3><p>不同( K )值（( K &#x3D; 2 )、( K &#x3D; 8 )、( K &#x3D; 16 )、( K &#x3D; 32 )）对应FLOPs曲线走势不同。不合适的( K )值因导致内存未对齐，数据加载效率低，影响整体矩阵乘法计算性能，FLOPs表现不如内存对齐情况。</p>
+<h2 id="五、Softmax计算（普通与在线）"><a href="#五、Softmax计算（普通与在线）" class="headerlink" title="五、Softmax计算（普通与在线）"></a>五、Softmax计算（普通与在线）</h2><p><img src="/image-4.png" alt="Alt text"></p>
+<h3 id="1-普通Softmax（Normal-softmax，左侧）"><a href="#1-普通Softmax（Normal-softmax，左侧）" class="headerlink" title="1. 普通Softmax（Normal softmax，左侧）"></a>1. 普通Softmax（Normal softmax，左侧）</h3><ul>
+<li>公式：( y_i &#x3D; \frac{e^{x_i - \max_{k&#x3D;1}^V x_k}}{\sum_{j&#x3D;1}^V e^{x_j - \max_{k&#x3D;1}^V x_k}} )，通过减去输入向量( x )中的最大值( \max_{k&#x3D;1}^V x_k )进行数值稳定（避免指数运算数值过大溢出），计算每个元素的Softmax结果( y_i )。</li>
+<li>算法（Algorithm 2: Safe softmax）：<ol>
+<li>初始化最大值( m_0 )为负无穷。</li>
+<li>遍历输入向量( x )的每个元素( x_k )，逐步计算当前最大值( m_k )（找到整个向量的最大值( m_V )）。</li>
+<li>初始化总和( d_0 )为0。</li>
+<li>遍历输入向量( x )的每个元素( x_j )，计算( e^{x_j - m_V} )并累加到( d_V )（得到分母的总和）。</li>
+<li>对每个元素( x_i )，计算( y_i &#x3D; \frac{e^{x_i - m_V}}{d_V} )，得到Softmax结果。</li>
+</ol>
+</li>
+</ul>
+<h3 id="2-在线Softmax（Online-softmax，右侧）"><a href="#2-在线Softmax（Online-softmax，右侧）" class="headerlink" title="2. 在线Softmax（Online softmax，右侧）"></a>2. 在线Softmax（Online softmax，右侧）</h3><ul>
+<li>算法（Algorithm 3: Safe softmax with online normalizer calculation）：<ol>
+<li>初始化最大值( m_0 )为负无穷，总和( d_0 )为0。</li>
+<li>遍历输入向量( x )的每个元素( x_j )：<ul>
+<li>逐步更新当前最大值( m_j )。</li>
+<li>在线更新总和( d_j )，利用前一次的最大值( m_{j-1} )和当前最大值( m_j )调整累加项（( d_j &#x3D; d_{j-1} \times e^{m_{j-1} - m_j} + e^{x_j - m_j} )），避免后续重复计算。</li>
+</ul>
+</li>
+<li>对每个元素( x_i )，计算( y_i &#x3D; \frac{e^{x_i - m_V}}{d_V} )，得到Softmax结果。</li>
+</ol>
+</li>
+</ul>
+<h3 id="3-核心差异"><a href="#3-核心差异" class="headerlink" title="3. 核心差异"></a>3. 核心差异</h3><p>普通Softmax“先找全局最大值，再统一计算分母总和”；在线Softmax“边遍历元素、边更新最大值，同时在线维护分母总和”，在处理大规模数据或对计算效率（尤其是内存访问模式）有要求的场景下，在线Softmax可能更具优势（如更友好的缓存利用、流式计算特性）。</p>
+<h2 id="六、Flash-Attention优化（含Softmax与输出部分）"><a href="#六、Flash-Attention优化（含Softmax与输出部分）" class="headerlink" title="六、Flash Attention优化（含Softmax与输出部分）"></a>六、Flash Attention优化（含Softmax与输出部分）</h2><p><img src="/image-5.png" alt="Alt text"></p>
+<h3 id="1-整体优化方式"><a href="#1-整体优化方式" class="headerlink" title="1. 整体优化方式"></a>1. 整体优化方式</h3><table>
+<thead>
+<tr>
+<th>优化方式</th>
+<th>具体操作</th>
+<th>优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分块计算（Tiling）</td>
+<td>键矩阵( K )分成多个部分（如( (K^{(1)})^T )和( (K^{(2)})^T )），查询矩阵( Q )分别与这些分块的键矩阵转置相乘（得到( S^{(1)} &#x3D; Q(K^{(1)})^T )和( S^{(2)} &#x3D; Q(K^{(2)})^T )）</td>
+<td>避免一次性处理大规模矩阵乘法，降低内存需求；更好利用GPU并行计算能力，提升计算效率</td>
+</tr>
+<tr>
+<td>中间结果存储与复用优化</td>
+<td>指数计算( \exp(S^{(1)}) )和( \exp(S^{(2)}) )得到( A^{(1)} )和( A^{(2)} )，分别计算每行的和( l^{(1)} )和( l^{(2)} )，( l^{(2)} )计算利用( l^{(1)} )结果（( l^{(2)} &#x3D; l^{(1)} + \sum_{i} \exp(S^{(2)})_{i} )）</td>
+<td>复用之前计算结果，减少重复计算，节省计算资源和时间</td>
+</tr>
+<tr>
+<td>避免完整softmax计算</td>
+<td>不直接计算标准softmax，通过计算局部的归一化因子（如( l^{(1)} )和( l^{(2)} )），再对结果进行重新缩放（Rescaling）近似softmax效果</td>
+<td>减少计算量，序列长度较长时效果更显著</td>
+</tr>
+<tr>
+<td>内存管理优化</td>
+<td>标注不同计算步骤存储位置（如存储在高带宽内存（HBM）和在静态随机存取存储器（SRAM）中计算，且不在HBM中实例化）</td>
+<td>合理分配内存，减少数据在不同存储层级间传输开销；SRAM读写速度比HBM快，在SRAM中进行部分计算加快计算速度</td>
+</tr>
+</tbody></table>
+<h3 id="2-Softmax节省计算细节"><a href="#2-Softmax节省计算细节" class="headerlink" title="2. Softmax节省计算细节"></a>2. Softmax节省计算细节</h3><p>Flash Attention节省计算非对应“O(2)”这类计算，主要通过：</p>
+<ul>
+<li>避免全局softmax的归一化计算：传统Attention计算softmax需对整个注意力得分矩阵归一化（计算所有元素指数值，再求和得到归一化因子，计算复杂度高，序列长度( n )较大时计算量随( n^2 )增长）；Flash Attention通过分块计算和增量式归一化因子计算（如计算( l^{(1)} )和( l^{(2)} )并复用( l^{(1)} )结果），避免全局softmax归一化计算，减少指数运算和求和运算次数。</li>
+<li>分块矩阵乘法减少内存和计算开销：传统Attention计算注意力得分( QK^T )对完整矩阵相乘（规模大时内存占用大、计算成本高）；Flash Attention将键矩阵分块，查询矩阵分别与分块转置矩阵相乘，降低每次计算内存需求，适配GPU并行计算特性。</li>
+<li>中间结果复用减少重复计算：传统Attention可能未充分复用中间结果导致重复计算；Flash Attention复用中间计算结果（如( l^{(2)} )依赖( l^{(1)} )），避免重复计算指数和累加值。</li>
+<li>内存层级优化减少数据传输开销：传统Attention数据在不同内存层级间频繁传输，传输开销大；Flash Attention合理安排计算和存储位置（如在SRAM中计算部分结果），减少数据传输，间接节省计算时间。</li>
+</ul>
+<h3 id="3-输出部分（-O-1-和-O-2-）节省计算"><a href="#3-输出部分（-O-1-和-O-2-）节省计算" class="headerlink" title="3. 输出部分（( O^{(1)} )和( O^{(2)} )）节省计算"></a>3. 输出部分（( O^{(1)} )和( O^{(2)} )）节省计算</h3><h4 id="核心逻辑"><a href="#核心逻辑" class="headerlink" title="核心逻辑"></a>核心逻辑</h4><p>输出( O )是注意力权重与值（Value）矩阵的加权和，Flash Attention中输出拆分为( O^{(1)} )和( O^{(2)} )两部分组合：( O^{(2)} &#x3D; \frac{l^{(1)}}{l^{(2)}} O^{(1)} + \frac{A^{(2)}}{l^{(2)}} \cdot V^{(2)} )（( l^{(1)} )、( l^{(2)} )是分块的归一化因子，( A^{(1)} )、( A^{(2)} )是分块的注意力权重，( V^{(1)} )、( V^{(2)} )是分块的值矩阵）。</p>
+<h4 id="节省计算关键"><a href="#节省计算关键" class="headerlink" title="节省计算关键"></a>节省计算关键</h4><ul>
+<li>复用( O^{(1)} )的结果：计算( O^{(2)} )时直接复用之前计算的( O^{(1)} )，不重新计算与( V^{(1)} )相关的加权和，避免对( A^{(1)} )和( V^{(1)} )的重复运算，减少矩阵乘法和加权求和计算量。</li>
+<li>增量式归一化（Rescaling）：通过( \frac{l^{(1)}}{l^{(2)}} )和( \frac{A^{(2)}}{l^{(2)}} )的“重新缩放（Rescaling）”操作，将分块计算结果增量式合并，不对整个矩阵重新做全局softmax归一化，避免大规模矩阵重复归一化计算，节省指数运算和求和开销。</li>
+</ul>
+<h4 id="迭代方式优势"><a href="#迭代方式优势" class="headerlink" title="迭代方式优势"></a>迭代方式优势</h4><p>Flash Attention输出合并阶段采用增量式、复用中间结果的方式，处理后续tile（如( K^{(2)} )、( V^{(2)} )对应的分块）时，复用之前tile（( K^{(1)} )、( V^{(1)} )对应的分块）计算的中间结果（如( O^{(1)} )、归一化因子( l^{(1)} )等），通过“重新缩放（Rescaling）”将新tile计算的注意力权重与值的加权和和之前tile结果增量式合并，避免对每个tile“重新遍历、完整计算一遍softmax相关所有步骤”，节省大量重复计算。</p>
+<h3 id="4-实际分块方式"><a href="#4-实际分块方式" class="headerlink" title="4. 实际分块方式"></a>4. 实际分块方式</h3><h4 id="分块依据"><a href="#分块依据" class="headerlink" title="分块依据"></a>分块依据</h4><ul>
+<li>内存层级适配：GPU有不同内存层级（SRAM速度快但容量小，HBM容量大但速度相对慢），分块大小设计成能让分块数据“刚好适配高速缓存（如SRAM）”，计算单个分块时数据留在高速缓存，减少慢速全局内存访问。</li>
+<li>并行计算效率：分块能让GPU的线程束（Warp）或线程块（Block）高效并行计算，分块维度匹配GPU线程并行度，使每个线程或线程束“负载均衡”处理分块内计算。</li>
+</ul>
+<h4 id="实际分块动态性"><a href="#实际分块动态性" class="headerlink" title="实际分块动态性"></a>实际分块动态性</h4><p>分块大小非固定“两块”“三块”，而是动态调整：根据输入序列长度、模型隐藏层维度等参数，计算最优分块尺寸（如每个分块的token数量、特征维度等）；例如长序列（几千甚至上万个token）会分成多个小分块，逐个处理，每个分块大小优化为“能让该分块的注意力计算在GPU上达到最高吞吐量”。</p>
+<h4 id="核心目的"><a href="#核心目的" class="headerlink" title="核心目的"></a>核心目的</h4><p>让每个分块的中间结果（如注意力得分、softmax中间值）保存在高速内存中，避免频繁从低速全局内存读取&#x2F;写入；让分块内的矩阵乘法、softmax等操作能被GPU高效并行执行，最大化FLOPS（每秒浮点运算次数）。</p>
+
+    </div>
+    
+    
+    
+    
+    <div id="comment">
+        <div id="giscus-container" class="giscus"></div>
+    </div>
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2022 - 2025 Okabe&#39;s LAB
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Zihong Lin
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+<script
+    src="https://giscus.app/client.js"
+    data-repo="Okabe-Rintarou-0/Okabe-Rintarou-0.github.io"
+    data-repo-id="R_kgDOJD3YPA"
+    data-category="Announcements"
+    data-category-id="DIC_kwDOJD3YPM4Cc9W2"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="zh-CN"
+    crossorigin
+    async
+></script>
+
+
+
+
+
+    
+</body>
+</html>
